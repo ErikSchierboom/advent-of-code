@@ -2,3 +2,6 @@
 .ionide/
 .vs/
 .vscode/
+
+bin/
+obj/

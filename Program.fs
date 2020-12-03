@@ -1,8 +1,8 @@
-open System.IO
+﻿open System.IO
 
 let readInput day =
     let inputFilePath =
-        Path.Combine("2020", sprintf "%d.txt" day)
+        Path.Combine("Input", sprintf "%d.txt" day)
 
     File.ReadAllLines(inputFilePath)
 
@@ -26,5 +26,7 @@ let solveDay1 () =
 
     (part1, part2)
 
-
-printfn "Day 1: %A" (solveDay1 ())
+[<EntryPoint>]
+let main argv =
+    printfn "Day 1: %A" (solveDay1 ())
+    0 // return an integer exit code
