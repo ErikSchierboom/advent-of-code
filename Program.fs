@@ -1,32 +1,33 @@
 ﻿open System.IO
 
-let readInput day =
-    let inputFilePath =
-        Path.Combine("Input", sprintf "%d.txt" day)
+module Input =
+    let private inputFilePath day = Path.Combine("Input", sprintf "%d.txt" day)
 
-    File.ReadAllLines(inputFilePath)
+    let lines day = File.ReadAllLines(inputFilePath day)
 
-let readInputAsIntegers day = readInput day |> Array.map int
+    let integers day = lines day |> Array.map int
 
-let solveDay1 () =
-    let numbers = readInputAsIntegers 1
+module Day1 =
+    let solve () =
+        let numbers = Input.integers 1
 
-    let part1 =
-        [ for n1 in numbers do
-            for n2 in numbers do
-                if n1 + n2 = 2020 then yield n1 * n2 ]
-        |> List.head
+        let part1 =
+            [ for n1 in numbers do
+                for n2 in numbers do
+                    if n1 + n2 = 2020 then yield n1 * n2 ]
+            |> List.head
 
-    let part2 =
-        [ for n1 in numbers do
-            for n2 in numbers do
-                for n3 in numbers do
-                    if n1 + n2 + n3 = 2020 then yield n1 * n2 * n3 ]
-        |> List.head
+        let part2 =
+            [ for n1 in numbers do
+                for n2 in numbers do
+                    for n3 in numbers do
+                        if n1 + n2 + n3 = 2020 then yield n1 * n2 * n3 ]
+            |> List.head
 
-    (part1, part2)
+        (part1, part2)
 
 [<EntryPoint>]
 let main argv =
-    printfn "Day 1: %A" (solveDay1 ())
-    0 // return an integer exit code
+    printfn "Day 1: %A" (Day1.solve ())
+
+    0
