@@ -1,6 +1,8 @@
 ﻿module AdventOfCode.Day1
 
-let private numbers = Input.integers 1
+let private numbers =
+    Input.forDay 1
+    |> Array.map int
 
 let private part1 =
     [ for n1 in numbers do
