@@ -23,7 +23,7 @@ let isValidNewPassword entry =
     (entry.Password.[entry.Min - 1] = entry.Letter) <> (entry.Password.[entry.Max - 1] = entry.Letter)
 
 let passwordEntries =
-    Input.forDay 2
+    Input.asLines 2
     |> Seq.map parsePasswordEntry
 
 let part1 =

@@ -1,6 +1,6 @@
 ﻿module AdventOfCode.Day3
 
-let lines = Input.forDay 3
+let lines = Input.asLines 3
 let rows = lines.Length
 let cols = lines.[0].Length
 

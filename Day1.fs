@@ -1,6 +1,6 @@
 ﻿module AdventOfCode.Day1
 
-let numbers = Input.forDay 1 |> Array.map int
+let numbers = Input.asIntegers 1
 
 let part1 =
     [ for n1 in numbers do

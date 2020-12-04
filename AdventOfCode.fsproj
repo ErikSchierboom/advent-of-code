@@ -7,9 +7,10 @@
 
     <ItemGroup>
         <Compile Include="Input.fs" />
-        <Compile Include="Day3.fs" />
         <Compile Include="Day1.fs" />
         <Compile Include="Day2.fs" />
+        <Compile Include="Day3.fs" />
+        <Compile Include="Day4.fs" />
         <Compile Include="Program.fs" />
         <Content Include="Input\*.txt" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
