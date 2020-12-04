@@ -24,7 +24,7 @@ let hasRequiredFields passport =
 
 let isValidField field (value: string) =
     let inRange min max n = n >= min && n <= max 
-    let color (suffix: string) min max = value.EndsWith(suffix) && int <| value.Replace(suffix, "") >= min && int <| value.Replace(suffix, "") <= max
+    let color (suffix: string) min max = value.EndsWith(suffix) && value.Replace(suffix, "") |> int |> inRange min max
     
     match field with
     | "byr" -> int value |> inRange 1920 2002 
