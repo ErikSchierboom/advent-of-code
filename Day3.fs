@@ -1,74 +1,26 @@
 ﻿module AdventOfCode.Day3
 
-type Cell =
-    | Open
-    | Tree
+let lines = Input.forDay 3
+let rows = lines.Length
+let cols = lines.[0].Length
 
-type Map = Map of Cells: Cell [,]
+let treeCount (dx, dy) =
+    let rec inner (x, y) count =
+        if y >= rows then
+            count
+        else
+            inner (x + dx, y + dy) (if lines.[y % rows].[x % cols] = '#' then count + 1 else count)
+    
+    inner (0, 0) 0
 
-type Coordinate = Coordinate of Row: int * Col: int
-
-type Slope = Slope of Right: int * Down: int
-
-let parseCell c =
-    match c with
-    | '.' -> Open
-    | '#' -> Tree
-    | _ -> failwith "Unknown cell type"
-
-let parseMap (lines: string []) =
-    let rows = lines.Length
-    let cols = lines.[0].Length
-
-    Array2D.init rows cols (fun row col -> parseCell lines.[row].[col])
-    |> Map
-
-let rows (Map cells) = cells.GetLength(0)
-
-let cols (Map cells) = cells.GetLength(1)
-
-let travel (Coordinate (Row = row; Col = col)) (Slope (Right = right; Down = down)) =
-    Coordinate(Row = row + down, Col = col + right)
-
-let cell map (Coordinate (Row = row; Col = col)) =
-    let (Map(Cells = cells)) = map
-    Array2D.get cells (row % rows map) (col % cols map)
-
-let traveledOffMap map (Coordinate(Row = row)) = row >= rows map
-
-let path slope map =
-    let inner coordinate =
-        if traveledOffMap map coordinate
-        then None
-        else Some(coordinate, travel coordinate slope)
-
-    let startCoordinate = Coordinate(Row = 0, Col = 0)
-    Seq.unfold inner startCoordinate
-
-let traverseMap slope map =
-    map
-    |> path slope
-    |> Seq.map (cell map)
-    |> Seq.filter (function
-        | Tree -> true
-        | Open -> false)
-    |> Seq.length
-
-let map = Input.forDay 3 |> parseMap
-
-let part1 =
-    map |> traverseMap (Slope(Right = 3, Down = 1))
+let part1 = treeCount (3, 1)
 
 let part2 =
-    let slopes =
-        [ Slope(Right = 1, Down = 1)
-          Slope(Right = 3, Down = 1)
-          Slope(Right = 5, Down = 1)
-          Slope(Right = 7, Down = 1)
-          Slope(Right = 1, Down = 2) ]
-
-    slopes
-    |> Seq.map (fun slope -> traverseMap slope map)
+    [ treeCount (1, 1)
+      treeCount (3, 1)
+      treeCount (5, 1)
+      treeCount (7, 1)
+      treeCount (1, 2) ]
     |> Seq.reduce (*)
 
 let solution = part1, part2
