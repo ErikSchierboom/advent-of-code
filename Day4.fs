@@ -25,15 +25,16 @@ let hasRequiredFields passport =
 let isValidField field (value: string) =
     let inRange min max n = n >= min && n <= max 
     let color (suffix: string) min max = value.EndsWith(suffix) && value.Replace(suffix, "") |> int |> inRange min max
+    let (=~) value pattern = Regex.IsMatch(value, pattern)
     
     match field with
     | "byr" -> int value |> inRange 1920 2002 
     | "iyr" -> int value |> inRange 2010 2020
     | "eyr" -> int value |> inRange 2020 2030
     | "hgt" -> color "cm" 150 193 || color "in" 59 76
-    | "hcl" -> Regex.IsMatch(value, "^#[a-f0-9]{6}$")
-    | "ecl" -> Regex.IsMatch(value, "^(amb|blu|brn|gry|grn|hzl|oth)$")
-    | "pid" -> Regex.IsMatch(value, "^\d{9}$")
+    | "hcl" -> value =~ "^#[a-f0-9]{6}$"
+    | "ecl" -> value =~ "^(amb|blu|brn|gry|grn|hzl|oth)$"
+    | "pid" -> value =~ "^\d{9}$"
     | "cid" -> true
     | _ -> failwith "Invalid field"
 
