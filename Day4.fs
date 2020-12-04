@@ -1,48 +1,41 @@
 ﻿module AdventOfCode.Day4
 
-open System
+open System.Text.RegularExpressions
+
+module Map =
+    let keys map = map |> Map.toSeq |> Seq.map fst
 
 let batch = Input.asString 4
 
 let requiredFields = set [ "byr"; "iyr"; "eyr"; "hgt"; "hcl"; "ecl"; "pid" ]
 
-let parseField (field: string) =
-    let keyAndValue = field.Split(':')
-    (keyAndValue.[0], keyAndValue.[1])
-
 let parsePassport (lines: string) =
-    lines.Split([| '\n'; ' ' |], StringSplitOptions.RemoveEmptyEntries)
-    |> Seq.map parseField
+    Regex.Matches(lines, "([a-z]{3}):([^ \n]+)")
+    |> Seq.map (fun m -> (m.Groups.[1].Value, m.Groups.[2].Value))
     |> Map.ofSeq
 
-let parsePassports = batch.Split("\n\n") |> Array.map parsePassport
+let passports = batch.Split("\n\n") |> Array.map parsePassport
 
 let hasRequiredFields passport =
-    let fields = 
-        passport
-        |> Map.toSeq
-        |> Seq.map fst
-        |> set
-
-    requiredFields.IsSubsetOf(fields)
+    passport
+    |> Map.keys
+    |> set
+    |> Set.isSubset requiredFields
 
 let isValidField field (value: string) =
-    let inRange min max = int value >= min && int value <= max
-    let color (suffix: string) min max = value.EndsWith(suffix) && int value.[0..value.Length - 3] >= min && int value.[0..value.Length - 3] <= max
-    let isHex c = Char.IsDigit(c) || List.contains c ['a'..'f'] 
+    let inRange min max n = n >= min && n <= max 
+    let color (suffix: string) min max = value.EndsWith(suffix) && int <| value.Replace(suffix, "") >= min && int <| value.Replace(suffix, "") <= max
     
     match field with
-    | "byr" -> inRange 1920 2002
-    | "iyr" -> inRange 2010 2020
-    | "eyr" -> inRange 2020 2030
+    | "byr" -> int value |> inRange 1920 2002 
+    | "iyr" -> int value |> inRange 2010 2020
+    | "eyr" -> int value |> inRange 2020 2030
     | "hgt" -> color "cm" 150 193 || color "in" 59 76
-    | "hcl" -> value.StartsWith('#') && value.Length = 7 && Seq.forall isHex value.[1..]
-    | "ecl" -> List.contains value ["amb";"blu";"brn";"gry";"grn";"hzl";"oth"]
-    | "pid" -> value.Length = 9 && Seq.forall Char.IsDigit value
+    | "hcl" -> Regex.IsMatch(value, "^#[a-f0-9]{6}$")
+    | "ecl" -> Regex.IsMatch(value, "^(amb|blu|brn|gry|grn|hzl|oth)$")
+    | "pid" -> Regex.IsMatch(value, "^\d{9}$")
     | "cid" -> true
     | _ -> failwith "Invalid field"
-
-let passports = parsePassports
 
 let hasValidFields passport =
     passport
