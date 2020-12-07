@@ -16,12 +16,12 @@ let bags =
 let myBagColor = "shiny gold"
 
 let part1 =
-    let rec canContainMyBag _ innerColors =
+    let rec canContainMyBag innerColors =
         innerColors |> Map.containsKey myBagColor ||
-        innerColors |> Map.exists (fun innerColor _ -> Map.find innerColor bags |> canContainMyBag innerColor)
+        innerColors |> Map.exists (fun innerColor _ -> Map.find innerColor bags |> canContainMyBag)
 
     bags
-    |> Map.fold (fun count outerColor innerColors -> if canContainMyBag outerColor innerColors then count + 1 else count) 0
+    |> Map.fold (fun count _ innerColors -> if canContainMyBag innerColors then count + 1 else count) 0
 
 let part2 =
     let rec bagCount outerColor =
