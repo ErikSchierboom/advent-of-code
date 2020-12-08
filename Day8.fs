@@ -55,7 +55,7 @@ let part1 =
     | InfiniteLoop state -> state.Accumulator
     | Terminated _ -> failwith "Parsed instructions should be infinite loop"
 
-let modifiedInstructions =
+let part2 =
     parsedInstructions
     |> Seq.indexed
     |> Seq.choose (fun (i, instruction) ->
@@ -63,9 +63,6 @@ let modifiedInstructions =
         | Jmp -> parsedInstructions |> Array.copyWith i { instruction with Operation = Nop } |> Some
         | Nop -> parsedInstructions |> Array.copyWith i { instruction with Operation = Jmp } |> Some
         | Acc -> None)
-
-let part2 =
-    modifiedInstructions
     |> Seq.pick (fun instructions ->
         match execute instructions with
         | Terminated state -> Some state.Accumulator
