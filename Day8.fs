@@ -1,5 +1,11 @@
 ﻿module AdventOfCode.Day8
 
+module Array =
+    let copyWith idx value arr =
+        let copiedArr = Array.copy arr
+        copiedArr.[idx] <- value
+        copiedArr
+
 type Operation =
     | Acc
     | Jmp
@@ -54,16 +60,9 @@ let modifiedInstructions =
     |> Seq.indexed
     |> Seq.choose (fun (i, instruction) ->
         match instruction.Operation with
-        | Jmp ->
-            let modifiedInstructions = Array.copy parsedInstructions
-            modifiedInstructions.[i] <- { instruction with Operation = Nop }
-            Some modifiedInstructions
-        | Nop ->
-            let modifiedInstructions = Array.copy parsedInstructions
-            modifiedInstructions.[i] <- { instruction with Operation = Jmp }
-            Some modifiedInstructions
-        | Acc -> None
-    )
+        | Jmp -> parsedInstructions |> Array.copyWith i { instruction with Operation = Nop } |> Some
+        | Nop -> parsedInstructions |> Array.copyWith i { instruction with Operation = Jmp } |> Some
+        | Acc -> None)
 
 let part2 =
     modifiedInstructions
