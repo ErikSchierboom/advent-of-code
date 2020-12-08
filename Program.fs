@@ -9,5 +9,6 @@ let main _ =
     printfn "Day 5: %A" Day5.solution
     printfn "Day 6: %A" Day6.solution
     printfn "Day 7: %A" Day7.solution
+    printfn "Day 8: %A" Day8.solution
 
     0
