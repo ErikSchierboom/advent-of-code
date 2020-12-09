@@ -13,3 +13,9 @@ let asIntegers day =
     |> File.ReadLines
     |> Seq.map int
     |> Seq.toArray
+    
+let asInt64s day =
+    filePath day
+    |> File.ReadLines
+    |> Seq.map int64
+    |> Seq.toArray
