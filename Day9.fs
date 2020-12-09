@@ -1,44 +1,29 @@
 ﻿module AdventOfCode.Day9
 
-let numbers = Input.asInt64s 9 |> List.ofArray
+let numbers = Input.asInt64s 9
 
 let part1 =
     let preambleLength = 25
-    let invalidNumber (window: int64[]) =
-        let preamble = window.[..preambleLength - 1]
-        let number = window.[preambleLength]
-
-        let validNumbers =
-            [for x in preamble do
-                 for y in preamble do
-                     if x <> y && x + y = number then
-                         yield number]
-        
-        match validNumbers with
-        | [] -> Some number
-        | _ -> None
     
     numbers
-    |> Seq.windowed (preambleLength + 1)
-    |> Seq.pick invalidNumber
-let part2 =
-    let encryptionWeakness i =
-        let rec tryFindSeries length =
-            let series = numbers.[i..i + length]
-            let seriesSum = List.sum series
-            
-            if seriesSum = part1 then
-                Some (List.min series + List.max series)
-            elif seriesSum > part1 then
-                None
-            elif length >= numbers.Length - 2 then
-                None
-            else
-                tryFindSeries (length + 1)
-        
-        tryFindSeries 2
+    |> Seq.skip preambleLength
+    |> Seq.indexed
+    |> Seq.pick (fun (i, number) ->
+        let preamble = numbers.[i .. i + preambleLength - 1]
+        let validNumber = preamble |> Seq.exists (fun x -> preamble |> Seq.exists (fun y -> x + y = number))
+        if validNumber then None else Some number)
 
-    [0 .. numbers.Length - 2]
-    |> Seq.pick encryptionWeakness
+let part2 =
+    let continuousSeries (i, _) =
+        numbers
+        |> Seq.skip i
+        |> Seq.indexed
+        |> Seq.map (fun (j, _) -> numbers.[i .. i + j])
+        |> Seq.map (fun series -> (Array.sum series, Array.min series, Array.max series))
+
+    numbers
+    |> Seq.indexed
+    |> Seq.collect continuousSeries
+    |> Seq.pick (fun (sum, min, max) -> if sum = part1 then Some(min + max) else None)
 
 let solution = part1, part2
