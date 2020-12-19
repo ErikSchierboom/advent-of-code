@@ -25,7 +25,7 @@ let neighbors4d (x, y, z, w) =
         for dz in -1..1 do
         for dw in -1..1 do
             if dx <> 0 || dy <> 0 || dz <> 0 || dw <> 0 then
-                yield struct(x + dx, y + dy, z + dz, w + dw)
+                yield (x + dx, y + dy, z + dz, w + dw)
     } |> Set.ofSeq
 
 let isActive state coord = Set.contains coord state
