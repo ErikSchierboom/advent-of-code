@@ -6,19 +6,19 @@ let dimension = input.Length
 let initialState =
     input
     |> Seq.indexed
-    |> Seq.collect (fun (y, line) -> line |> Seq.indexed |> Seq.choose (fun (x, letter) -> if letter = '#' then Some struct (x, y, 0, 0) else None))
+    |> Seq.collect (fun (y, line) -> line |> Seq.indexed |> Seq.choose (fun (x, letter) -> if letter = '#' then Some (x, y, 0, 0) else None))
     |> Set.ofSeq
 
-let neighbors3d struct (x, y, z, w) =
+let neighbors3d (x, y, z, w) =
     seq {
         for dx in -1..1 do
         for dy in -1..1 do
         for dz in -1..1 do
            if dx <> 0 || dy <> 0 || dz <> 0 then
-               yield struct (x + dx, y + dy, z + dz, 0)   
+               yield (x + dx, y + dy, z + dz, 0)   
     } |> Set.ofSeq
     
-let neighbors4d struct (x, y, z, w) =
+let neighbors4d (x, y, z, w) =
     seq {
         for dx in -1..1 do
         for dy in -1..1 do
