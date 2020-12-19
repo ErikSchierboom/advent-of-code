@@ -17,6 +17,7 @@ let main _ =
 //    printfn "Day 13: %A" Day13.solution
 //    printfn "Day 14: %A" Day14.solution
 //    printfn "Day 15: %A" Day15.solution
-    printfn "Day 16: %A" Day16.solution
+//    printfn "Day 16: %A" Day16.solution
+    printfn "Day 17: %A" Day17.solution
 
     0
