@@ -1,9 +1,8 @@
 ﻿module AdventOfCode.Day17
 
 open System.Collections.Generic
-open System.Diagnostics
 
-type PocketDimension = HashSet<int * int * int * int>
+type PocketDimension = HashSet<struct (int * int * int * int)>
 
 let input = Input.asLines 17
 let dimension = input.Length
@@ -11,26 +10,26 @@ let dimension = input.Length
 let initialState =
     input
     |> Seq.indexed
-    |> Seq.collect (fun (y, line) -> line |> Seq.indexed |> Seq.choose (fun (x, letter) -> if letter = '#' then Some (x, y, 0, 0) else None))
+    |> Seq.collect (fun (y, line) -> line |> Seq.indexed |> Seq.choose (fun (x, letter) -> if letter = '#' then Some struct (x, y, 0, 0) else None))
     |> PocketDimension
 
-let neighbors3d (x, y, z, w) =
+let neighbors3d struct (x, y, z, w) =
     seq {
         for dx in -1..1 do
         for dy in -1..1 do
         for dz in -1..1 do
            if dx <> 0 || dy <> 0 || dz <> 0 then
-               yield (x + dx, y + dy, z + dz, 0)   
+               yield struct (x + dx, y + dy, z + dz, 0)   
     }
     
-let neighbors4d (x, y, z, w) =
+let neighbors4d struct (x, y, z, w) =
     seq {
         for dx in -1..1 do
         for dy in -1..1 do
         for dz in -1..1 do
         for dw in -1..1 do
             if dx <> 0 || dy <> 0 || dz <> 0 || dw <> 0 then
-                yield (x + dx, y + dy, z + dz, w + dw)
+                yield struct (x + dx, y + dy, z + dz, w + dw)
     } 
 
 let isActive (state: PocketDimension) coord = state.Contains(coord)
