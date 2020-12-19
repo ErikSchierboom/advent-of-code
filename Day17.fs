@@ -1,6 +1,7 @@
 ﻿module AdventOfCode.Day17
 
 open System.Collections.Generic
+open System.Diagnostics
 
 type PocketDimension = HashSet<int * int * int * int>
 
@@ -56,6 +57,7 @@ let activeCubesAfterCycles dimensionNeighbors =
         else
             currentState
             |> Seq.collect dimensionNeighbors
+            |> Seq.distinct
             |> Seq.fold (applyRulesToCoord dimensionNeighbors currentState) (PocketDimension())
             |> loop (currentCycle + 1)
 
