@@ -1,7 +1,5 @@
 ﻿module AdventOfCode.Day17
 
-// TODO: use array; calculate from dimensions * number of round
-
 let input = Input.asLines 17
 let dimension = input.Length
 
@@ -55,7 +53,6 @@ let activeCubesAfterCycles dimensionNeighbors =
     loop 0 initialState
 
 let part1 = activeCubesAfterCycles neighbors3d
-
 let part2 = activeCubesAfterCycles neighbors4d
 
 let solution = part1, part2
