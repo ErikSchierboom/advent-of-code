@@ -12,27 +12,33 @@ let initialState =
     |> Set.ofSeq
 
 let neighbors3d (x, y, z, w) =
-    [for dx in -1..1 do
-     for dy in -1..1 do
-     for dz in -1..1 do
-        if dx <> 0 || dy <> 0 || dz <> 0 then
-            yield x + dx, y + dy, z + dz, 0]
-    
-let coordinatesForCycle cycle =
-    [for dx in -1..1 do
-     for dy in -1..1 do
-     for dz in -1..1 do
-     for dw in -1..1 do
-        if dx <> 0 || dy <> 0 || dz <> 0 || dw <> 0 then
-            yield x + dx, y + dy, z + dz, w + dw]
+    seq {
+        for dx in -1..1 do
+        for dy in -1..1 do
+        for dz in -1..1 do
+           if dx <> 0 || dy <> 0 || dz <> 0 then
+               yield x + dx, y + dy, z + dz, 0   
+    }
     
 let neighbors4d (x, y, z, w) =
-    [for dx in -1..1 do
-     for dy in -1..1 do
-     for dz in -1..1 do
-     for dw in -1..1 do
+    seq {
+        for dx in -1..1 do
+        for dy in -1..1 do
+        for dz in -1..1 do
+        for dw in -1..1 do
+            if dx <> 0 || dy <> 0 || dz <> 0 || dw <> 0 then
+                yield x + dx, y + dy, z + dz, w + dw
+    }
+
+let coordinatesForCycle cycle =
+    seq {
+        for dx in -1..1 do
+        for dy in -1..1 do
+        for dz in -1..1 do
+        for dw in -1..1 do
         if dx <> 0 || dy <> 0 || dz <> 0 || dw <> 0 then
-            yield x + dx, y + dy, z + dz, w + dw]
+            yield x + dx, y + dy, z + dz, w + dw
+    }
 
 let isActive state coord = Set.contains coord state
 
