@@ -2,30 +2,23 @@
 
 open FParsec
 
-type Expression =
-    | Operand of int
-    | PlusOperation of Expression * Expression
-    | MultiplyOperation of Expression * Expression
+let equations = Input.asLines 18
 
-let input = Input.asLines 18
-
-let pExpression, pExpressionRef = createParserForwardedToRef<Expression, unit>()
-
+let pTerm = puint64 .>> spaces
+let pChar c = pchar c .>> spaces
 let opp = OperatorPrecedenceParser<_, _, _>()
-let expr = opp.ExpressionParser
-let pTerm = pint32 >>. spaces |>> Operand
-opp.TermParser <- pTerm <|> between (pchar '(') (pchar ')') expr
-opp.AddOperator(InfixOperator("+", spaces, 1, Associativity.None, fun x y -> PlusOperation(x, y)))
-opp.AddOperator(InfixOperator("*", spaces, 1, Associativity.None, fun x y -> MultiplyOperation(x, y)))
+let pExpression = opp.ExpressionParser
+opp.TermParser <- pTerm <|> between (pChar '(') (pChar ')' .>> spaces) pExpression
+opp.AddOperator(InfixOperator("*", spaces, 1, Associativity.Left, (*)))
+opp.AddOperator(InfixOperator("+", spaces, 1, Associativity.Left, (+)))
 
+let evaluate line =
+    match run pExpression line with
+    | Success (expression, _, _) -> expression
+    | Failure _ -> failwith "Invalid expression"
 
-//1 + (2 * 3) + (4 * (5 + 6))
+let part1 = Seq.sumBy evaluate equations
 
-let part1 =
-//    printfn "%A" (run pExpression "1 + (2 * 3) + (4 * (5 + 6))" )
-    printfn "%A" (run pExpression "1 + (2)" )
-    
-    0
 let part2 = 0
 
 let solution = part1, part2
