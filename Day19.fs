@@ -28,33 +28,18 @@ let runParser parser input =
     | Success (result, _, _) -> result
     | Failure (error, _, _) -> failwith error
 
-let parserForRules rules =
-    let parsers = rules |> List.fold (fun acc rule -> Map.add (ruleNumber rule) (createParserForwardedToRef<unit, unit>()) acc) Map.empty
-    let parserUpdate i p = do Map.find i parsers |> snd := p
-
-    let pLetter letter = pchar letter >>% ()
-    let pSequence sequence = sequence |> Seq.map (fun i -> Map.find i parsers |> fst) |> Seq.reduce ((.>>))
-     
-    rules
-    |> List.map (fun rule ->
-        match rule with
-        | Constant (i, letter) -> i, pLetter letter
-        | Sequence (i, sequence) -> i, pSequence sequence
-        | OneOrOther (i, left, right) -> i, choice [pSequence left |> attempt; pSequence right |> attempt]
-    )
-    |> List.iter (fun (i, p) -> parserUpdate i p)
-
-    parsers
-
 let ruleZeroMatches input =
     let rules, messages = runParser pInput input
+    let rules = rules |> Seq.map (fun rule -> ruleNumber rule, rule) |> Map.ofSeq
+    let ruleZero = rules |> Map.find 0 
     
-    let pRuleZero = parserForRules rules |> Map.find 0 |> fst .>> notFollowedBy anyChar
-    let matchesRuleZero message =
-        match run pRuleZero message with
-        | Success _ -> true
-        | Failure _ -> false
-    
+    let rec matchesRuleZero rule (matches: bool) (message: string) =
+        match matches, rule with
+        | true, Constant (_, letter) when letter = message.[0] -> (true, message.[1..])
+        | true, Constant _ -> (false, message)
+        | true, Sequence (_, rules) -> rules |> Seq.forall ()
+        | false, _ -> false
+        
     messages
     |> Seq.filter matchesRuleZero
     |> Seq.length
