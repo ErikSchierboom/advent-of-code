@@ -1,44 +1,13 @@
 ﻿module AdventOfCode.Day19
 
-open System.Text.RegularExpressions
+open FParsec
 
-type Rule =
-    | Constant of int * char
-    | Sequence of int * int[]
-    | Choice of int * int[] * int[]
-
-type Rules = Map<int, Rule>
-
-let (|Regex|_|) pattern input =
-    let m = Regex.Match(input, pattern)
-    if m.Success then
-        Some (m.Groups |> Seq.map (fun group -> group.Name, group.Captures |> Seq.map (fun capture -> capture.Value) |> Seq.toArray) |> Map.ofSeq)
-    else
-        None
-
-let parseRule rule =
-    match rule with
-    | Regex "^(?<number>\d+): \"(?<letter>[a-z+])\"$" groups -> Constant (Map.find "number" groups |> Array.head |> int, Map.find "letter" groups |> Array.head |> Seq.head)
-    | Regex "^(?<number>\d+): ((?<sequence>\d+) ?)+$" groups -> Sequence (Map.find "number" groups |> Array.head |> int, Map.find "sequence" groups |> Array.map int)
-    | Regex "^(?<number>\d+): ((?<left>\d+) ?)+ \| ((?<right>\d+) ?)+$" groups -> Choice (Map.find "number" groups |> Array.head |> int, Map.find "left" groups |> Array.map int, Map.find "right" groups |> Array.map int)
-    | _ -> failwith "Invalid rule"
-
-let ruleNumber = function Constant (number, _) | Sequence (number, _) | Choice (number, _, _) -> number
-
-let rules, messages =
-    let lines = Input.asLines 19
-    let rules = lines |> Seq.takeWhile (fun line -> line.Length <> 0) |> Seq.map parseRule |> Seq.map (fun rule -> ruleNumber rule, rule) |> Map.ofSeq
-    let messages = lines |> Seq.skipWhile (fun line -> line.Length <> 0) |> Seq.tail |> Seq.toArray    
-    rules, messages
-
-let matches message =
-    let rec loop index rule (remainder: string) =
-        match Map.find rule rules with
-        | Constant (_, letter) -> remainder.[index] = letter
-        | Sequence (_, rules) -> false            
-        | Choice (_, left, right) -> false 
-        
-    loop 0 0 message
+let p0, p0Ref = createParserForwardedToRef<unit, unit>()
+let p1, p1Ref = createParserForwardedToRef<unit, unit>()
+let p2, p2Ref = createParserForwardedToRef<unit, unit>()
+let p3, p3Ref = createParserForwardedToRef<unit, unit>()
+let p4, p4Ref = createParserForwardedToRef<unit, unit>()
+let p5, p5Ref = createParserForwardedToRef<unit, unit>()
 
 //0: 4 1 5
 //1: 2 3 | 3 2
@@ -53,8 +22,44 @@ let matches message =
 //aaabbb
 //aaaabbb
 
-let part1 =
-    0
+do p0Ref := p4 .>> p1 .>> p5 
+do p1Ref := choice [attempt (p2 >>. p3); p3 >>. p2]
+do p2Ref := choice [attempt (p4 >>. p4); p5 >>. p5]
+do p3Ref := choice [attempt (p4 >>. p5); p5 >>. p4]
+do p4Ref := pchar 'a' >>% ()
+do p5Ref := pchar 'b' >>% ()
+
+printfn "%A" (run (p0 .>> notFollowedBy anyChar) "ababbb")
+printfn "%A" (run (p0 .>> notFollowedBy anyChar) "aaaabbb")
+
+//printfn "%A" (run p1 "aaab")  
+//printfn "%A" (run p1 "aaba")  
+//printfn "%A" (run p1 "bbab")
+//printfn "%A" (run p1 "bbba")
+//printfn "%A" (run p1 "abaa")  
+//printfn "%A" (run p1 "abbb")  
+//printfn "%A" (run p1 "baaa")
+//printfn "%A" (run p1 "babb")
+//
+//printfn "%A" (run p3 "ab")
+//printfn "%A" (run p3 "ba")
+//
+//printfn "%A" (run p2 "aa")
+//printfn "%A" (run p2 "bb")
+
+// 1 = aaab | aaba | bbab | bbba | abaa | abbb | baaa | babb 
+// 2 = aa | bb
+// 3 = ab | ba
+// 4 = a
+// 5 = b 
+
+let rules, messages =
+    let lines = Input.asLines 19
+    let rules = lines |> Seq.takeWhile (fun line -> line.Length <> 0)
+    let messages = lines |> Seq.skipWhile (fun line -> line.Length <> 0) |> Seq.tail |> Seq.toArray    
+    rules, messages
+
+let part1 = 0
     
 let part2 = 0
 
