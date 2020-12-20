@@ -28,9 +28,7 @@ let runParser parser input =
     | Success (result, _, _) -> result
     | Failure (error, _, _) -> failwith error
 
-let rules, messages = runParser pInput (Input.asString 19)
-
-let parserForRules =
+let parserForRules rules =
     let parsers = rules |> List.fold (fun acc rule -> Map.add (ruleNumber rule) (createParserForwardedToRef<unit, unit>()) acc) Map.empty
     let parserUpdate i p = do Map.find i parsers |> snd := p
 
@@ -48,8 +46,10 @@ let parserForRules =
 
     parsers
 
-let ruleZeroMatches =
-    let pRuleZero = parserForRules |> Map.find 0 |> fst .>> notFollowedBy anyChar
+let ruleZeroMatches input =
+    let rules, messages = runParser pInput input
+    
+    let pRuleZero = parserForRules rules |> Map.find 0 |> fst .>> notFollowedBy anyChar
     let matchesRuleZero message =
         match run pRuleZero message with
         | Success _ -> true
@@ -59,8 +59,8 @@ let ruleZeroMatches =
     |> Seq.filter matchesRuleZero
     |> Seq.length
 
-let part1 = ruleZeroMatches
+let part1 = Input.asString 19 |> ruleZeroMatches 
     
-let part2 = 0
+let part2 = Input.asString 19 |> fun input -> input.Replace("8: 42", "8: 42 | 42 8").Replace("11: 42 31", "11: 42 31 | 42 11 31") |> ruleZeroMatches
 
 let solution = part1, part2
