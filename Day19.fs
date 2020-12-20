@@ -48,17 +48,18 @@ let parserForRules =
 
     parsers
 
-let part1 =    
-    let matchesRuleZero =
-        let pRuleZero = parserForRules |> Map.find 0 |> fst .>> notFollowedBy anyChar
-        fun message ->
-            match run pRuleZero message with
-            | Success _ -> true
-            | Failure _ -> false
+let ruleZeroMatches =
+    let pRuleZero = parserForRules |> Map.find 0 |> fst .>> notFollowedBy anyChar
+    let matchesRuleZero message =
+        match run pRuleZero message with
+        | Success _ -> true
+        | Failure _ -> false
     
     messages
     |> Seq.filter matchesRuleZero
     |> Seq.length
+
+let part1 = ruleZeroMatches
     
 let part2 = 0
 
