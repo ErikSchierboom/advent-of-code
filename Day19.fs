@@ -2,24 +2,30 @@
 
 open FParsec
 
-let p0, p0Ref = createParserForwardedToRef<unit, unit>()
-let p1, p1Ref = createParserForwardedToRef<unit, unit>()
-let p2, p2Ref = createParserForwardedToRef<unit, unit>()
-let p3, p3Ref = createParserForwardedToRef<unit, unit>()
-let p4, p4Ref = createParserForwardedToRef<unit, unit>()
-let p5, p5Ref = createParserForwardedToRef<unit, unit>()
-
-do p0Ref := p4 .>> p1 .>> p5 
-do p1Ref := choice [attempt (p2 >>. p3); p3 >>. p2]
-do p2Ref := choice [attempt (p4 >>. p4); p5 >>. p5]
-do p3Ref := choice [attempt (p4 >>. p5); p5 >>. p4]
-do p4Ref := pchar 'a' >>% ()
-do p5Ref := pchar 'b' >>% ()
-
-let matches message =
-    match run p0 message with
-    | Success _ -> true
-    | Failure _ -> false
+//let p0, p0Ref = createParserForwardedToRef<unit, unit>()
+//let p1, p1Ref = createParserForwardedToRef<unit, unit>()
+//let p2, p2Ref = createParserForwardedToRef<unit, unit>()
+//let p3, p3Ref = createParserForwardedToRef<unit, unit>()
+//let p4, p4Ref = createParserForwardedToRef<unit, unit>()
+//let p5, p5Ref = createParserForwardedToRef<unit, unit>()
+//
+//do p0Ref := p4 .>> p1 .>> p5 
+//do p1Ref := choice [attempt (p2 >>. p3); attempt (p3 >>. p2)]
+//do p2Ref := choice [attempt (p4 >>. p4); attempt (p5 >>. p5)]
+//do p3Ref := choice [attempt (p4 >>. p5); attempt (p5 >>. p4)]
+//do p4Ref := pchar 'a' >>% ()
+//do p5Ref := pchar 'b' >>% ()
+//
+//let matches message =
+//    match run (p0 .>> notFollowedBy anyChar) message with
+//    | Success _ -> true
+//    | Failure _ -> false
+//    
+//printfn "%A" (matches "ababbb")
+//printfn "%A" (matches "bababa")
+//printfn "%A" (matches "abbbab")
+//printfn "%A" (matches "aaabbb")
+//printfn "%A" (matches "aaaabbb")
 
 type Rule =
     | Constant of int * char
@@ -44,14 +50,86 @@ let runParser parser input =
 
 let rules, messages = runParser pInput (Input.asString 19)
 
-let part1 =
-    printfn "%A" rules
-    printfn "%A" messages
-    0
-//    messages
-//    |> Seq.filter matches
-//    |> Seq.length
+//let p0, p0Ref = createParserForwardedToRef<unit, unit>()
+//let p1, p1Ref = createParserForwardedToRef<unit, unit>()
+//let p2, p2Ref = createParserForwardedToRef<unit, unit>()
+//let p3, p3Ref = createParserForwardedToRef<unit, unit>()
+//let p4, p4Ref = createParserForwardedToRef<unit, unit>()
+//let p5, p5Ref = createParserForwardedToRef<unit, unit>()
+//
+//do p0Ref := p4 .>> p1 .>> p5 
+//do p1Ref := choice [attempt (p2 >>. p3); attempt (p3 >>. p2)]
+//do p2Ref := choice [attempt (p4 >>. p4); attempt (p5 >>. p5)]
+//do p3Ref := choice [attempt (p4 >>. p5); attempt (p5 >>. p4)]
+//do p4Ref := pchar 'a' >>% ()
+//do p5Ref := pchar 'b' >>% ()
+//
+//let matches message =
+//    match run (p0 .>> notFollowedBy anyChar) message with
+//    | Success _ -> true
+//    | Failure _ -> false
+//    
+//printfn "%A" (matches "ababbb")
+//printfn "%A" (matches "bababa")
+//printfn "%A" (matches "abbbab")
+//printfn "%A" (matches "aaabbb")
+//printfn "%A" (matches "aaaabbb")
+
+let parserForRules =
+    let createParser () = createParserForwardedToRef<unit, unit>()
     
+    let rulesWithParserRef =
+        rules
+        |> List.fold (fun acc rule ->
+            match rule with
+            | Constant (i, _) -> Map.add i (createParser()) acc 
+            | Sequence (i, _) -> Map.add i (createParser()) acc 
+            | OneOrOther (i, _, _) -> Map.add i (createParser()) acc
+        ) Map.empty
+    
+    let rulesWithParser = 
+        rules
+        |> List.fold (fun acc rule ->
+            match rule with
+            | Constant (i, letter) ->
+                let (p, pRef) = Map.find i acc
+                do pRef := pchar letter >>% ()
+                Map.add i (p, pRef) acc 
+            | Sequence (i, sequence) ->
+                let (p, pRef) = Map.find i acc
+                do pRef := sequence |> Seq.map (fun j -> Map.find j acc |> fst) |> Seq.reduce ((.>>))
+                Map.add i (p, pRef) acc
+            | OneOrOther (i, left, right) ->
+                let (p, pRef) = Map.find i acc
+                do pRef :=
+                       choice[
+                            attempt (left |> Seq.map (fun j -> Map.find j acc |> fst) |> Seq.reduce ((.>>)))
+                            attempt (right |> Seq.map (fun j -> Map.find j acc |> fst) |> Seq.reduce ((.>>)))
+                       ]                       
+                Map.add i (p, pRef) acc
+        ) rulesWithParserRef
+        
+//do p0Ref := p4 .>> p1 .>> p5 
+//do p1Ref := choice [attempt (p2 >>. p3); attempt (p3 >>. p2)]
+//do p2Ref := choice [attempt (p4 >>. p4); attempt (p5 >>. p5)]
+//do p3Ref := choice [attempt (p4 >>. p5); attempt (p5 >>. p4)]
+//do p4Ref := pchar 'a' >>% ()
+//do p5Ref := pchar 'b' >>% ()
+
+    rulesWithParser
+
+
+let part1 =
+    let pRuleZero = parserForRules |> Map.find 0 |> fst .>> notFollowedBy anyChar  
+    
+    let matchesRuleZero message =
+        match run pRuleZero message with
+        | Success _ -> true
+        | Failure _ -> false
+    
+    messages
+    |> Seq.filter matchesRuleZero
+    |> Seq.length
     
 let part2 = 0
 
