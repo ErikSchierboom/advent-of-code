@@ -3,24 +3,19 @@
 open FParsec
 
 type Rule =
-    | Constant of int * char
-    | Sequence of int * int list
-    | OneOrOther of int * int list * int list
-
-let ruleNumber = function
-    | Constant (number, _)
-    | Sequence (number, _)
-    | OneOrOther (number, _, _) -> number
+    | Constant of char
+    | Sequence of int list
+    | OneOrOther of int list * int list
 
 let pLetter = asciiLetter
 let pNumber = pint32
 let pNumbers = sepEndBy1 pint32 (pchar ' ')
 let pSeparator = pchar ':' .>> spaces
-let pConstant = pNumber .>> pSeparator .>>. (between (pchar '"') (pchar '"') pLetter) |>> Constant
-let pSequence = pNumber .>> pSeparator .>>. pNumbers |>> Sequence
-let pOneOrOther = pNumber .>> pSeparator .>>. pNumbers .>> spaces .>> pstring "|" .>> spaces .>>. pNumbers |>> fun ((number, left), right) -> OneOrOther (number, left, right)
+let pConstant = pNumber .>> pSeparator .>>. (between (pchar '"') (pchar '"') pLetter |>> Constant)
+let pSequence = pNumber .>> pSeparator .>>. (pNumbers |>> Sequence)
+let pOneOrOther = pNumber .>> pSeparator .>>. (pNumbers .>> spaces .>> pstring "|" .>> spaces .>>. pNumbers |>> OneOrOther)
 let pRule = choice [attempt pConstant; attempt pOneOrOther; pSequence]
-let pRules = sepEndBy1 pRule newline |>> (fun rules -> rules |> Seq.map (fun rule -> ruleNumber rule, rule) |> Map.ofSeq)
+let pRules = sepEndBy1 pRule newline |>> Map.ofSeq
 let pMessage = many1Chars pLetter
 let pMessages = sepEndBy1 pMessage newline
 let pInput = pRules .>> skipNewline .>>. pMessages
@@ -39,12 +34,12 @@ let ruleZeroMatches input =
         | [], [] -> true
         | [], _ -> false
         | _, [] -> false
-        | Constant (_, letter)::xs, first::remainder when letter = first ->
+        | Constant letter::xs, first::remainder when letter = first ->
             matches xs remainder
         | Constant _ :: _, _ -> false
-        | Sequence (_, sequence)::xs, message ->
+        | Sequence sequence::xs, message ->
             matches (rulesFromSequence sequence @ xs) message
-        | OneOrOther (_, left, right)::xs, message ->
+        | OneOrOther (left, right)::xs, message ->
             matches (rulesFromSequence left @ xs) message ||
             matches (rulesFromSequence right @ xs) message
 
