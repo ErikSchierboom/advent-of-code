@@ -18,23 +18,6 @@ let allergies =
     |> Seq.map (fun (allergen, group) -> allergen, group |> Seq.map snd |> Seq.reduce Set.intersect)
     |> Map.ofSeq
 
-//let rec loop mapping remainder =
-//    match remainder with
-//    | [] ->
-//        mapping
-//    | (ingredient, allergens)::xs ->
-//        let allergen = Seq.head allergens
-//        let updated =
-//            xs
-//            |> List.map (fun (ingredient, allergens) -> ingredient, Set.remove allergen allergens)
-//            |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens)
-//        loop (Map.add ingredient allergen mapping) updated
-//    
-//loop Map.empty (allergies |> Map.toList |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens))
-//|> Map.toSeq
-//|> Seq.sortBy fst
-//|> printfn "%A"
-
 let a =
     let rec loop mapping remainder =
         match remainder with
@@ -52,7 +35,6 @@ let a =
     |> Map.toSeq
     |> Seq.sortBy fst
     |> Seq.map snd
-    |> Seq.sort
     |> Seq.toArray
 
 let part1 =
@@ -68,22 +50,7 @@ let part1 =
     |> Seq.length
     
 let part2 =
-    let rec loop mapping remainder =
-        match remainder with
-        | [] ->
-            mapping
-        | (ingredient, allergens)::xs ->
-            let allergen = Seq.head allergens
-            let updated =
-                xs
-                |> List.map (fun (ingredient, allergens) -> ingredient, Set.remove allergen allergens)
-                |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens)
-            loop (Map.add ingredient allergen mapping) updated
-        
-    loop Map.empty (allergies |> Map.toList |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens))
-    |> Map.toSeq
-    |> Seq.sortBy fst
-    |> Seq.map snd
+    a
     |> String.concat ","
 
 let solution = part1, part2
