@@ -1,15 +1,14 @@
 ﻿module AdventOfCode.Day21
 
-let parseFood (line: string) =
-    let line = line.Replace("(", "").Replace(")", "").Replace(",", "")
-    let words (str: string) = str.Split(" ") |> set
-       
-    match line.Split(" contains ") with
-    | [| ingredientsStr |] -> words ingredientsStr, Set.empty  
-    | [| ingredientsStr; allergensStr |] -> words ingredientsStr, words allergensStr
-    | _ -> failwith "Invalid line"
+open System.Text.RegularExpressions
 
-let foods = Input.asLines 21 |> Array.map parseFood
+let foods =
+    let parse (line: string) =
+        let m = Regex.Match(line, "^((?<ingredient>\w+)( |$))+(\(contains ((?<allergen>\w+)|(, |\)$))+)?")
+        let captures (name: string) = m.Groups.[name].Captures |> Seq.map (fun capture -> capture.Value) |> Set.ofSeq
+        captures "ingredient", captures "allergen"
+    
+    Input.asLines 21 |> Array.map parse
 
 let allergensToIngredients =
     let rec buildMapping mapping remainder =
