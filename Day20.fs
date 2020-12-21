@@ -12,19 +12,19 @@ let linedUp (tiles: (int * char [,]) []) =
     let linedUpVertically =
         rows
         |> Array.pairwise
-        |> Array.forall (fun (top, bottom) ->
-            let x = top |> Array.collect (fun l -> l.[^0, *]) |> Seq.toArray |> System.String
-            let y = bottom |> Array.collect (fun l -> l.[0, *]) |> Seq.toArray |> System.String
-            x = y
+        |> Array.forall (fun (topTiles, bottomTiles) ->
+            let bottomRowOfTopTiles = topTiles |> Array.map (fun tile -> tile.[^0, *])
+            let topRowOfBottomTiles = bottomTiles |> Array.map (fun tile -> tile.[0, *])
+            bottomRowOfTopTiles = topRowOfBottomTiles
         )
         
     let linedUpHorizontally =
         cols
         |> Array.pairwise
         |> Array.forall (fun (left, right) ->
-            let x = left |> Array.collect (fun l -> l.[*, ^0]) |> Seq.toArray |> System.String
-            let y = right |> Array.collect (fun l -> l.[*, 0]) |> Seq.toArray |> System.String
-            x = y
+            let rightRowOfLeftTiles = left |> Array.collect (fun l -> l.[*, ^0])
+            let leftRowOfRightTiles = right |> Array.collect (fun l -> l.[*, 0])
+            rightRowOfLeftTiles = leftRowOfRightTiles
         )
     
     linedUpVertically && linedUpHorizontally
