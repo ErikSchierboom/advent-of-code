@@ -4,42 +4,52 @@ let parseFood (line: string) =
     let line = line.Replace("(", "").Replace(")", "").Replace(",", "")
     let words (str: string) = str.Split(" ") |> set
        
-    match line.Split(" contains ") |> Array.toList with
-    | [ingredientsStr] -> words ingredientsStr, Set.empty  
-    | [ingredientsStr; allergensStr] -> words ingredientsStr, words allergensStr
+    match line.Split(" contains ") with
+    | [| ingredientsStr |] -> words ingredientsStr, Set.empty  
+    | [| ingredientsStr; allergensStr |] -> words ingredientsStr, words allergensStr
     | _ -> failwith "Invalid line"
 
 let foods = Input.asLines 21 |> Array.map parseFood
-    
+
 let allergies =
     foods
-    |> Seq.fold (fun acc (ingredients, allergens) ->
-        allergens
-        |> Seq.fold (fun acc allergen ->
-            match Map.tryFind allergen acc with
-            | Some history -> Map.add allergen (ingredients :: history) acc
-            | None -> Map.add allergen [ingredients] acc
-        ) acc
-    ) Map.empty
-    |> Map.map (fun _ ingredients -> ingredients |> List.reduce Set.intersect)
-    
-let part1 =
-    
-    
-    let allergenIngredients =    
-        allergies
-        |> Map.toSeq
-        |> Seq.map snd
-        |> Seq.reduce Set.union
+    |> Seq.collect (fun (ingredients, allergens) -> allergens |> Seq.map (fun allergen -> allergen, ingredients))
+    |> Seq.groupBy fst
+    |> Seq.map (fun (allergen, group) -> allergen, group |> Seq.map snd |> Seq.reduce Set.intersect)
+    |> Map.ofSeq
 
-    let nonAllergenIngredients =
+let rec loop mapping remainder =
+    match remainder with
+    | [] ->
+        mapping
+    | (ingredient, allergens)::xs ->
+        let allergen = Seq.head allergens
+        let updated =
+            xs
+            |> List.map (fun (ingredient, allergens) -> ingredient, Set.remove allergen allergens)
+            |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens)
+        loop (Map.add ingredient allergen mapping) updated
+    
+loop Map.empty (allergies |> Map.toList |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens))
+|> Map.toSeq
+|> Seq.sortBy fst
+|> printfn "%A"
+
+let allergens = allergies |> Map.toSeq |> Seq.map fst
+let ingredients = allergies |> Map.toSeq |> Seq.collect snd
+
+let part1 =
+    let ingredientsWithAllergens = ingredients |> Set.ofSeq
+
+    let ingredientsWithoutAllergens =
         foods
         |> Seq.collect fst
-        |> Seq.except allergenIngredients
+        |> Set.ofSeq
+        |> fun ingredients -> Set.difference ingredients ingredientsWithAllergens 
     
     foods
     |> Seq.collect fst
-    |> Seq.filter (fun ingredient -> Seq.contains ingredient nonAllergenIngredients)
+    |> Seq.filter (fun ingredient -> Set.contains ingredient ingredientsWithoutAllergens)
     |> Seq.length
     
 let part2 =
