@@ -33,15 +33,13 @@ let a =
         
     loop Map.empty (allergies |> Map.toList |> List.sortBy (fun (ingredient, allergens) -> Set.count allergens))
     |> Map.toSeq
-    |> Seq.sortBy fst
-    |> Seq.map snd
-    |> Seq.toArray
 
 let part1 =
     let ingredientsWithoutAllergens =
         foods
         |> Seq.collect fst
-        |> Seq.except a
+        |> Seq.except (a |> Seq.map snd
+        )
         |> Set.ofSeq
     
     foods
@@ -51,6 +49,9 @@ let part1 =
     
 let part2 =
     a
+    |> Seq.sortBy fst
+    |> Seq.map snd
+    |> Seq.toArray
     |> String.concat ","
 
 let solution = part1, part2
