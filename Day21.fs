@@ -11,14 +11,14 @@ let parseFood (line: string) =
 
 let foods = Input.asLines 21 |> Array.map parseFood
 
-let allergies =
-    foods
-    |> Seq.collect (fun (ingredients, allergens) -> allergens |> Seq.map (fun allergen -> allergen, ingredients))
-    |> Seq.groupBy fst
-    |> Seq.map (fun (allergen, group) -> allergen, group |> Seq.map snd |> Seq.reduce Set.intersect)
-    |> Map.ofSeq
-
 let a =
+    let allergies =
+        foods
+        |> Seq.collect (fun (ingredients, allergens) -> allergens |> Seq.map (fun allergen -> allergen, ingredients))
+        |> Seq.groupBy fst
+        |> Seq.map (fun (allergen, group) -> allergen, group |> Seq.map snd |> Seq.reduce Set.intersect)
+        |> Map.ofSeq
+    
     let rec loop mapping remainder =
         match remainder with
         | [] ->
