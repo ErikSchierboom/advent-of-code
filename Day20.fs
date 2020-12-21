@@ -14,8 +14,7 @@ let orientations pixels =
        pixels |> Array2D.rotate
        pixels |> Array2D.rotate |> Array2D.rotate
        pixels |> Array2D.rotate |> Array2D.rotate |> Array2D.rotate |]
-    |> Seq.collect (fun orientation -> [|orientation; Array2D.flipHorizontal orientation; Array2D.flipVertical orientation|])
-    |> Set.ofSeq    
+    |> Seq.collect (fun orientation -> [|orientation; Array2D.flipHorizontal orientation|])
 
 let parseTile (lines: string[]) =
     let id = uint64 lines.[0].[5..8]
