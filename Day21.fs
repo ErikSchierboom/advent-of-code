@@ -35,11 +35,15 @@ let allergensToIngredients =
         
     loop Map.empty (allergies |> Map.toList) |> Map.toList
 
-let ingredientsWithAllergen = allergensToIngredients |> Seq.map snd |> Seq.toList
-
 let part1 =
-    ingredients
-    |> Seq.filter (fun ingredient -> List.contains ingredient ingredientsWithAllergen |> not)
+    let hasAllergen ingredient =
+        allergensToIngredients
+        |> Seq.map snd
+        |> Seq.contains ingredient
+
+    foods
+    |> Seq.collect fst
+    |> Seq.filter (hasAllergen >> not)
     |> Seq.length
     
 let part2 =
