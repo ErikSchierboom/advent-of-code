@@ -11,7 +11,9 @@ let parseFood (line: string) =
 
 let foods = Input.asLines 21 |> Array.map parseFood
 
-let ingredientsToAllergens =
+let ingredients = foods |> Seq.collect fst |> Seq.toList
+
+let allergensToIngredients =
     let allergies =
         foods
         |> Seq.collect (fun (ingredients, allergens) -> allergens |> Seq.map (fun allergen -> allergen, ingredients))
@@ -31,27 +33,19 @@ let ingredientsToAllergens =
                 
             loop (Map.add ingredient allergen mapping) updated
         
-    loop Map.empty (allergies |> Map.toList)
-    |> Map.toSeq
+    loop Map.empty (allergies |> Map.toList) |> Map.toList
+
+let ingredientsWithAllergen = allergensToIngredients |> Seq.map snd |> Seq.toList
 
 let part1 =
-    let ingredientsWithoutAllergens =
-        foods
-        |> Seq.collect fst
-        |> Seq.except (ingredientsToAllergens |> Seq.map snd
-        )
-        |> Set.ofSeq
-    
-    foods
-    |> Seq.collect fst
-    |> Seq.filter (fun ingredient -> Set.contains ingredient ingredientsWithoutAllergens)
+    ingredients
+    |> Seq.filter (fun ingredient -> List.contains ingredient ingredientsWithAllergen |> not)
     |> Seq.length
     
 let part2 =
-    ingredientsToAllergens
+    allergensToIngredients
     |> Seq.sortBy fst
     |> Seq.map snd
-    |> Seq.toArray
     |> String.concat ","
 
 let solution = part1, part2
