@@ -13,15 +13,17 @@ let ruleNumber = function
     | OneOrOther (number, _, _) -> number
 
 let pLetter = asciiLetter
-let pNum = pint32
-let pNums = sepEndBy1 pint32 (pchar ' ')
-let pSep = pchar ':' .>> spaces
-let pCons = pNum .>> pSep .>>. (between (pchar '"') (pchar '"') pLetter) |>> Constant
-let pSeq = pNum .>> pSep .>>. pNums |>> Sequence
-let pOpt = pNum .>> pSep .>>. pNums .>> spaces .>> pstring "|" .>> spaces .>>. pNums |>> fun ((number, left), right) -> OneOrOther (number, left, right)
-let pRule = choice [attempt pCons; attempt pOpt; pSeq]
-let pMsg = many1Chars pLetter
-let pInput = sepEndBy1 pRule newline .>> skipNewline .>>. sepEndBy1 pMsg newline
+let pNumber = pint32
+let pNumbers = sepEndBy1 pint32 (pchar ' ')
+let pSeparator = pchar ':' .>> spaces
+let pConstant = pNumber .>> pSeparator .>>. (between (pchar '"') (pchar '"') pLetter) |>> Constant
+let pSequence = pNumber .>> pSeparator .>>. pNumbers |>> Sequence
+let pOneOrOther = pNumber .>> pSeparator .>>. pNumbers .>> spaces .>> pstring "|" .>> spaces .>>. pNumbers |>> fun ((number, left), right) -> OneOrOther (number, left, right)
+let pRule = choice [attempt pConstant; attempt pOneOrOther; pSequence]
+let pRules = sepEndBy1 pRule newline |>> (fun rules -> rules |> Seq.map (fun rule -> ruleNumber rule, rule) |> Map.ofSeq)
+let pMessage = many1Chars pLetter
+let pMessages = sepEndBy1 pMessage newline
+let pInput = pRules .>> skipNewline .>>. pMessages
 
 let runParser parser input =
     match run parser input with
@@ -30,25 +32,24 @@ let runParser parser input =
 
 let ruleZeroMatches input =
     let rules, messages = runParser pInput input
-    let rules = rules |> Seq.map (fun rule -> ruleNumber rule, rule) |> Map.ofSeq
     let rulesFromSequence sequence = sequence |> List.map (fun i -> Map.find i rules)
-    let ruleZero = rules |> Map.find 0 
-    
-    let rec matches remainingRules (message: string) =
-        match remainingRules with
-        | _ when message = "" -> List.isEmpty remainingRules
-        | [] -> message.Length = 0
-        | Constant (_, letter)::xs when letter = message.[0] ->
-            matches xs message.[1..]
-        | Constant _ :: _ -> false
-        | Sequence (_, sequence)::xs ->
+     
+    let rec matches remainingRules remainingLetters =
+        match remainingRules, remainingLetters with
+        | [], [] -> true
+        | [], _ -> false
+        | _, [] -> false
+        | Constant (_, letter)::xs, first::remainder when letter = first ->
+            matches xs remainder
+        | Constant _ :: _, _ -> false
+        | Sequence (_, sequence)::xs, message ->
             matches (rulesFromSequence sequence @ xs) message
-        | OneOrOther (_, left, right)::xs ->
+        | OneOrOther (_, left, right)::xs, message ->
             matches (rulesFromSequence left @ xs) message ||
             matches (rulesFromSequence right @ xs) message
 
     messages
-    |> Seq.filter (matches [ruleZero])
+    |> Seq.filter (Seq.toList >> matches [rules |> Map.find 0])
     |> Seq.length
 
 let part1 = Input.asString 19 |> ruleZeroMatches
