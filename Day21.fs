@@ -11,29 +11,21 @@ let parseFood (line: string) =
 
 let foods = Input.asLines 21 |> Array.map parseFood
 
-let ingredients = foods |> Seq.collect fst |> Seq.toList
-
 let allergensToIngredients =
-    let allergies =
-        foods
-        |> Seq.collect (fun (ingredients, allergens) -> allergens |> Seq.map (fun allergen -> allergen, ingredients))
-        |> Seq.groupBy fst
-        |> Seq.map (fun (allergen, group) -> allergen, group |> Seq.map snd |> Seq.reduce Set.intersect)
-        |> Map.ofSeq
-    
-    let rec loop mapping remainder =
+    let rec buildMapping mapping remainder =
         match remainder |> List.sortBy (snd >> Set.count) with
-        | [] ->
-            mapping
+        | [] -> mapping
         | (ingredient, allergens)::xs ->
             let allergen = Seq.head allergens
-            let updated =
-                xs
-                |> List.map (fun (ingredient, allergens) -> ingredient, Set.remove allergen allergens)
-                
-            loop (Map.add ingredient allergen mapping) updated
-        
-    loop Map.empty (allergies |> Map.toList) |> Map.toList
+            let updatedRemainder = xs |> List.map (fun (ingredient, allergens) -> ingredient, Set.remove allergen allergens)
+            buildMapping ((ingredient, allergen)::mapping) updatedRemainder
+
+    foods
+    |> Seq.collect (fun (ingredients, allergens) -> allergens |> Seq.map (fun allergen -> allergen, ingredients))
+    |> Seq.groupBy fst
+    |> Seq.map (fun (allergen, group) -> allergen, group |> Seq.map snd |> Seq.reduce Set.intersect)
+    |> Seq.toList
+    |> buildMapping []
 
 let part1 =
     let hasAllergen ingredient =
