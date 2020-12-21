@@ -3,31 +3,36 @@
 module Array2D =    
     let rotate arr = Array2D.init (Array2D.length2 arr) (Array2D.length1 arr) (fun row col -> Array2D.get arr (Array2D.length1 arr - col - 1) row)
 
-let linedUp (tiles: (int * char [,]) [] []) =
+let linedUp (tiles: (int * char [,]) []) =
+    let dimension = tiles.Length |> float |> sqrt |> int
+
+    let rows = tiles |> Array.map snd |> Array.chunkBySize dimension
+    let cols = rows |> Array.transpose 
+
     let linedUpVertically =
-        tiles
+        rows
         |> Array.pairwise
-        |> Array.forall (fun (left, right) ->
-            let a = left.[*].[^0]
-            left.[*].[^0] = right.[*].[0]
+        |> Array.forall (fun (top, bottom) ->
+            let x = top |> Array.collect (fun l -> l.[^0, *]) |> Seq.toArray |> System.String
+            let y = bottom |> Array.collect (fun l -> l.[0, *]) |> Seq.toArray |> System.String
+            x = y
         )
         
     let linedUpHorizontally =
-        tiles
-        |> Array.transpose
+        cols
         |> Array.pairwise
-        |> Array.forall (fun (left, right) -> left.[*].[^0] = right.[*].[0])
-
+        |> Array.forall (fun (left, right) ->
+            let x = left |> Array.collect (fun l -> l.[*, ^0]) |> Seq.toArray |> System.String
+            let y = right |> Array.collect (fun l -> l.[*, 0]) |> Seq.toArray |> System.String
+            x = y
+        )
+    
     linedUpVertically && linedUpHorizontally
 
 let tiles =
-    let tiles =
-        Input.asLines 20
-        |> Array.chunkBySize 12
-        |> Array.map (fun lines -> int lines.[0].[5..8], Array2D.init 10 10 (fun row col -> lines.[row + 1].[col]))
-
-    let dimension = tiles.Length |> float |> sqrt |> int    
-    Array.init dimension (fun row -> Array.init dimension (fun col -> tiles.[row * dimension + col]))
+    Input.asLines 20
+    |> Array.chunkBySize 12
+    |> Array.map (fun lines -> int lines.[0].[5..8], Array2D.init 10 10 (fun row col -> lines.[row + 1].[col]))
 
 printfn "%A" (linedUp tiles)
 
