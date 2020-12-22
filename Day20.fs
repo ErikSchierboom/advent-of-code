@@ -1,6 +1,5 @@
 ﻿module AdventOfCode.Day20
 
-open System
 
 module Array2D =
     let rotate arr = Array2D.init (Array2D.length2 arr) (Array2D.length1 arr) (fun row col -> Array2D.get arr (Array2D.length1 arr - col - 1) row)
@@ -117,29 +116,26 @@ let alignedImage =
             | None, None -> 
                 failwith "Should not happen"
 
-    let topLeftCorner: Tile * Orientation =
+    let topLeftCorner =
         corners
         |> Seq.pick (fun tile ->
-            let a =
-                tile.Orientations
-                |> Seq.pick (fun orientation ->
-                    let a =
-                        tiles
-                        |> Seq.except [tile]
-                        |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[0] = orientation.Borders.[2]))
-
-                    let b =
-                        tiles
-                        |> Seq.except [tile]
-                        |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[3] = orientation.Borders.[1]))
-                                                 
-                    if a && b then
-                        (tile, orientation) |> Some
-                    else
-                        None
-                )
+            tile.Orientations
+            |> Seq.pick (fun orientation ->
+                let otherTiles = tiles |> Seq.except [tile]
                 
-            Some a
+                let matchVertically =
+                    otherTiles
+                    |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[0] = orientation.Borders.[2]))
+
+                let matchHorizontally =
+                    otherTiles
+                    |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[3] = orientation.Borders.[1]))
+                                             
+                if matchVertically && matchHorizontally then
+                    Some (tile, orientation)
+                else
+                    None
+            ) |> Some
     )
     let topLeftPosition = (0, 0)
     let initialMapping = Map.add (0, 0) topLeftCorner Map.empty
