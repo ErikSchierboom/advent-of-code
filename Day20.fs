@@ -9,12 +9,15 @@ type Tile = { Id: uint64; Orientations: Orientation[] }
 
 let borders (pixels: 'T[,]) = [| pixels.[0, *]; pixels.[*, ^0]; pixels.[^0, *]; pixels.[*, 0] |]
 
-let orientations pixels =
+let rotations pixels =
     [| pixels
        pixels |> Array2D.rotate
        pixels |> Array2D.rotate |> Array2D.rotate
        pixels |> Array2D.rotate |> Array2D.rotate |> Array2D.rotate |]
     |> Seq.collect (fun pixels -> [|pixels; Array2D.flipHorizontal pixels|])
+
+let orientations pixels =
+    rotations pixels
     |> Seq.map (fun pixels -> { Pixels = pixels; Borders = borders pixels })
     |> Seq.toArray
 
@@ -118,17 +121,53 @@ let removeBorders (pixels: char[,]) = pixels.[1..^1, 1..^1]
 
 let part2 =
     let image = buildImage
-    
     let combinedImage = Array2D.zeroCreate (dimension * 8) (dimension * 8)
     
     image
-    |> Array2D.iteri (fun row col value ->
-        Array2D.blit value 1 1 combinedImage (row * 8) (col * 8) 8 8
-    )
+    |> Array2D.iteri (fun row col value -> Array2D.blit value 1 1 combinedImage (row * 8) (col * 8) 8 8)
+
+    let seaMonsterOffsets =
+        ["                  # "
+         "#    ##    ##    ###"
+         " #  #  #  #  #  #   "]
+        |> List.indexed
+        |> List.collect (fun (row, str) ->
+             str
+             |> Seq.indexed
+             |> Seq.choose (fun (col, letter) -> if letter = '#' then Some (row, col) else None)
+             |> Seq.toList)
     
-    printfn "%A" combinedImage
-//    Array2D.init (dimension * 8) (dimension * 8) (fun row col ->
-//        
-//    )
+    let numberOfHashes (image: char[,]) =
+        image
+        |> Seq.cast
+        |> Seq.filter ((=) '#')
+        |> Seq.length
+        
+    let numberOfSeaMonsters (image: char[,]) =
+        image
+        |> Array2D.mapi (fun row col _ ->
+            seaMonsterOffsets |> List.forall (fun (dy, dx) ->
+                let y = row + dy
+                let x = col + dx
+                
+                if y < Array2D.length1 image && x < Array2D.length2 image then
+                    Array2D.get image y x  = '#'
+                else
+                    false
+            )
+        )
+        |> Seq.cast
+        |> Seq.filter ((=) true)
+        |> Seq.length
+    
+    combinedImage
+    |> rotations
+    |> Seq.map (fun rotation -> numberOfSeaMonsters rotation, numberOfHashes rotation)
+    |> Seq.find (fun (seaMonsters, _) -> seaMonsters > 0)
+    |> fun (seaMonsters, numberOfHashes) -> numberOfHashes - seaMonsterOffsets.Length * seaMonsters
+    |> printfn "%A"
+        
+//    printfn "%A" combinedImage
+
 
 let solution = part1, part2
