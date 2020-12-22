@@ -71,33 +71,45 @@ let buildImage =
               for col in 0 ..dimension - 1 do
                   yield row, col ]
     
-    let rec loop mapping positions =
+    let rec loop (mapping: Map<int * int, Tile * Orientation>) positions =
         match positions with
         | [] -> mapping
         | (row, col)::xs ->
             let tryAbove = Map.tryFind (row - 1, col) mapping
-            let tryLeft = Map.tryFind (row, col - 1)  mapping          
+            let tryLeft = Map.tryFind (row, col - 1)  mapping
+            
+            let alreadyUsed = mapping |> Map.toSeq |> Seq.map snd |> Set.ofSeq
             
             match tryAbove, tryLeft with
             | Some top, Some left ->
                 let matchingTile =
-                    tiles
-                    |> Seq.collect (fun tile -> tile.Orientations)
-                    |> Seq.find (fun orientation ->
-                        orientation.Borders.[0] = top.Borders.[2] &&
-                        orientation.Borders.[3] = left.Borders.[1])
+                    tiles                    
+                    |> Seq.pick (fun tile ->
+                        tile.Orientations
+                        |> Seq.tryFind (fun orientation ->
+                            orientation.Borders.[0] = (snd top).Borders.[2] &&
+                            orientation.Borders.[3] = (snd left).Borders.[1])
+                        |> Option.map (fun a -> tile, a)
+                    )                    
                 loop (Map.add (row, col) matchingTile mapping) xs
             | Some top, None ->
                 let matchingTile =
                     tiles
-                    |> Seq.collect (fun tile -> tile.Orientations)
-                    |> Seq.find (fun orientation -> orientation.Borders.[0] = top.Borders.[2])
+                    |> Seq.pick (fun tile ->
+                        tile.Orientations
+                        |> Seq.tryFind (fun orientation -> orientation.Borders.[0] = (snd top).Borders.[2])
+                        |> Option.map (fun a -> tile, a)
+                    )
                 loop (Map.add (row, col) matchingTile mapping) xs
             | None, Some left ->
                 let matchingTile =
                     tiles
-                    |> Seq.collect (fun tile -> tile.Orientations)
-                    |> Seq.find (fun orientation -> orientation.Borders.[3] = left.Borders.[1])
+                    |> Seq.pick (fun tile ->
+                        tile.Orientations
+                        |> Seq.tryFind (fun orientation -> orientation.Borders.[3] = (snd left).Borders.[1])
+                        |> Option.map (fun a -> tile, a)
+                    )
+                    
                 loop (Map.add (row, col) matchingTile mapping) xs
             | None, None -> 
                 failwith "Should not happen"
@@ -114,10 +126,43 @@ let buildImage =
             subs |> Seq.exists (fun sub -> sub.Borders.[3] = orientation.Borders.[1])
         )
     let topLeftPosition = (0, 0)
-    let initialMapping = Map.add (0, 0) topLeftCorner Map.empty
-    
+    let x = corners |> Seq.find (fun c -> Seq.contains topLeftCorner c.Orientations)
+    let initialMapping = Map.add (0, 0) (x, topLeftCorner) Map.empty
+
     let positionToTile = loop initialMapping (positions |> List.except [topLeftPosition])
-    Array2D.init dimension dimension (fun row col -> Map.find (row, col) positionToTile |> fun tile -> tile.Pixels)
+    
+    let z00 = positionToTile |> Map.find (0,0)
+    let z01 = positionToTile |> Map.find (0,1)
+    let z02 = positionToTile |> Map.find (0,2)
+    let z10 = positionToTile |> Map.find (1,0)
+    let z11 = positionToTile |> Map.find (1,1)
+    let z12 = positionToTile |> Map.find (1,2)
+    let z20 = positionToTile |> Map.find (2,0)
+    let z21 = positionToTile |> Map.find (2,1)
+    let z22 = positionToTile |> Map.find (2,2)
+    
+    let printRow elems =        
+        for r in 0..9 do
+            for elem in elems do
+                for a in (snd elem).Pixels.[r, *] do
+                    Console.Write(a)
+                Console.Write(' ')
+            Console.Write('\n')
+
+        Console.Write('\n')
+     
+    printRow [z00; z01; z02]
+    Console.Write('\n')
+    printRow [z10; z11; z12]
+    
+    Console.Write('\n')
+    printRow [z20; z21; z22]
+    
+    printfn "%s %s %s" ((fst z00).Id |> string) ((fst z01).Id |> string) ((fst z02).Id |> string)
+    printfn "%s %s %s" ((fst z10).Id |> string) ((fst z11).Id |> string) ((fst z12).Id |> string)
+    printfn "%s %s %s" ((fst z20).Id |> string) ((fst z21).Id |> string) ((fst z22).Id |> string)
+    
+    Array2D.init dimension dimension (fun row col -> Map.find (row, col) positionToTile |> fun tile -> (snd tile).Pixels)
 
 let part2 =
     let image = buildImage
