@@ -119,10 +119,16 @@ let removeBorders (pixels: char[,]) = pixels.[1..^1, 1..^1]
 let part2 =
     let image = buildImage
     
+    let combinedImage = Array2D.zeroCreate (dimension * 8) (dimension * 8)
+    
+    image
+    |> Array2D.iteri (fun row col value ->
+        Array2D.blit value 1 1 combinedImage (row * 8) (col * 8) 8 8
+    )
+    
+    printfn "%A" combinedImage
 //    Array2D.init (dimension * 8) (dimension * 8) (fun row col ->
 //        
 //    )
-    
-    printfn "%A" image
 
 let solution = part1, part2
