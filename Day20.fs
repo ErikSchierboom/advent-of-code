@@ -78,12 +78,13 @@ let buildImage =
             let tryAbove = Map.tryFind (row - 1, col) mapping
             let tryLeft = Map.tryFind (row, col - 1)  mapping
             
-            let alreadyUsed = mapping |> Map.toSeq |> Seq.map snd |> Set.ofSeq
+            let alreadyUsed = mapping |> Map.toSeq |> Seq.map snd |> Seq.map fst
             
             match tryAbove, tryLeft with
             | Some top, Some left ->
                 let matchingTile =
-                    tiles                    
+                    tiles
+                    |> Seq.except alreadyUsed
                     |> Seq.pick (fun tile ->
                         tile.Orientations
                         |> Seq.tryFind (fun orientation ->
@@ -95,6 +96,7 @@ let buildImage =
             | Some top, None ->
                 let matchingTile =
                     tiles
+                    |> Seq.except alreadyUsed
                     |> Seq.pick (fun tile ->
                         tile.Orientations
                         |> Seq.tryFind (fun orientation -> orientation.Borders.[0] = (snd top).Borders.[2])
@@ -104,6 +106,7 @@ let buildImage =
             | None, Some left ->
                 let matchingTile =
                     tiles
+                    |> Seq.except alreadyUsed
                     |> Seq.pick (fun tile ->
                         tile.Orientations
                         |> Seq.tryFind (fun orientation -> orientation.Borders.[3] = (snd left).Borders.[1])
