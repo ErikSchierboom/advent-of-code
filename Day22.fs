@@ -13,14 +13,14 @@ let score hand =
     |> Seq.indexed
     |> Seq.sumBy (fun (i, card) -> (i + 1) * card)
 
-let rec play hand1 hand2 =
+let rec playCombat hand1 hand2 =
     match hand1, hand2 with
     | [], _  -> score hand2
     | _ , [] -> score hand1
-    | card1::cards1, card2::cards2 when card1 > card2 -> play (cards1 @ [card1; card2]) cards2
-    | card1::cards1, card2::cards2 -> play cards1 (cards2 @ [card2; card1])
+    | card1::cards1, card2::cards2 when card1 > card2 -> playCombat (cards1 @ [card1; card2]) cards2
+    | card1::cards1, card2::cards2 -> playCombat cards1 (cards2 @ [card2; card1])
 
-let part1 = play initialHand1 initialHand2
+let part1 = playCombat initialHand1 initialHand2
 
 let part2 = 0
 
