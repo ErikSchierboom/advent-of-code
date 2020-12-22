@@ -65,7 +65,7 @@ let part1 =
     |> Seq.map (fun tile -> tile.Id)
     |> Seq.reduce (*)
 
-let buildImage =
+let alignedImage =
     let positions =
         [ for row in 0 .. dimension - 1 do
               for col in 0 ..dimension - 1 do
@@ -120,7 +120,6 @@ let buildImage =
     let topLeftCorner: Tile * Orientation =
         corners
         |> Seq.pick (fun tile ->
-            
             let a =
                 tile.Orientations
                 |> Seq.pick (fun orientation ->
@@ -128,6 +127,7 @@ let buildImage =
                         tiles
                         |> Seq.except [tile]
                         |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[0] = orientation.Borders.[2]))
+
                     let b =
                         tiles
                         |> Seq.except [tile]
@@ -145,107 +145,15 @@ let buildImage =
     let initialMapping = Map.add (0, 0) topLeftCorner Map.empty
 
     let positionToTile = loop initialMapping (positions |> List.except [topLeftPosition])
-    
-    let z00 = positionToTile |> Map.find (0,0)
-    let z01 = positionToTile |> Map.find (0,1)
-    let z02 = positionToTile |> Map.find (0,2)
-    let z10 = positionToTile |> Map.find (1,0)
-    let z11 = positionToTile |> Map.find (1,1)
-    let z12 = positionToTile |> Map.find (1,2)
-    let z20 = positionToTile |> Map.find (2,0)
-    let z21 = positionToTile |> Map.find (2,1)
-    let z22 = positionToTile |> Map.find (2,2)
-    
-    let printRow elems =        
-        for r in 0..9 do
-            for elem in elems do
-                for a in (snd elem).Pixels.[r, *] do
-                    Console.Write(a)
-                Console.Write(' ')
-            Console.Write('\n')
-
-        Console.Write('\n')
-     
-    printRow [z00; z01; z02]
-    Console.Write('\n')
-    printRow [z10; z11; z12]
-    
-    Console.Write('\n')
-    printRow [z20; z21; z22]
-    
-    printfn "%s %s %s" ((fst z00).Id |> string) ((fst z01).Id |> string) ((fst z02).Id |> string)
-    printfn "%s %s %s" ((fst z10).Id |> string) ((fst z11).Id |> string) ((fst z12).Id |> string)
-    printfn "%s %s %s" ((fst z20).Id |> string) ((fst z21).Id |> string) ((fst z22).Id |> string)
-    
     Array2D.init dimension dimension (fun row col -> Map.find (row, col) positionToTile |> fun tile -> (snd tile).Pixels)
 
 let part2 =
-    let image = buildImage
+    let combinedImage = Array2D.zeroCreate (dimension * 8) (dimension * 8)
     
-//    let a = """
-//#...##.#.. ..###..### #.#.#####.
-//..#.#..#.# ###...#.#. .#..######
-//.###....#. ..#....#.. ..#.......
-//###.##.##. .#.#.#..## ######....
-//.###.##### ##...#.### ####.#..#.
-//.##.#....# ##.##.###. .#...#.##.
-//#...###### ####.#...# #.#####.##
-//.....#..## #...##..#. ..#.###...
-//#.####...# ##..#..... ..#.......
-//#.##...##. ..##.#..#. ..#.###...
-//
-//#.##...##. ..##.#..#. ..#.###...
-//##..#.##.. ..#..###.# ##.##....#
-//##.####... .#.####.#. ..#.###..#
-//####.#.#.. ...#.##### ###.#..###
-//.#.####... ...##..##. .######.##
-//.##..##.#. ....#...## #.#.#.#...
-//....#..#.# #.#.#.##.# #.###.###.
-//..#.#..... .#.##.#..# #.###.##..
-//####.#.... .#..#.##.. .######...
-//...#.#.#.# ###.##.#.. .##...####
-//
-//...#.#.#.# ###.##.#.. .##...####
-//..#.#.###. ..##.##.## #..#.##..#
-//..####.### ##.#...##. .#.#..#.##
-//#..#.#..#. ...#.#.#.. .####.###.
-//.#..####.# #..#.#.#.# ####.###..
-//.#####..## #####...#. .##....##.
-//##.##..#.. ..#...#... .####...#.
-//#.#.###... .##..##... .####.##.#
-//#...###... ..##...#.. ...#..####
-//..#.#....# ##.#.#.... ...##.....
-//"""
-//    let b = a.Trim().Split("\r\n", StringSplitOptions.RemoveEmptyEntries) |> Array.map (fun x -> x.Replace(" ", ""))
-//        
-//    let image = Array2D.zeroCreate 3 3
-//    Array2D.set image 0 0 (Array2D.init 10 10 (fun row col -> b.[row].[col])) 
-//    Array2D.set image 0 1 (Array2D.init 10 10 (fun row col -> b.[row].[col + 10])) 
-//    Array2D.set image 0 2 (Array2D.init 10 10 (fun row col -> b.[row].[col + 20]))
-//    
-//    Array2D.set image 1 0 (Array2D.init 10 10 (fun row col -> b.[row + 10].[col]))
-//    Array2D.set image 1 1 (Array2D.init 10 10 (fun row col -> b.[row + 10].[col + 10])) 
-//    Array2D.set image 1 2 (Array2D.init 10 10 (fun row col -> b.[row + 10].[col + 20]))
-//    
-//    Array2D.set image 2 0 (Array2D.init 10 10 (fun row col -> b.[row + 20].[col]))
-//    Array2D.set image 2 1 (Array2D.init 10 10 (fun row col -> b.[row + 20].[col + 10])) 
-//    Array2D.set image 2 2 (Array2D.init 10 10 (fun row col -> b.[row + 20].[col + 20]))
-    
-    let combinedImage: char[,] = Array2D.zeroCreate (dimension * 8) (dimension * 8)
-    
-    image
+    alignedImage
     |> Array2D.iteri (fun row col value ->
-        
         value.[1..^1, 1..^1]
-        |> Array2D.iteri (fun row2 col2 value2 ->
-            Array2D.set combinedImage (row * 8 + row2) (col * 8 + col2) value2
-        )
-    )
-    
-//    for row in 0..Array2D.length1 combinedImage - 1 do
-//         printfn "%s" (combinedImage.[row, *] |> Seq.cast |> Seq.toArray |> System.String)
-    
-//    printfn "%A" combinedImage
+        |> Array2D.iteri (fun row2 col2 -> Array2D.set combinedImage (row * 8 + row2) (col * 8 + col2)))
 
     let seaMonsterOffsets =
         ["                  # "
@@ -267,16 +175,11 @@ let part2 =
     let numberOfSeaMonsters (image: char[,]) =
         image
         |> Array2D.mapi (fun row col _ ->
-            seaMonsterOffsets |> List.forall (fun (dy, dx) ->
+            seaMonsterOffsets
+            |> List.forall (fun (dy, dx) ->
                 let y = row + dy
-                let x = col + dx
-                
-                if y < Array2D.length1 image && x < Array2D.length2 image then
-                    Array2D.get image y x  = '#'
-                else
-                    false
-            )
-        )
+                let x = col + dx                
+                y < Array2D.length1 image && x < Array2D.length2 image && Array2D.get image y x  = '#'))
         |> Seq.cast
         |> Seq.filter ((=) true)
         |> Seq.length
@@ -288,33 +191,3 @@ let part2 =
     |> fun (seaMonsters, numberOfHashes) -> numberOfHashes - seaMonsterOffsets.Length * seaMonsters
         
 let solution = part1, part2
-
-//let x ="""
-//.#.#..#.##...#.##..#####
-//###....#.#....#..#......
-//##.##.###.#.#..######...
-//###.#####...#.#####.#..#
-//##.#....#.##.####...#.##
-//...########.#....#####.#
-//....#..#...##..#.#.###..
-//.####...#..#.....#......
-//#..#.##..#..###.#.##....
-//#.####..#.####.#.#.###..
-//###.#.#...#.######.#..##
-//#.####....##..########.#
-//##..##.#...#...#.#.#.#..
-//...#..#..#.#.##..###.###
-//.#.#....#.##.#...###.##.
-//###.#...#..#.##.######..
-//.#.#.###.##.##.#..#.##..
-//.####.###.#...###.#..#.#
-//..#.#..#..#.#.#.####.###
-//#..####...#.#.#.###.###.
-//#####..#####...###....##
-//#.##..#..#...#..####...#
-//.#.###..##..##..####.##.
-//...###...##...#...#..###
-//"""
-//    let y = x.Trim().Split("\n")
-//    
-//    let combinedImage = Array2D.init 24 24 (fun row col -> y.[row].[col])
