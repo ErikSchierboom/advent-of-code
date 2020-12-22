@@ -117,20 +117,32 @@ let buildImage =
             | None, None -> 
                 failwith "Should not happen"
 
-    let topLeftCorner =
+    let topLeftCorner: Tile * Orientation =
         corners
-        |> Seq.collect (fun tile -> tile.Orientations)
-        |> Seq.find (fun orientation ->
-            let subs =
-                tiles
-                |> Seq.collect (fun tile -> tile.Orientations)
+        |> Seq.pick (fun tile ->
             
-            subs |> Seq.exists (fun sub -> sub.Borders.[0] = orientation.Borders.[2]) &&
-            subs |> Seq.exists (fun sub -> sub.Borders.[3] = orientation.Borders.[1])
-        )
+            let a =
+                tile.Orientations
+                |> Seq.pick (fun orientation ->
+                    let a =
+                        tiles
+                        |> Seq.except [tile]
+                        |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[0] = orientation.Borders.[2]))
+                    let b =
+                        tiles
+                        |> Seq.except [tile]
+                        |> Seq.exists (fun sub -> sub.Orientations |> Seq.exists (fun a -> a.Borders.[3] = orientation.Borders.[1]))
+                                                 
+                    if a && b then
+                        (tile, orientation) |> Some
+                    else
+                        None
+                )
+                
+            Some a
+    )
     let topLeftPosition = (0, 0)
-    let x = corners |> Seq.find (fun c -> Seq.contains topLeftCorner c.Orientations)
-    let initialMapping = Map.add (0, 0) (x, topLeftCorner) Map.empty
+    let initialMapping = Map.add (0, 0) topLeftCorner Map.empty
 
     let positionToTile = loop initialMapping (positions |> List.except [topLeftPosition])
     
