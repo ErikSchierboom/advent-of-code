@@ -27,7 +27,7 @@ let tiles =
     |> Seq.chunkBySize 12
     |> Seq.map parseTile
     |> Seq.toArray
-    
+
 let isCorner tiles =    
     let orientationBordersPerTile =
         tiles
@@ -51,12 +51,68 @@ let isCorner tiles =
         
         targetTileBordersWithoutMatch = 2
 
+let corners = tiles |> Seq.filter (isCorner tiles) |> Seq.toArray
+
+let dimension = tiles.Length |> float |> sqrt |> int
+
 let part1 =
-    tiles
-    |> Seq.filter (isCorner tiles)
+    corners
     |> Seq.map (fun tile -> tile.Id)
     |> Seq.reduce (*)
 
-let part2 = 0
+let buildImage =
+    let positions =
+        [ for row in 0 .. dimension - 1 do
+              for col in 0 ..dimension - 1 do
+                  yield row, col ]
+    
+    let rec loop mapping positions =
+        match positions with
+        | [] -> mapping
+        | (row, col)::xs ->
+            let tryAbove = Map.tryFind (row - 1, col) mapping
+            let tryLeft = Map.tryFind (row, col - 1)  mapping          
+            
+            match tryAbove, tryLeft with
+            | Some top, Some left ->
+                let matchingTile =
+                    tiles
+                    |> Seq.collect (fun tile -> tile.Orientations)
+                    |> Seq.find (fun orientation ->
+                        orientation.Borders.[0] = top.Borders.[2] &&
+                        orientation.Borders.[3] = left.Borders.[1])
+                loop (Map.add (row, col) matchingTile mapping) xs
+            | Some top, None ->
+                let matchingTile =
+                    tiles
+                    |> Seq.collect (fun tile -> tile.Orientations)
+                    |> Seq.find (fun orientation -> orientation.Borders.[0] = top.Borders.[2])
+                loop (Map.add (row, col) matchingTile mapping) xs
+            | None, Some left ->
+                let matchingTile =
+                    tiles
+                    |> Seq.collect (fun tile -> tile.Orientations)
+                    |> Seq.find (fun orientation -> orientation.Borders.[3] = left.Borders.[1])
+                loop (Map.add (row, col) matchingTile mapping) xs
+            | None, None -> 
+                failwith "Should not happen"
+
+    let corner = corners |> Seq.head |> fun corner -> corner.Orientations.[0]
+    let position = (0, 0)
+    let mapping = Map.add (0, 0) corner Map.empty
+    
+    let positionToTile = loop mapping (positions |> List.except [position])
+    Array2D.init dimension dimension (fun row col -> Map.find (row, col) positionToTile |> fun tile -> tile.Pixels)
+
+//let removeBorders image = 
+
+let part2 =
+    let image = buildImage
+    
+//    Array2D.init (dimension * 8) (dimension * 8) (fun row col ->
+//        
+//    )
+    
+    printfn "%A" image
 
 let solution = part1, part2
