@@ -1,27 +1,27 @@
 ﻿module AdventOfCode.Day22
 
+open System
+
 let lines = Input.asLines 22
-
 let parseHand lines = lines |> Seq.map int |> Seq.toList
+let initialHand1 = lines |> Seq.tail |> Seq.takeWhile (String.IsNullOrEmpty >> not) |> parseHand
+let initialHand2 = lines |> Seq.skipWhile (String.IsNullOrEmpty >> not) |> Seq.skip 2 |> parseHand
 
-let player1Hand =
-    lines
-    |> Seq.tail
-    |> Seq.takeWhile (System.String.IsNullOrEmpty >> not)
-    |> parseHand
+let score hand =
+    hand
+    |> Seq.rev
+    |> Seq.indexed
+    |> Seq.sumBy (fun (i, card) -> (i + 1) * card)
 
-let player2Hand =
-    lines
-    |> Seq.skipWhile (System.String.IsNullOrEmpty >> not)
-    |> Seq.skip 2
-    |> parseHand
+let rec play hand1 hand2 =
+    match hand1, hand2 with
+    | [], _  -> score hand2
+    | _ , [] -> score hand1
+    | card1::cards1, card2::cards2 when card1 > card2 -> play (cards1 @ [card1; card2]) cards2
+    | card1::cards1, card2::cards2 -> play cards1 (cards2 @ [card2; card1])
 
-printfn "%A" player1Hand
-printfn "%A" player2Hand
+let part1 = play initialHand1 initialHand2
 
-let part1 = 0
-    
-    
 let part2 = 0
 
 let solution = part1, part2
