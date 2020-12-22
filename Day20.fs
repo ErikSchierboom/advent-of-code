@@ -114,7 +114,7 @@ let buildImage =
     let positionToTile = loop initialMapping (positions |> List.except [topLeftPosition])
     Array2D.init dimension dimension (fun row col -> Map.find (row, col) positionToTile |> fun tile -> tile.Pixels)
 
-let removeBorders (pixels: char[,]) = pixels.[1..^1, 1..^1] 
+let removeBorders (pixels: char[,]) = pixels.[1..^1, 1..^1]
 
 let part2 =
     let image = buildImage
