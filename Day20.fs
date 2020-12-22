@@ -97,14 +97,24 @@ let buildImage =
             | None, None -> 
                 failwith "Should not happen"
 
-    let corner = corners |> Seq.head |> fun corner -> corner.Orientations.[0]
-    let position = (0, 0)
-    let mapping = Map.add (0, 0) corner Map.empty
+    let topLeftCorner =
+        corners
+        |> Seq.collect (fun tile -> tile.Orientations)
+        |> Seq.find (fun orientation ->
+            let subs =
+                tiles
+                |> Seq.collect (fun tile -> tile.Orientations)
+            
+            subs |> Seq.exists (fun sub -> sub.Borders.[0] = orientation.Borders.[2]) &&
+            subs |> Seq.exists (fun sub -> sub.Borders.[3] = orientation.Borders.[1])
+        )
+    let topLeftPosition = (0, 0)
+    let initialMapping = Map.add (0, 0) topLeftCorner Map.empty
     
-    let positionToTile = loop mapping (positions |> List.except [position])
+    let positionToTile = loop initialMapping (positions |> List.except [topLeftPosition])
     Array2D.init dimension dimension (fun row col -> Map.find (row, col) positionToTile |> fun tile -> tile.Pixels)
 
-//let removeBorders image = 
+let removeBorders (pixels: char[,]) = pixels.[1..^1, 1..^1] 
 
 let part2 =
     let image = buildImage
