@@ -6,30 +6,28 @@ let initialCups = [3; 8; 9; 1; 2; 5; 4; 6; 7]
 //let initialCups = [5; 8; 3; 9; 7; 6; 2; 4; 1]
 
 let applyMoves count (cups: int list) =
-    let cupsInOrder = LinkedList()
-    
-    let cupsByValue =
-        cups
-        |> Seq.map (fun cup -> cup, cupsInOrder.AddLast(cup))
-        |> Map.ofSeq
-    
+    let initialOrdering = LinkedList(cups)
+    let orderedDescendingly = cups |> List.sortDescending |> List.map initialOrdering.Find
+        
     let rec applyMove round (current: LinkedListNode<int>) (ordering: LinkedList<int>) =
         if round = count then
             ordering
         else
             let pickUp = [current.Next; current.Next.Next; current.Next.Next.Next]
             
+            let destination =
+                orderedDescendingly
+                |> List.except pickUp
+                |> List.tryFind (fun elem -> elem.Value < current.Value)
+                |> Option.defaultWith (fun () -> orderedDescendingly |> List.find (fun elem -> elem.Value <> current.Value))
+            
             printfn "move: %d" round        
             printfn "cups: (%d) %s" current.Value (ordering |> Seq.cast<int> |> Seq.tail |> Seq.map string |> String.concat " ")
             printfn "pick up: %s" (pickUp |> Seq.map (fun elem -> elem.Value |> string) |> String.concat " ")
             
-            let destination =
-                ordering
-                |> Seq.cast<int>
-                |> Seq.sortDescending
-                |> Seq.tryFind (fun i -> i < current.Value && pickUp |> List.forall (fun elem -> elem.Value <> i))
+            
 
-            printfn "destination: %A" destination
+            printfn "destination: %A" destination.Value
             
 //            match cups with
 //            | current::remainder ->
@@ -51,7 +49,7 @@ let applyMoves count (cups: int list) =
             // TODO
             applyMove (round + 1) current ordering
     
-    let finalOrdering = applyMove 0 cupsInOrder.First cupsInOrder
+    let finalOrdering = applyMove 0 initialOrdering.First initialOrdering
     printfn "%A" finalOrdering
     
     finalOrdering
