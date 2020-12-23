@@ -10,46 +10,29 @@ let applyMoves count (cups: int list) =
     let orderedDescendingly = cups |> List.sortDescending |> List.map initialOrdering.Find
         
     let rec applyMove round (current: LinkedListNode<int>) (ordering: LinkedList<int>) =
-        if round = count then
+        if round > count then
             ordering
         else
             let pickUp = [current.Next; current.Next.Next; current.Next.Next.Next]
+            let nonPickUp = orderedDescendingly |> List.except pickUp
             
             let destination =
-                orderedDescendingly
-                |> List.except pickUp
+                nonPickUp
                 |> List.tryFind (fun elem -> elem.Value < current.Value)
-                |> Option.defaultWith (fun () -> orderedDescendingly |> List.find (fun elem -> elem.Value <> current.Value))
+                |> Option.defaultValue nonPickUp.[0]
             
             printfn "move: %d" round        
-            printfn "cups: (%d) %s" current.Value (ordering |> Seq.cast<int> |> Seq.tail |> Seq.map string |> String.concat " ")
+            printfn "cups: %s" (ordering |> Seq.cast<int> |> Seq.map (fun elem ->
+                if elem = current.Value then sprintf "(%d)" elem else sprintf "%d" elem
+                )
+                |> String.concat " ")
             printfn "pick up: %s" (pickUp |> Seq.map (fun elem -> elem.Value |> string) |> String.concat " ")
-            
-            
-
             printfn "destination: %A" destination.Value
-            
-//            match cups with
-//            | current::remainder ->
-//                let pickUp = remainder.[0..2]
-//                                
-//                let destination =
-//                    remainder.[3..]
-//                    |> List.sortDescending
-//                    |> List.partition ((>) current)
-//                    |> fun (smaller, larger) -> smaller @ larger
-//                    |> List.head
-//                
-//                let destinationIndex = List.findIndex ((=) destination) remainder
-//                let beforeDestination = remainder.[3..destinationIndex]
-//                let afterDestination = remainder.[destinationIndex + 1..]
-//                
-//                let reordered = beforeDestination @ pickUp @ afterDestination @ [current]
+            printfn ""
 
-            // TODO
-            applyMove (round + 1) current ordering
+            applyMove (round + 1) current.Next ordering
     
-    let finalOrdering = applyMove 0 initialOrdering.First initialOrdering
+    let finalOrdering = applyMove 1 initialOrdering.First initialOrdering
     printfn "%A" finalOrdering
     
     finalOrdering
