@@ -5,7 +5,14 @@ open System.Collections.Generic
 let initialCups = [3; 8; 9; 1; 2; 5; 4; 6; 7]
 //let initialCups = [5; 8; 3; 9; 7; 6; 2; 4; 1]
 
-let applyMoves count cups =
+let applyMoves count (cups: int list) =
+    let cupsInOrder = LinkedList()
+    
+    let cupsByValue =
+        cups
+        |> Seq.map (fun cup -> cup, cupsInOrder.AddLast(cup))
+        |> Map.ofSeq
+    
     let rec applyMove round (current: LinkedListNode<int>) (ordering: LinkedList<int>) =
         if round = count then
             ordering
@@ -15,7 +22,14 @@ let applyMoves count cups =
             printfn "move: %d" round        
             printfn "cups: (%d) %s" current.Value (ordering |> Seq.cast<int> |> Seq.tail |> Seq.map string |> String.concat " ")
             printfn "pick up: %s" (pickUp |> Seq.map (fun elem -> elem.Value |> string) |> String.concat " ")
-//            printfn "destination: %A" destination
+            
+            let destination =
+                ordering
+                |> Seq.cast<int>
+                |> Seq.sortDescending
+                |> Seq.tryFind (fun i -> i < current.Value && pickUp |> List.forall (fun elem -> elem.Value <> i))
+
+            printfn "destination: %A" destination
             
 //            match cups with
 //            | current::remainder ->
@@ -34,13 +48,10 @@ let applyMoves count cups =
 //                
 //                let reordered = beforeDestination @ pickUp @ afterDestination @ [current]
 
-
-                
             // TODO
             applyMove (round + 1) current ordering
     
-    let startOrdering = LinkedList(cups)
-    let finalOrdering = applyMove 0 startOrdering.First startOrdering
+    let finalOrdering = applyMove 0 cupsInOrder.First cupsInOrder
     printfn "%A" finalOrdering
     
     finalOrdering
