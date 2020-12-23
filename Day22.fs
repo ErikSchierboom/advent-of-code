@@ -23,35 +23,20 @@ let rec playCombat hand1 hand2 =
     | card1::cards1, card2::cards2 -> playCombat cards1 (cards2 @ [card2; card1])
 
 let playCombatRecursive hand1 hand2  =
-    let mutable gamesPlayed = 1
-    
-    let rec play previousRounds round game hand1 hand2 =
-//        printfn "Round: %A (game %A)" round game
-//        printfn "Player 1's deck: %A" hand1
-//        printfn "Player 2's deck: %A" hand2
-        
+    let rec play previousRounds hand1 hand2 =        
         match hand1, hand2 with
-        | _, _ when Set.contains (hand1, hand2) previousRounds ->
-            (Player1, hand1, hand2)
+        | _, _ when Set.contains (hand1, hand2) previousRounds -> (Player1, hand1, hand2)
         | card1::cards1, card2::cards2 when cards1.Length >= card1 && cards2.Length >= card2 ->
-            gamesPlayed <- gamesPlayed + 1
-            
-            match play Set.empty 1 gamesPlayed (cards1.[0..card1 - 1]) (cards2.[0..card2 - 1]) with
-            | Player1, _, _ ->
-                play (Set.add (hand1, hand2) previousRounds) (round + 1) game (cards1 @ [card1; card2]) cards2
-            | Player2, _, _ ->
-                play (Set.add (hand1, hand2) previousRounds) (round + 1) game cards1 (cards2 @ [card2; card1])
-        | card1::cards1, card2::cards2 when card1 > card2 ->
-            play (Set.add (hand1, hand2) previousRounds) (round + 1) game (cards1 @ [card1; card2]) cards2
-        | card1::cards1, card2::cards2 when card2 > card1 ->
-            play (Set.add (hand1, hand2) previousRounds) (round + 1) game cards1 (cards2 @ [card2; card1])
-        | [], _  ->
-            (Player2, hand1, hand2)
-        | _ , [] ->
-            (Player1, hand1, hand2)
+            match play Set.empty (cards1.[0..card1 - 1]) (cards2.[0..card2 - 1]) with
+            | Player1, _, _ -> play (Set.add (hand1, hand2) previousRounds) (cards1 @ [card1; card2]) cards2
+            | Player2, _, _ -> play (Set.add (hand1, hand2) previousRounds) cards1 (cards2 @ [card2; card1])
+        | card1::cards1, card2::cards2 when card1 > card2 -> play (Set.add (hand1, hand2) previousRounds) (cards1 @ [card1; card2]) cards2
+        | card1::cards1, card2::cards2 when card2 > card1 -> play (Set.add (hand1, hand2) previousRounds) cards1 (cards2 @ [card2; card1])
+        | [], _  -> (Player2, hand1, hand2)
+        | _ , [] -> (Player1, hand1, hand2)
         | _, _ -> failwith "Should not happen"
         
-    match play Set.empty 1 1 hand1 hand2 with
+    match play Set.empty hand1 hand2 with
     | Player1, hand1, _ -> score hand1
     | Player2, _, hand2 -> score hand2
 
