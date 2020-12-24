@@ -16,16 +16,16 @@ let toCoordinate directions =
     
     loop (0, 0) directions
 
-let flips =
+let flipped =
     Input.asLines 24
-    |> Array.map (fun line -> Regex.Matches(line, "(se|sw|nw|ne|e|w)") |> Seq.map (fun m -> m.Value) |> Seq.toList)
-    |> Array.map toCoordinate
-
-let part1 =
-    flips
+    |> Seq.map (fun line -> Regex.Matches(line, "(se|sw|nw|ne|e|w)") |> Seq.map (fun m -> m.Value) |> Seq.toList)
+    |> Seq.map toCoordinate
     |> Seq.groupBy id
     |> Seq.filter (fun (_, tileFlips) -> Seq.length tileFlips % 2 = 1)
-    |> Seq.length
+    |> Seq.map fst
+    |> Set.ofSeq
+
+let part1 = flipped |> Set.count
 
 let part2 = 0
 
