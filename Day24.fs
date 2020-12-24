@@ -37,36 +37,42 @@ let blackTileCoordinates =
 let part1 = blackTileCoordinates |> Set.count
 
 let part2 =
-    let blackTileCoordinatesWithNeighbors =
-        blackTileCoordinates
-        |> Seq.map (fun blackTileCoordinate -> blackTileCoordinate, neighborCoordinates blackTileCoordinate)
-        |> Seq.toArray
+    let simulateDays count =
+        let rec simulateDay blackTileCoordinates current =
+            if current = count then
+                blackTileCoordinates |> Set.count
+            else
+                let blackTileCoordinatesWithNeighbors =
+                    blackTileCoordinates
+                    |> Seq.map (fun blackTileCoordinate -> blackTileCoordinate, neighborCoordinates blackTileCoordinate)
+                    |> Seq.toArray
+                
+                let adjacentBlackTileCount neighbors =
+                    neighbors
+                    |> Set.intersect blackTileCoordinates
+                    |> Set.count
+                
+                let blackTileCoordinatesThatRemainBlack =
+                    blackTileCoordinatesWithNeighbors
+                    |> Seq.filter (fun (_, neighbors) ->
+                        adjacentBlackTileCount neighbors |> fun count -> count = 1 || count = 2)
+                    |> Seq.map fst
+                    |> Set.ofSeq
+                    
+                let whiteTileCoordinatesThatBecomeBlack =
+                    let whiteTileNeighbors =
+                        blackTileCoordinatesWithNeighbors
+                        |> Seq.map snd
+                        |> Seq.reduce Set.union
+                    
+                    Set.difference whiteTileNeighbors blackTileCoordinates
+                    |> Set.filter (fun neighbor -> neighbor |> neighborCoordinates |> adjacentBlackTileCount |> fun count -> count = 2)
+              
+                let newBlackCoordinates = Set.union blackTileCoordinatesThatRemainBlack whiteTileCoordinatesThatBecomeBlack
+                simulateDay newBlackCoordinates (current + 1)
     
-    let adjacentBlackTileCount neighbors =
-        neighbors
-        |> Set.intersect blackTileCoordinates
-        |> Set.count
+        simulateDay blackTileCoordinates 0
     
-    let blackTileCoordinatesThatRemainBlack =
-        blackTileCoordinatesWithNeighbors
-        |> Seq.filter (fun (_, neighbors) -> adjacentBlackTileCount neighbors |> fun count -> count = 1 || count = 2)
-        |> Seq.map fst
-        |> Set.ofSeq
-        
-    let whiteTileCoordinatesThatBecomeBlack =
-        let whiteTileNeighbors =
-            blackTileCoordinatesWithNeighbors
-            |> Seq.map snd
-            |> Seq.reduce Set.union
-        
-        Set.difference whiteTileNeighbors blackTileCoordinates
-        |> Set.filter (fun neighbor -> neighbor |> neighborCoordinates |> adjacentBlackTileCount |> fun count -> count = 2)
-  
-    let newBlackCoordinates = Set.union blackTileCoordinatesThatRemainBlack whiteTileCoordinatesThatBecomeBlack      
-    
-    printfn "%A" newBlackCoordinates
-    0
-//Any black tile with zero or more than 2 black tiles immediately adjacent to it is flipped to white.
-//Any white tile with exactly 2 black tiles immediately adjacent to it is flipped to black.
+    simulateDays 100
 
 let solution = part1, part2
