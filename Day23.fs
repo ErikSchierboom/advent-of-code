@@ -2,79 +2,82 @@
 
 open System.Collections.Generic
 
-let initialCups = [3; 8; 9; 1; 2; 5; 4; 6; 7]
+let initialLabels = [3; 8; 9; 1; 2; 5; 4; 6; 7]
 //let initialCups = [5; 8; 3; 9; 7; 6; 2; 4; 1]
 
-// Intrinsic and optional extensions
-type LinkedListNode<'T> with
-    member self.NextSafe = if self.Next = null then self.List.First else self.Next
+let createCups (labels: int list) =
+    let cups = Dictionary<int, int>()
 
-let applyMoves count (cups: int list) =    
-    let initialOrdering = LinkedList(cups)
+    labels
+    |> Seq.pairwise
+    |> Seq.iter cups.Add
+    
+    cups.Add(List.last labels, List.head labels)
+    cups
 
-    let cupToNodes = Seq.unfold (fun (elem: LinkedListNode<int>) -> if elem = null then None else Some((elem.Value, elem), elem.Next)) initialOrdering.First |> Map.ofSeq
-    let max = List.max cups
-    let maxCup = cupToNodes |> Map.find max
-    let pickUp = List<LinkedListNode<int>>(3)
+let print current (cups: Dictionary<int, int>) =
+    let rec iter (acc: string list) key =
+        if key = current then
+            iter ((sprintf "(%d)" key)::acc) (cups.[key])
+        else            
+            let next = cups.[key]
+            if next = current then
+                (sprintf "%d" key)::acc
+            else
+                iter (sprintf "%d" key::acc) next
+        
+    iter [] current |> List.rev |> String.concat " "
+    
+//    printfn "%s" (cups |> Seq.map (fun kv -> sprintf "%d => %d" kv.Key kv.Value) |> String.concat ", ")
 
-    let rec applyMove round (current: LinkedListNode<int>) (ordering: LinkedList<int>) =
+let applyMoves count (labels: int list) =
+    let rec applyMove round (current: int) (cups: Dictionary<int, int>) =
         if round > count then
-            ordering
+            cups
         else
-//            printfn "move: %d" round        
-//            printfn "cups: %s" (ordering |> Seq.cast<int> |> Seq.map (fun elem ->
-//                if elem = current.Value then sprintf "(%d)" elem else sprintf "%d" elem
-//                )
-//                |> String.concat " ")
+            printfn "move: %d" round        
+            printfn "cups: %s" (print current cups)
 
-            pickUp.Clear()
-            
-            [0..2]
-            |> List.iter (fun _ ->
-                let node = if current.Next = null then ordering.First else current.Next
-                pickUp.Add(node)
-                ordering.Remove(node)                
-            )
+            let next = cups.[current]
+            let nextNext = cups.[next] 
+            let nextNextNext = cups.[nextNext]
             
             let destination =
-                [current.Value - 1 .. -1 .. 1]
+                [current - 1 .. -1 .. 1]
                 |> List.tryFind (fun i ->
-                    i <> pickUp.[0].Value &&
-                    i <> pickUp.[1].Value &&
-                    i <> pickUp.[2].Value)
-                |> Option.map (fun i -> Map.find i cupToNodes)
-                |> Option.defaultValue maxCup
-
-//            printfn "pick up: %s" (pickUp |> Seq.cast<int> |> Seq.map string |> String.concat " ")
-//            printfn "destination: %A" destination.Value
-//            printfn ""
+                    i <> next &&
+                    i <> nextNext &&
+                    i <> nextNextNext)
+                |> Option.defaultValue (List.max labels)
             
-            pickUp
-            |> Seq.rev
-            |> Seq.iter (fun node ->
-//                let elem = Map.find value cupToNodes
-                ordering.AddAfter(destination, node)
-            )
-
-            let next = if current.Next = null then ordering.First else current.Next
-            applyMove (round + 1) next ordering
+            printfn "pick up: %d %d %d" next nextNext nextNextNext
+            printfn "destination: %A" destination
+            printfn ""
+            
+            // TODO: swapparoo
+            
+            applyMove (round + 1) (cups.[current]) cups
     
-    applyMove 1 initialOrdering.First initialOrdering
+    let cups = createCups labels
+    let current = List.head labels
+
+    applyMove 1 current cups
 
 let part1 =
-    let ordering = applyMoves 100 initialCups
-    let one = ordering.Find(1)
-    
-    let before =
-        Seq.unfold (fun (elem: LinkedListNode<int>) -> if elem = null then None else Some(elem.Value, elem.Previous)) one.Previous
-        |> Seq.rev
-        |> Seq.toList
-    
-    let after =
-        Seq.unfold (fun (elem: LinkedListNode<int>) -> if elem = null then None else Some(elem.Value, elem.Next)) one.Next
-        |> Seq.toList
-
-    after @ before |> Seq.map string |> Seq.toArray |> String.concat ""
+    let ordering = applyMoves 10 initialLabels
+    0
+//    let one = ordering.Find(1)
+//    
+//    let before =
+//        Seq.unfold (fun (elem: LinkedListNode<int>) -> if elem = null then None else Some(elem.Value, elem.Previous)) one.Previous
+//        |> Seq.rev
+//        |> Seq.toList
+//    
+//    let after =
+//        Seq.unfold (fun (elem: LinkedListNode<int>) -> if elem = null then None else Some(elem.Value, elem.Next)) one.Next
+//        |> Seq.toList
+//
+//    after @ before |> Seq.map string |> Seq.toArray |> String.concat ""
 
 let part2 =
 //    let ordering = applyMoves 10_000_000 (initialCups @ List.init (10_000_000 - initialCups.Length) (fun i -> i + initialCups.Length))
