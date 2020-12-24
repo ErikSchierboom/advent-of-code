@@ -2,7 +2,7 @@
 
 open System.Text.RegularExpressions
 
-let followDirections directions =
+let tileCoordinate directions =
     let rec loop (x, y) remainder =
         match remainder with
         | [] -> (x, y)
@@ -16,6 +16,17 @@ let followDirections directions =
     
     loop (0, 0) directions
 
+let dayZeroBlackTitles =
+    Input.asLines 24
+    |> Seq.map (fun line -> Regex.Matches(line, "(se|sw|nw|ne|e|w)") |> Seq.map (fun m -> m.Value) |> Seq.toList)
+    |> Seq.map tileCoordinate
+    |> Seq.groupBy id
+    |> Seq.filter (fun (_, tileFlips) -> Seq.length tileFlips % 2 = 1)
+    |> Seq.map fst
+    |> Set.ofSeq
+
+let part1 = dayZeroBlackTitles |> Set.count
+
 let neighborCoordinates (x, y) =
     [ (x + 1, y - 1)
       (x - 1, y - 1)
@@ -25,18 +36,17 @@ let neighborCoordinates (x, y) =
       (x - 2, y    ) ]
     |> Set.ofList
 
-let blackTileCoordinates =
-    Input.asLines 24
-    |> Seq.map (fun line -> Regex.Matches(line, "(se|sw|nw|ne|e|w)") |> Seq.map (fun m -> m.Value) |> Seq.toList)
-    |> Seq.map followDirections
-    |> Seq.groupBy id
-    |> Seq.filter (fun (_, tileFlips) -> Seq.length tileFlips % 2 = 1)
-    |> Seq.map fst
-    |> Set.ofSeq
+let adjacentBlackTileCount blackTileCoordinates (x, y) =
+    [ (x + 1, y - 1)
+      (x - 1, y - 1)
+      (x - 1, y + 1)
+      (x + 1, y + 1)
+      (x + 2, y    )
+      (x - 2, y    ) ]
+    |> Seq.filter (fun neighborCoordinate -> Set.contains neighborCoordinate blackTileCoordinates)
+    |> Seq.length
 
-let part1 = blackTileCoordinates |> Set.count
-
-let part2 =
+let part2 = 0
     let simulateDays count =
         let rec simulateDay blackTileCoordinates current =
             if current = count then
