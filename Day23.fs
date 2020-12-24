@@ -3,7 +3,7 @@
 open System.Collections.Generic
 
 let initialLabels = [3; 8; 9; 1; 2; 5; 4; 6; 7]
-//let initialCups = [5; 8; 3; 9; 7; 6; 2; 4; 1]
+let initialCups = [5; 8; 3; 9; 7; 6; 2; 4; 1]
 
 let createCups (labels: int seq) =
     let cups = Dictionary<int, int>()
@@ -59,9 +59,7 @@ let applyMoves count current max (cups: Dictionary<int, int>) =
     applyMove 1 current
 
 let part1 =
-    let cups = createCups initialLabels
-    let current = initialLabels.Head
-    let max = List.max initialLabels
+    let cups, current, max = createCups initialLabels, initialLabels.Head, List.max initialLabels
     let finalCups = applyMoves 10 current max cups
     
     Seq.unfold (fun i -> if i = 1 then None else Some(i, finalCups.[i])) finalCups.[1]
@@ -69,16 +67,16 @@ let part1 =
     |> Seq.toArray
     |> String.concat ""
 
-let part2 =
-//    let extendedLabels = initialLabels @ List.init (10_000_000 - initialLabels.Length) (fun i -> i + initialLabels.Length + 1)
-    let cups = createCups initialLabels
-//    let finalCups = applyMoves 10 initialLabels.Head cups
+let part2 = 
+    let cups, current, max = createCups initialLabels, initialLabels.Head, List.max initialLabels
+    cups.[max] <- initialLabels.Length + 1
     
-//    let ordering = applyMoves 10_000_000 ()
-//    let one = ordering.Find(1)
-//    let firstAfterOne = if one.Next = null then ordering.First else one.Next
-//    let secondAfterOne = if one.Next = null || one.Next.Next = null then ordering.First.Next else one.Next.Next
-//    firstAfterOne.Value * secondAfterOne.Value
-    0
+    let max = 10_000_000
+    Seq.init (max - initialLabels.Length) (fun i -> i + initialLabels.Length + 1)
+    |> Seq.iter (fun i -> cups.Add(i, i + 1))
+    cups.[max] <- current
+
+    let finalCups = applyMoves 10_000_000 current max cups    
+    finalCups.[1] * finalCups.[finalCups.[1]]
 
 let solution = part1, part2
