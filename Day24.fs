@@ -2,7 +2,7 @@
 
 open System.Text.RegularExpressions
 
-let tileCoordinate directions =
+let instructionsToTile directions =
     let rec loop (x, y) remainder =
         match remainder with
         | [] -> (x, y)
@@ -16,16 +16,16 @@ let tileCoordinate directions =
     
     loop (0, 0) directions
 
-let dayZeroBlackTitles =
+let blackTilesOnFirstDay =
     Input.asLines 24
     |> Seq.map (fun line -> Regex.Matches(line, "(se|sw|nw|ne|e|w)") |> Seq.map (fun m -> m.Value) |> Seq.toList)
-    |> Seq.map tileCoordinate
+    |> Seq.map instructionsToTile
     |> Seq.groupBy id
     |> Seq.filter (fun (_, tileFlips) -> Seq.length tileFlips % 2 = 1)
     |> Seq.map fst
     |> Set.ofSeq
 
-let part1 = dayZeroBlackTitles |> Set.count
+let part1 = blackTilesOnFirstDay |> Set.count
 
 let neighborCoordinates (x, y) =
     [ (x + 1, y - 1)
@@ -34,55 +34,33 @@ let neighborCoordinates (x, y) =
       (x + 1, y + 1)
       (x + 2, y    )
       (x - 2, y    ) ]
-    |> Set.ofList
 
-let adjacentBlackTileCount blackTileCoordinates (x, y) =
-    [ (x + 1, y - 1)
-      (x - 1, y - 1)
-      (x - 1, y + 1)
-      (x + 1, y + 1)
-      (x + 2, y    )
-      (x - 2, y    ) ]
-    |> Seq.filter (fun neighborCoordinate -> Set.contains neighborCoordinate blackTileCoordinates)
-    |> Seq.length
+let becomesBlackTile blackTileCoordinates coordinate =
+    let adjacentBlackTileCount =
+        neighborCoordinates coordinate
+        |> Seq.filter (fun neighborCoordinate -> Set.contains neighborCoordinate blackTileCoordinates)
+        |> Seq.length
 
-let part2 = 0
-    let simulateDays count =
-        let rec simulateDay blackTileCoordinates current =
-            if current = count then
-                blackTileCoordinates |> Set.count
-            else
-                let blackTileCoordinatesWithNeighbors =
-                    blackTileCoordinates
-                    |> Seq.map (fun blackTileCoordinate -> blackTileCoordinate, neighborCoordinates blackTileCoordinate)
-                    |> Seq.toArray
-                
-                let adjacentBlackTileCount neighbors =
-                    neighbors
-                    |> Set.intersect blackTileCoordinates
-                    |> Set.count
-                
-                let blackTileCoordinatesThatRemainBlack =
-                    blackTileCoordinatesWithNeighbors
-                    |> Seq.filter (fun (_, neighbors) ->
-                        adjacentBlackTileCount neighbors |> fun count -> count = 1 || count = 2)
-                    |> Seq.map fst
-                    |> Set.ofSeq
-                    
-                let whiteTileCoordinatesThatBecomeBlack =
-                    let whiteTileNeighbors =
-                        blackTileCoordinatesWithNeighbors
-                        |> Seq.map snd
-                        |> Seq.reduce Set.union
-                    
-                    Set.difference whiteTileNeighbors blackTileCoordinates
-                    |> Set.filter (fun neighbor -> neighbor |> neighborCoordinates |> adjacentBlackTileCount |> fun count -> count = 2)
-              
-                let newBlackCoordinates = Set.union blackTileCoordinatesThatRemainBlack whiteTileCoordinatesThatBecomeBlack
-                simulateDay newBlackCoordinates (current + 1)
-    
-        simulateDay blackTileCoordinates 0
-    
-    simulateDays 100
+    adjacentBlackTileCount = 2 ||
+    adjacentBlackTileCount = 1 && Set.contains coordinate blackTileCoordinates
+
+let blackTilesAfterDays numberOfDays =
+    let rec simulateDay blackTiles day =
+        if day = numberOfDays then
+            blackTiles
+        else
+            let newBlackTiles = 
+                blackTiles
+                |> Seq.collect neighborCoordinates
+                |> Seq.append blackTiles
+                |> Seq.distinct
+                |> Seq.filter (becomesBlackTile blackTiles)
+                |> Set.ofSeq
+           
+            simulateDay newBlackTiles (day + 1)
+
+    simulateDay blackTilesOnFirstDay 0
+
+let part2 = blackTilesAfterDays 100 |> Set.count
 
 let solution = part1, part2
