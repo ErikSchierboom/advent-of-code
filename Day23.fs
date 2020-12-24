@@ -2,11 +2,10 @@
 
 open System.Collections.Generic
 
-let initialLabels = [3; 8; 9; 1; 2; 5; 4; 6; 7]
-//let initialLabels = [5; 8; 3; 9; 7; 6; 2; 4; 1]
+let initialLabels = [5; 8; 3; 9; 7; 6; 2; 4; 1]
 
-let createCups (labels: int seq) =
-    let cups = Dictionary<int, int>()
+let createCups (capacity: int) (labels: int seq) =
+    let cups = Dictionary<int, int>(capacity)
 
     labels
     |> Seq.pairwise
@@ -15,75 +14,47 @@ let createCups (labels: int seq) =
     cups.Add(Seq.last labels, Seq.head labels)
     cups
 
-let print current (cups: Dictionary<int, int>) =
-    let rec iter (acc: string list) key =
-        if key = current then
-            iter ((sprintf "(%d)" key)::acc) (cups.[key])
-        else            
-            let next = cups.[key]
-            if next = current then
-                (sprintf "%d" key)::acc
-            else
-                iter (sprintf "%d" key::acc) next
-        
-    iter [] current |> List.rev |> String.concat " "
-
 let applyMoves count current max (cups: Dictionary<int, int>) =
     let rec applyMove round current =
         if round > count then
             cups
         else
-            let next = cups.[current]
-            let nextNext = cups.[next] 
-            let nextNextNext = cups.[nextNext]
-            
+            let pickUpBegin = cups.[current]
+            let pickUpMiddle = cups.[pickUpBegin] 
+            let pickUpEnd = cups.[pickUpMiddle]
+
             let destination =
-                seq { current - 1 .. -1 .. 1 }
-                |> Seq.tryFind (fun i -> i <> next && i <> nextNext && i <> nextNextNext)
-                |> Option.defaultValue (seq { max .. -1 .. current } |> Seq.find (fun i -> i <> next && i <> nextNext && i <> nextNextNext))
+                seq {
+                    yield! seq { current - 1 .. -1 .. 1 }
+                    yield! seq { max .. -1 .. current + 1 }
+                } |> Seq.find (fun i -> i <> pickUpBegin && i <> pickUpMiddle && i <> pickUpEnd)
             
-//            printfn "move: %d" round        
-//            printfn "cups: %s" (print current cups)
-//            printfn "pick up: %d %d %d" next nextNext nextNextNext
-//            printfn "destination: %A" destination
-//            printfn ""
-            
-            let pickUpNext = cups.[nextNextNext]
             let destinationNext = cups.[destination]
-            cups.[current] <- pickUpNext
-            cups.[destination] <- next
-            cups.[nextNextNext] <- destinationNext
+            cups.[current] <- cups.[pickUpEnd]            
+            cups.[pickUpEnd] <- destinationNext
+            cups.[destination] <- pickUpBegin
             
-            applyMove (round + 1) (cups.[current])
+            applyMove (round + 1) cups.[current]
     
     applyMove 1 current
 
-let part1 =
-    let cups, current, max = createCups initialLabels, initialLabels.Head, List.max initialLabels
-    let finalCups = applyMoves 10 current max cups
-    
+let part1 =   
+    let finalCups = applyMoves 10 initialLabels.Head (List.max initialLabels) (createCups initialLabels.Length initialLabels)
+        
     Seq.unfold (fun i -> if i = 1 then None else Some(i, finalCups.[i])) finalCups.[1]
     |> Seq.map string
     |> Seq.toArray
     |> String.concat ""
 
-let part2 = 
-    let cups, current, max = createCups initialLabels, initialLabels.Head, List.max initialLabels
+let part2 =
+    let numberOfCups = 1_000_000
+    let cups = createCups numberOfCups initialLabels
     cups.[List.last initialLabels] <- initialLabels.Length + 1
 
-    let max = 10_000_000
-    Seq.init (max - initialLabels.Length) (fun i ->
-        i + initialLabels.Length + 1)
-    |> Seq.iter (fun i -> cups.Add(i, i + 1))
-    cups.[10_000_000] <- List.head initialLabels
+    Seq.init (numberOfCups - initialLabels.Length) ((+) (initialLabels.Length + 1)) |> Seq.iter (fun i -> cups.Add(i, i + 1))
+    cups.[numberOfCups] <- List.head initialLabels
     
-//    for i in 1..11 do
-//        printfn "%A => %A" i (cups.[i])
-//    
-//    printfn "%A" cups.Count
-//    printfn "%A" cups.[10_000_000]
-
-    let finalCups = applyMoves 10_000_000 current max cups    
-    finalCups.[1] * finalCups.[finalCups.[1]]
+    let finalCups = applyMoves 10_000_000 initialLabels.Head numberOfCups cups
+    int64 finalCups.[1] * int64 finalCups.[finalCups.[1]]
 
 let solution = part1, part2
