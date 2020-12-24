@@ -3,7 +3,7 @@
 open System.Collections.Generic
 
 let initialLabels = [3; 8; 9; 1; 2; 5; 4; 6; 7]
-let initialCups = [5; 8; 3; 9; 7; 6; 2; 4; 1]
+//let initialLabels = [5; 8; 3; 9; 7; 6; 2; 4; 1]
 
 let createCups (labels: int seq) =
     let cups = Dictionary<int, int>()
@@ -69,12 +69,19 @@ let part1 =
 
 let part2 = 
     let cups, current, max = createCups initialLabels, initialLabels.Head, List.max initialLabels
-    cups.[max] <- initialLabels.Length + 1
-    
+    cups.[List.last initialLabels] <- initialLabels.Length + 1
+
     let max = 10_000_000
-    Seq.init (max - initialLabels.Length) (fun i -> i + initialLabels.Length + 1)
+    Seq.init (max - initialLabels.Length) (fun i ->
+        i + initialLabels.Length + 1)
     |> Seq.iter (fun i -> cups.Add(i, i + 1))
-    cups.[max] <- current
+    cups.[10_000_000] <- List.head initialLabels
+    
+//    for i in 1..11 do
+//        printfn "%A => %A" i (cups.[i])
+//    
+//    printfn "%A" cups.Count
+//    printfn "%A" cups.[10_000_000]
 
     let finalCups = applyMoves 10_000_000 current max cups    
     finalCups.[1] * finalCups.[finalCups.[1]]
