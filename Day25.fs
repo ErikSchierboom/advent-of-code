@@ -1,36 +1,25 @@
 ﻿module AdventOfCode.Day25
 
-open System.Collections.Generic
+open System.Diagnostics
 
 let cardPublicKey, doorPublicKey = Input.asLines 25 |> fun lines -> uint64 lines.[0], uint64 lines.[1]
-let transform subjectNumber =
-    let cache = Dictionary<int, uint64>()
-    cache.Add(0, 1UL)
-    
-    let rec valueForLoop loop =
-        match cache.TryGetValue(loop) with
-        | true, value ->
-            value
-        | false, _    -> 
-            let value = valueForLoop (loop - 1) * subjectNumber % 20201227UL
-            cache.Add(loop, value)
-            value
-    
-    valueForLoop
 
-let loopSize publicKey =
-    let transform = transform 7UL
-    Seq.initInfinite ((+) 1) |> Seq.find (fun i -> transform i = publicKey)
+let transform subjectNumber value = value * subjectNumber % 20201227UL
 
-//printfn "%A" (loopSize 5764801UL)  
-//printfn "%A" (loopSize 17807724UL)  
-//printfn "%A" (transform 7UL 8)  
-//printfn "%A" (transform 17807724UL 8)
+let loopSize publicKey =    
+    let rec inner value loop =
+        let transformed = transform 7UL value         
+        if transformed = publicKey then loop else inner transformed (loop + 1)
 
-//let part1 = 0
-//let part1 = loopSize cardPublicKey
-let part1 = transform doorPublicKey 7731677
-//|> transform doorPublicKey
+    inner 1UL 1
+
+let encryptionKey subjectNumber value loopSize = Seq.init loopSize id |> Seq.fold (fun acc _ -> transform subjectNumber acc) value
+
+let sw = Stopwatch.StartNew()
+
+let part1 = loopSize cardPublicKey |> encryptionKey doorPublicKey 1UL
+
+printfn "%A" sw.Elapsed
 
 let part2 = 0
 
