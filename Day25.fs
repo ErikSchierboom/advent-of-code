@@ -1,7 +1,5 @@
 ﻿module AdventOfCode.Day25
 
-open System.Diagnostics
-
 let cardPublicKey, doorPublicKey = Input.asLines 25 |> fun lines -> uint64 lines.[0], uint64 lines.[1]
 
 let transform subjectNumber value = value * subjectNumber % 20201227UL
@@ -13,14 +11,11 @@ let loopSize publicKey =
 
     inner 1UL 1
 
-let encryptionKey subjectNumber value loopSize = Seq.init loopSize id |> Seq.fold (fun acc _ -> transform subjectNumber acc) value
-
-let sw = Stopwatch.StartNew()
+let encryptionKey subjectNumber value loopSize =
+    let rec inner acc loop = if loop = loopSize then acc else inner (transform subjectNumber acc) (loop + 1)        
+    inner value 0
 
 let part1 = loopSize cardPublicKey |> encryptionKey doorPublicKey 1UL
-
-printfn "%A" sw.Elapsed
-
 let part2 = 0
 
 let solution = part1, part2
