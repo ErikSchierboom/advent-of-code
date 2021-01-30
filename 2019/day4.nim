@@ -1,29 +1,21 @@
-import sequtils, strformat, strutils, sugar, tables
+import algorithm, sequtils, strformat, strutils, sugar, tables
 
 func digits(number: int): seq[int] = ($number).mapIt(parseInt($it))
 
-func pairs(digits: seq[int]): seq[(int, int)] = digits.zip(digits[1..^1])
+var candidates = newSeq[seq[int]]()
+for candidate in 235_741..706_948:
+  candidates.add(candidate.digits())
 
-iterator candidates: seq[(int, int)] =
-  for candidate in 235_741..706_948:
-    yield candidate.digits().pairs()
+func inOrder(digits: seq[int]): bool =  digits.sorted == digits
 
-proc inOrder(digitPairs: seq[(int, int)]): bool = 
-  digitPairs.allIt(it[0] <= it[1])
+func hasPair(digitCount: CountTable[int], comparison: int -> bool): bool =
+  toSeq(digitCount.values).anyIt(comparison(it))
 
-proc pairOfAnyLength(digitPairs: seq[(int, int)]): bool =
-  digitPairs.anyIt(it[0] == it[1])
+proc matchCount(comparison: int -> bool): int =
+  candidates.countIt(it.inOrder() and it.toCountTable().hasPair(comparison))
 
-proc pairOfLengthTwo(digitPairs: seq[(int, int)]): bool =
-  toSeq(digitPairs.filterIt(it[0] == it[1]).toCountTable().values).contains(1)
+proc part1(): int = matchCount((count) => count >= 2)
 
-proc matchCount(pair: seq[(int, int)] -> bool): int =
-  for candidate in candidates():
-    if inOrder(candidate) and pair(candidate):
-      result.inc
-
-proc part1(): int = matchCount(pairOfAnyLength)
-
-proc part2(): int = matchCount(pairOfLengthTwo)
+proc part2(): int = matchCount((count) => count == 2)
 
 echo &"day 4: {part1()}, {part2()}"
