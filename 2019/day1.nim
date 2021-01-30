@@ -1,4 +1,4 @@
-import input, strformat
+import input, math, sequtils, strformat
 
 let masses = readInputAsInts(1)  
 
@@ -11,12 +11,8 @@ func fuelForFuel(mass: int): int =
     current = fuelForMass(current)
     result.inc(current)
 
-proc part1(): int =
-  for mass in masses:
-    result += fuelForMass(mass)
+proc part1(): int = masses.map(fuelForMass).sum
 
-proc part2(): int =
-  for mass in masses:
-    result += fuelForFuel(mass)
+proc part2(): int = masses.map(fuelForFuel).sum
 
 echo &"day 1: {part1()}, {part2()}"
