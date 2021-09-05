@@ -1,4 +1,4 @@
 fun main() {
-    println("Day3/1: ${Day3.part1()}")
-    println("Day3/2: ${Day3.part2()}")
+    println("Day4/1: ${Day4.part1()}")
+    println("Day4/2: ${Day4.part2()}")
 }

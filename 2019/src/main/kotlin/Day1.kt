@@ -1,5 +1,5 @@
 object Day1 {
-    private val fuelPerModule = getResourceAsInts("day1.txt")
+    private val fuelPerModule = readResourcesAsInts("day1.txt")
 
     fun part1() = fuelPerModule.sumOf(this::fuelRequirement)
     fun part2() = fuelPerModule.sumOf(this::cumulativeFuelRequirement)

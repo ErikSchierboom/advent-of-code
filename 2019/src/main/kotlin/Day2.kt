@@ -1,5 +1,5 @@
 object Day2 {
-     private val instructions = getResourceAsText("day2.txt").split(',').map(String::toInt)
+     private val instructions = readResourceAsText("day2.txt").split(',').map(String::toInt)
 
      class Program(val state: MutableList<Int>, var instructionPointer: Int = 0) {
          fun execute(): Unit = when (state[instructionPointer]) {

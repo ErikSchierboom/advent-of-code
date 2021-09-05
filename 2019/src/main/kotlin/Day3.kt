@@ -35,7 +35,7 @@ class Wire {
 }
 
 object Day3 {
-    private val paths = getResourceAsLines("day3.txt").map { it.split(',') }
+    private val paths = readResourceAsLines("day3.txt").map { it.split(',') }
         private val firstWire = Wire.fromPaths(paths[0])
         private val secondWire = Wire.fromPaths(paths[1])
         private val intersections = firstWire.intersect(secondWire).minus(Coordinate(0, 0))
