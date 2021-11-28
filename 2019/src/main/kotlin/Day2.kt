@@ -1,5 +1,24 @@
+sealed abstract class Instruction
+class Add(val leftPos: Int, val rightPos: Int, val resultPos: Int) : Instruction()
+class Multiply(val leftPos: Int, val rightPos: Int, val resultPos: Int) : Instruction()
+object Halt : Instruction()
+
+fun Instruction(state: MutableList<Int>): Instruction {
+    return when(state[0]) {
+        1 -> Add(state[1], state[2], state[3])
+        2 -> Multiply(state[1], state[2], state[3])
+        99 -> Halt
+        else -> throw IllegalStateException("Invalid opcode")
+    }
+}
+
 object Day2 {
-     private val instructions = readResourceAsText("day2.txt").split(',').map(String::toInt)
+     private val instructions = readResourceAsText("day2.txt")
+         .split(',')
+         .map(String::toInt)
+         .let { state ->
+
+         }
 
      class Program(val state: MutableList<Int>, var instructionPointer: Int = 0) {
          fun execute(): Unit = when (state[instructionPointer]) {
