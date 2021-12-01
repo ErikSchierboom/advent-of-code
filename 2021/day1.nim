@@ -1,4 +1,4 @@
-import std/[math,os,strutils]
+import std/[math, os, strutils]
 import helpers
 
 func part1(depths: seq[int]): int =
