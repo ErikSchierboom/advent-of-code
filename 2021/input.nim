@@ -3,15 +3,13 @@ import std/[os,strutils,strformat]
 type
   Day* = distinct Positive
 
-proc `$` *(day: Day): string {.borrow.}
+func filename(day: Day): string =
+  "input" / &"day{int(day)}.txt"
 
-func filePath(day: Day): string =
-  "input" / &"day{day}.txt"
-
-proc readInputStrings*(day: Day): seq[string] =
-  for line in day.filePath.lines:
+proc readStringSeq*(day: Day): seq[string] =
+  for line in day.filename.lines:
     result.add(line)
 
-proc readInputInts*(day: Day): seq[int] =
-  for line in day.filePath.lines:
+proc readIntSeq*(day: Day): seq[int] =
+  for line in day.filename.lines:
     result.add(parseInt(line))

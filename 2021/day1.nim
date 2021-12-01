@@ -1,17 +1,17 @@
-import std/[math,strformat]
+import std/math
 import input
 
-let inputs = readInputInts(Day(1))
-
-proc part1: int =
-  for i in 0 ..< inputs.high:
-    if inputs[i + 1] > inputs[i]:
+func part1(depths: seq[int]): int =
+  for i in 0 ..< depths.high:
+    if depths[i + 1] > depths[i]:
       inc result
 
-proc part2: int =
-  for i in 0 ..< inputs.high - 2:
-    if sum(inputs[i + 1 .. i + 3]) > sum(inputs[i .. i + 2]):
+func part2(depths: seq[int]): int =
+  for i in 0 ..< depths.high - 2:
+    if sum(depths[i + 1 .. i + 3]) > sum(depths[i .. i + 2]):
       inc result
 
-echo &"1.1: {part1()}"
-echo &"1.2: {part2()}"
+when isMainModule:
+  let depths = readIntSeq(Day(1))
+  echo part1(depths)
+  echo part2(depths)
