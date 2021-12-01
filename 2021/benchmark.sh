@@ -7,4 +7,4 @@ day_files=$(find . -maxdepth 1 -name 'day*.nim')
 echo $day_files | xargs -n1 nim c
 
 # Benchmark
-hyperfine ${day_files//.nim/}
+hyperfine ${day_files//.nim/} --export-markdown benchmark.md
