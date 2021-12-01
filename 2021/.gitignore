@@ -1,7 +1,4 @@
 nimcache/
 nimblecache/
 htmldocs/
-
-day*
-!day*.txt
-!day*.nim
+*.out
