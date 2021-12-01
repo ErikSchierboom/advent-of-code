@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
-day_files=$(find . -maxdepth 1 -name 'day*.nim' | sort)
+# Find
+day_files=$(find . -maxdepth 1 -name 'day*.nim')
 
-# Compile each day
-for day_file in $day_files; do
-    nim c $day_file
-done
+# Compile
+echo $day_files | xargs -n1 nim c
 
-# Benchmark each day
-for day_file in $day_files; do
-    hyperfine ${day_file/.nim/}
-done
+# Benchmark
+hyperfine ${day_files//.nim/}
