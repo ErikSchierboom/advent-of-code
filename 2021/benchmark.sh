@@ -7,4 +7,4 @@ day_files=$(find . -maxdepth 1 -name 'day*.nim')
 echo $day_files | xargs -n1 nim c
 
 # Benchmark
-hyperfine ${day_files//.nim/} --export-markdown benchmark.md
+hyperfine --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches' ${day_files//.nim/} --export-markdown benchmark.md
