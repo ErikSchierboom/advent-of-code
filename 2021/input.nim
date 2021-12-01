@@ -1,7 +1,7 @@
 import std/[os,strutils,strformat]
 
 type
-  Day* = distinct int
+  Day* = distinct Positive
 
 proc `$` *(day: Day): string {.borrow.}
 
