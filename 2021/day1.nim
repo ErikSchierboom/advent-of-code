@@ -1,5 +1,5 @@
-import std/math
-import input
+import std/[math,os,strutils]
+import helpers
 
 func part1(depths: seq[int]): int =
   for i in 0 ..< depths.high:
@@ -12,6 +12,6 @@ func part2(depths: seq[int]): int =
       inc result
 
 when isMainModule:
-  let depths = readIntSeq(Day(1))
+  const depths = staticRead("input" / "day1.txt").splitLines.toIntSeq
   echo part1(depths)
   echo part2(depths)
