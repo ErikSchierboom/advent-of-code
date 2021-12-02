@@ -1,16 +1,13 @@
 import std/math
-import helpers
+import aoc
 
-func part1(depths: seq[int]): int =
-  for i in 0 ..< depths.high:
-    if depths[i + 1] > depths[i]:
-      inc result
+proc solve(filename: string): IntSolution =
+  let depths = readInputIntSeq(filename)
 
-func part2(depths: seq[int]): int =
-  for i in 0 ..< depths.high - 2:
-    if sum(depths[i + 1 .. i + 3]) > sum(depths[i .. i + 2]):
-      inc result
+  for i in 0 .. depths.high:
+    if i < depths.high and depths[i + 1] > depths[i]:
+      inc result.part1
+    if i < depths.high-2 and sum(depths[i + 1 .. i + 3]) > sum(depths[i .. i + 2]):
+      inc result.part2
 
-let depths = readInputIntSeq("input/day1.txt")
-echo part1(depths)
-echo part2(depths)
+echo solve("input/day1.txt")
