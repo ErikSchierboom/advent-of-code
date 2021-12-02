@@ -3,5 +3,5 @@ nimblecache/
 htmldocs/
 *.out
 /day*
-/!day*.nim
+!/day*.nim
 /.reference/
