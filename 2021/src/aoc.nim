@@ -1,7 +1,11 @@
-import strformat
-import day1, day2
+import macros, strformat
 
-# TODO: use macro to reduce boilerplate
+macro solveDay(day: untyped): untyped =
+  let dayStr = day.toStrLit
 
-echo &"Day 1: {day1.solve()}"
-echo &"Day 2: {day2.solve()}"
+  quote do: 
+    import `day`
+    echo `dayStr` & ": " & $(`day`.solve())
+
+solveDay(day1)
+solveDay(day2)
