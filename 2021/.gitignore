@@ -2,6 +2,8 @@ nimcache/
 nimblecache/
 htmldocs/
 *.out
-/day*
-!/day*.nim
+day*
+!day*.nim
+!day*.txt
 /.reference/
+/aoc

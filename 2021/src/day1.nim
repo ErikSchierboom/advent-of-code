@@ -1,7 +1,7 @@
-import aoc
+import helpers
 
-proc solve(input: string): IntSolution =
-  let depths = readInputIntSeq(input)
+proc solve*: IntSolution =
+  let depths = readInputIntSeq("input/day1.txt")
 
   for i in 0 .. depths.high:
     if i < depths.high and depths[i + 1] > depths[i]:
@@ -9,4 +9,5 @@ proc solve(input: string): IntSolution =
     if i < depths.high - 3 and depths[i + 3] > depths[i]:
       inc result.part2
 
-echo solve("input/day1.txt")
+when isMainModule:
+  echo solve()
