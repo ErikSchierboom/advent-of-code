@@ -10,11 +10,11 @@ proc solve(input: string): IntSolution =
     if line.scanf("$w $i", direction, distance):
       case direction:
         of "forward":
-          point.x = point.x + distance
+          point.x += distance
         of "up":
-          point.y = point.y - distance
+          point.y -= distance
         of "down":
-          point.y = point.y + distance
+          point.y += distance
 
   result.part1 = point.x * point.y
 
