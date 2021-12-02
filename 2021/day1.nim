@@ -1,4 +1,4 @@
-import std/[math, os, strutils]
+import std/math
 import helpers
 
 func part1(depths: seq[int]): int =
@@ -11,7 +11,6 @@ func part2(depths: seq[int]): int =
     if sum(depths[i + 1 .. i + 3]) > sum(depths[i .. i + 2]):
       inc result
 
-when isMainModule:
-  const depths = staticRead("input" / "day1.txt").splitLines.toIntSeq
-  echo part1(depths)
-  echo part2(depths)
+let depths = readInputIntSeq("input/day1.txt")
+echo part1(depths)
+echo part2(depths)
