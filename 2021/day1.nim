@@ -1,8 +1,7 @@
-import std/math
-import aoc
+import aoc, std/math
 
-proc solve(filename: string): IntSolution =
-  let depths = readInputIntSeq(filename)
+proc solve(input: string): IntSolution =
+  let depths = readInputIntSeq(input)
 
   for i in 0 .. depths.high:
     if i < depths.high and depths[i + 1] > depths[i]:
