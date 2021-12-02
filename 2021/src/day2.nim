@@ -1,34 +1,23 @@
 import helpers, std/strscans
 
-type
-  Submarine = object
-    x: int
-    y: int
-    aim: int
-
 proc solve*: IntSolution =
   var
-    sub1: Submarine
-    sub2: Submarine
     direction: string
-    distance: int
+    x, y, aim, distance: int
 
   for line in "input/day2.txt".lines:
     if line.scanf("$w $i", direction, distance):
       case direction:
         of "forward":
-          sub1.x += distance
-          sub2.x += distance
-          sub2.y += sub2.aim * distance
+          x += distance
+          y += aim * distance
         of "up":
-          sub1.y -= distance
-          sub2.aim -= distance
+          aim -= distance
         of "down":
-          sub1.y += distance
-          sub2.aim += distance
+          aim += distance
 
-  result.part1 = sub1.x * sub1.y
-  result.part2 = sub2.x * sub2.y
+  result.part1 = x * aim
+  result.part2 = x * y
 
 when isMainModule:
   echo solve()
