@@ -2,12 +2,12 @@ import helpers, std/strscans
 
 proc solve*: IntSolution =
   var
-    direction: string
+    command: string
     x, y, aim, distance: int
 
   for line in "input/day2.txt".lines:
-    if line.scanf("$w $i", direction, distance):
-      case direction:
+    if line.scanf("$w $i", command, distance):
+      case command:
         of "forward":
           x += distance
           y += aim * distance
