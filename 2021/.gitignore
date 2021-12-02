@@ -3,7 +3,9 @@ nimblecache/
 htmldocs/
 *.out
 day*
+tday*
 !day*.nim
+!tday*.nim
 !day*.txt
 /.reference/
 /aoc
