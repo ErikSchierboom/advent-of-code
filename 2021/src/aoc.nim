@@ -1,17 +1,13 @@
-import std/[macros, os, strutils]
+import std/[macros, os, sequtils, strutils]
 
-iterator days(): string =
+proc days(): seq[string] =
   for file in os.walkDir("src"):
       var (_, name, ext) = splitFile(file.path)
       if ext == ".nim" and name.startsWith("day"):
-        yield name
+        result.add name
 
 macro solveDays(): untyped =
-  var includeStmt = newNimNode(nnkIncludeStmt)
-  for day in days():
-    includeStmt.add(ident(day))
-
-  result = newStmtList(includeStmt)
+  result = newStmtList(newNimNode(nnkIncludeStmt).add(days().mapIt(ident(it))))
 
 when isMainModule:
   solveDays()
