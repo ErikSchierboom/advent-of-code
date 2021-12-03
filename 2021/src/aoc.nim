@@ -1,4 +1,4 @@
-import macros, os, strutils
+import std/[macros, os, strutils]
 
 iterator days(): string =
   for file in os.walkDir("src"):
