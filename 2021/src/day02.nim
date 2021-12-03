@@ -5,7 +5,7 @@ proc solveDay2*: IntSolution =
     command: string
     x, y, aim, distance: int
 
-  for line in readInputStringSeq("input/day2.txt"):
+  for line in readInputStringSeq("input/day02.txt"):
     if line.scanf("$w $i", command, distance):
       case command:
         of "forward":
