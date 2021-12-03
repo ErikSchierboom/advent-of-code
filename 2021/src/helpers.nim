@@ -1,4 +1,4 @@
-import std/strutils
+import std/[os, strutils, strformat]
 
 type
   Solution*[T, U] = object
@@ -6,11 +6,21 @@ type
     part2*: U
   IntSolution* = Solution[int, int]
   Point* = tuple[x, y: int]
+  Day* = range[1..3]
 
-iterator readInputStringSeq*(filename: string): string =
-  for line in filename.lines:
+func `$`*(day: Day): string =
+  &"day{intToStr(day, 2)}"
+
+func filename*(day: Day): string =
+  &"{day}.txt"
+
+func filepath*(day: Day): string =
+  "input" / day.filename
+
+iterator readInputStrings*(day: Day): string =
+  for line in lines(day.filepath):
     yield line
 
-iterator readInputIntSeq*(filename: string): int =
-  for line in filename.lines:
+iterator readInputInts*(day: Day): int =
+  for line in lines(day.filepath):
     yield parseInt(line)

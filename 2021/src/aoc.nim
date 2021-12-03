@@ -1,15 +1,13 @@
-import std/[algorithm, macros, os, sequtils, strutils]
+import helpers, std/[macros, sequtils]
 
-proc days(): seq[string] =
-  for file in os.walkDir("src"):
-      var (_, name, ext) = splitFile(file.path)
-      if ext == ".nim" and name.startsWith("day"):
-        result.add name
+proc dayModuleImports(): NimNode =
+  result = newNimNode(nnkIncludeStmt)
 
-  result.sort()
+  for day in Day.low .. Day.high:
+    result.add ident($day)
 
 macro solveDays(): untyped =
-  result = newStmtList(newNimNode(nnkIncludeStmt).add(days().mapIt(ident(it))))
+  result = newStmtList(dayModuleImports())
 
 when isMainModule:
   solveDays()

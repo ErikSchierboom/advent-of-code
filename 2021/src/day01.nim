@@ -1,7 +1,7 @@
 import helpers, std/sequtils
 
 proc solveDay1*: IntSolution =
-  let depths = readInputStringSeq("input/day01.txt").toSeq()
+  let depths = readInputInts(day = 1).toSeq()
 
   for i in 0 .. depths.high:
     if i < depths.high and depths[i + 1] > depths[i]:
