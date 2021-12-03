@@ -1,23 +1,22 @@
 import helpers, std/strscans
 
 proc solveDay2*: IntSolution =
-  var
-    command: string
-    x, y, aim, distance: int
+  var sub: tuple[x, y, aim: int]
 
   for line in readInputStrings(day = 2):
-    if line.scanf("$w $i", command, distance):
+    let (success, command, distance) = line.scanTuple("$w $i")
+    if success:
       case command:
         of "forward":
-          x += distance
-          y += aim * distance
+          sub.x += distance
+          sub.y += sub.aim * distance
         of "up":
-          aim -= distance
+          sub.aim -= distance
         of "down":
-          aim += distance
+          sub.aim += distance
 
-  result.part1 = x * aim
-  result.part2 = x * y
+  result.part1 = sub.x * sub.aim
+  result.part2 = sub.x * sub.y
 
 when isMainModule:
   echo solveDay2()

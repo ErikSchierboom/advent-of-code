@@ -1,4 +1,4 @@
-import std/[os, strutils, strformat]
+import std/[os, sequtils, strutils, strformat]
 
 type
   Solution*[T, U] = object
@@ -24,3 +24,7 @@ iterator readInputStrings*(day: Day): string =
 iterator readInputInts*(day: Day): int =
   for line in lines(day.filepath):
     yield parseInt(line)
+
+iterator readInputBinaryNums*(day: Day): seq[int] =
+  for line in lines(day.filepath):
+    yield line.mapIt(parseInt($it))
