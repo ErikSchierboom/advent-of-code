@@ -1,6 +1,6 @@
 import helpers, std/strscans
 
-proc solve*: IntSolution =
+proc solveDay2*: IntSolution =
   var
     command: string
     x, y, aim, distance: int
@@ -20,4 +20,4 @@ proc solve*: IntSolution =
   result.part2 = x * y
 
 when isMainModule:
-  echo solve()
+  echo solveDay2()

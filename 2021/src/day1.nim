@@ -1,6 +1,6 @@
 import helpers
 
-proc solve*: IntSolution =
+proc solveDay1*: IntSolution =
   let depths = readInputIntSeq("input/day1.txt")
 
   for i in 0 .. depths.high:
@@ -10,4 +10,4 @@ proc solve*: IntSolution =
       inc result.part2
 
 when isMainModule:
-  echo solve()
+  echo solveDay1()

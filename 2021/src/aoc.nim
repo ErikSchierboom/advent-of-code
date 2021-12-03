@@ -1,11 +1,16 @@
-import macros, strformat
+import macros, os, strutils
 
-macro solveDay(day: untyped): untyped =
-  let dayStr = day.toStrLit
+iterator days(): string =
+  for file in os.walkDir("src"):
+      var (_, name, ext) = splitFile(file.path)
+      if ext == ".nim" and name.startsWith("day"):
+        yield name
 
-  quote do: 
-    import `day`
-    echo `dayStr` & ": " & $(`day`.solve())
+macro solveDays(): untyped =
+  var includeStmt = newNimNode(nnkIncludeStmt)
+  for day in days():
+    includeStmt.add(ident(day))
 
-solveDay(day1)
-solveDay(day2)
+  result = newStmtList(includeStmt)
+
+solveDays()
