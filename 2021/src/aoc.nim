@@ -13,4 +13,5 @@ macro solveDays(): untyped =
 
   result = newStmtList(includeStmt)
 
-solveDays()
+when isMainModule:
+  solveDays()
