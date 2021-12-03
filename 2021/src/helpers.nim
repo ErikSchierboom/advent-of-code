@@ -7,10 +7,10 @@ type
   IntSolution* = Solution[int, int]
   Point* = tuple[x, y: int]
 
-proc readInputStringSeq*(filename: string): seq[string] =
+iterator readInputStringSeq*(filename: string): string =
   for line in filename.lines:
-    result.add line
+    yield line
 
-proc readInputIntSeq*(filename: string): seq[int] =
+iterator readInputIntSeq*(filename: string): int =
   for line in filename.lines:
-    result.add parseInt(line)
+    yield parseInt(line)
