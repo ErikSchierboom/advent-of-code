@@ -1,4 +1,4 @@
-import day1, unittest
+import day01, unittest
 
 suite "day 1":
   test "part 1":
