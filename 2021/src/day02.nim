@@ -3,8 +3,7 @@ import helpers, std/strscans
 proc solveDay2*: IntSolution =
   var sub: tuple[x, y, aim: int]
 
-  for line in readInputStrings(day = 2):
-    let (success, command, distance) = line.scanTuple("$w $i")
+  for (success, command, distance) in readInputScans(day = 2, pattern = "$w $i"):
     if success:
       case command:
         of "forward":

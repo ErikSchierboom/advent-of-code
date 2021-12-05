@@ -1,4 +1,4 @@
-import std/[os, sequtils, strutils, strformat]
+import std/[os, sequtils, strscans, strutils, strformat]
 
 type
   Solution*[T, U] = object
@@ -20,6 +20,10 @@ func filepath*(day: Day): string =
 iterator readInputStrings*(day: Day): string =
   for line in lines(day.filepath):
     yield line
+
+iterator readInputScans*(day: Day, pattern: static[string]): auto =
+  for line in lines(day.filepath):
+    yield line.scanTuple(pattern)
 
 iterator readInputInts*(day: Day): int =
   for line in lines(day.filepath):
