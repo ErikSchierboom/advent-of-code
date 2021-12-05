@@ -6,7 +6,7 @@ type
     part2*: U
   IntSolution* = Solution[int, int]
   Point* = tuple[x, y: int]
-  Day* = range[1..3]
+  Day* = range[1..5]
 
 func `$`*(day: Day): string =
   &"day{intToStr(day, 2)}"
