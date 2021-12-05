@@ -1,14 +1,29 @@
 import helpers, std/[strscans, sequtils, tables]
 
-proc toGrid(lines: seq[tuple[start, stop: Point]]): CountTable[Point] =
-  for (start, stop) in lines:
-    if start.x == stop.x or start.y == stop.y:
-      for x in min(start.x, stop.x) .. max(start.x, stop.x):
-        for y in min(start.y, stop.y) .. max(start.y, stop.y):
-          result.inc (x: x, y: y)
+proc numOverlappingPoints(lines: seq[tuple[start, stop: Point]], diagonal: bool): int =
+  var grid = initCountTable[Point]()
 
-proc part1(lines: seq[tuple[start, stop: Point]]): int =
-  result = lines.toGrid.values.countIt(it > 1)
+  for (start, stop) in lines:
+    if start.x == stop.x:
+      for y in min(start.y, stop.y) .. max(start.y, stop.y):
+        grid.inc (x: start.x, y: y)
+    elif start.y == stop.y:
+      for x in min(start.x, stop.x) .. max(start.x, stop.x):
+        grid.inc (x: x, y: start.y)
+    elif diagonal and start.x <= stop.x and start.y <= stop.y:
+      for d in 0 .. abs(stop.x - start.x):
+        grid.inc (x: start.x + d, y: start.y + d)
+    elif diagonal and start.x > stop.x and start.y <= stop.y:
+      for d in 0 .. abs(stop.x - start.x):
+        grid.inc (x: start.x - d, y: start.y + d)
+    elif diagonal and start.x <= stop.x and start.y > stop.y:
+      for d in 0 .. abs(stop.x - start.x):
+        grid.inc (x: start.x + d, y: start.y - d)
+    elif diagonal and start.x > stop.x and start.y > stop.y:
+      for d in 0 .. abs(stop.x - start.x):
+        grid.inc (x: start.x - d, y: start.y - d)
+
+  result = grid.values.countIt(it > 1)
 
 iterator readInputLines(): tuple[start, stop: Point] =
   for (_, x1, y1, x2, y2) in readInputScans(day = Day(5), pattern = "$i,$i -> $i,$i"):
@@ -16,8 +31,8 @@ iterator readInputLines(): tuple[start, stop: Point] =
 
 proc solveDay5*: IntSolution =
   let lines = readInputLines().toSeq()
-
-  result.part1 = part1(lines)
+  result.part1 = lines.numOverlappingPoints(diagonal = false)
+  result.part2 = lines.numOverlappingPoints(diagonal = true)
 
 when isMainModule:
   echo solveDay5()
