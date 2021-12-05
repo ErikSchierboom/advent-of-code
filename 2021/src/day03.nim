@@ -11,12 +11,10 @@ func bitFrequencies(bitsSeq: seq[seq[int]]): seq[int] =
         dec result[i]
 
 func mostCommonBits(frequencies: seq[int]): seq[int] =
-  for frequency in frequencies:
-    if frequency >= 0: result.add 1 else: result.add 0
+  frequencies.mapIt(if it >= 0: 1 else: 0)
 
 func leastCommonBits(frequencies: seq[int]): seq[int] =
-  for frequency in frequencies:
-    if frequency >= 0: result.add 0 else: result.add 1
+  frequencies.mapIt(if it >= 0: 0 else: 1)
 
 func bitsToInt(bits: seq[int]): int = bits.foldl(a shl 1 or b, 0)
 
