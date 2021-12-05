@@ -10,18 +10,11 @@ proc numOverlappingPoints(lines: seq[tuple[start, stop: Point]], diagonal: bool)
     elif start.y == stop.y:
       for x in min(start.x, stop.x) .. max(start.x, stop.x):
         grid.inc (x: x, y: start.y)
-    elif diagonal and start.x <= stop.x and start.y <= stop.y:
+    elif diagonal:
+      let dx = if start.x <= stop.x: 1 else: -1
+      let dy = if start.y <= stop.y: 1 else: -1
       for d in 0 .. abs(stop.x - start.x):
-        grid.inc (x: start.x + d, y: start.y + d)
-    elif diagonal and start.x > stop.x and start.y <= stop.y:
-      for d in 0 .. abs(stop.x - start.x):
-        grid.inc (x: start.x - d, y: start.y + d)
-    elif diagonal and start.x <= stop.x and start.y > stop.y:
-      for d in 0 .. abs(stop.x - start.x):
-        grid.inc (x: start.x + d, y: start.y - d)
-    elif diagonal and start.x > stop.x and start.y > stop.y:
-      for d in 0 .. abs(stop.x - start.x):
-        grid.inc (x: start.x - d, y: start.y - d)
+        grid.inc (x: start.x + d * dx, y: start.y + d * dy)
 
   result = grid.values.countIt(it > 1)
 
