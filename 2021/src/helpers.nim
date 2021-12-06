@@ -6,6 +6,7 @@ type
     part2*: U
   IntSolution* = Solution[int, int]
   Point* = tuple[x, y: int]
+  Line* = tuple[a, b: Point]
   Day* = range[1..5]
 
 func `$`*(day: Day): string =
@@ -16,6 +17,9 @@ func filename*(day: Day): string =
 
 func filepath*(day: Day): string =
   "input" / day.filename
+
+proc readInputString*(day: Day): string =
+  readFile(day.filepath)
 
 iterator readInputStrings*(day: Day): string =
   for line in lines(day.filepath):
