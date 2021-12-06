@@ -40,3 +40,10 @@ iterator readInputBinaryNums*(day: Day): seq[int] =
 iterator splitToInts*(str: string, separator = ','): int =
   for substr in str.split(','):
     yield parseInt($substr)
+
+func transpose*[T](s: seq[seq[T]]): seq[seq[T]] =
+  result = newSeq[seq[T]](s[0].len)
+  for i in 0 .. s[0].high:
+    result[i] = newSeq[T](s.len)
+    for j in 0 .. s.high:
+      result[i][j] = s[j][i]
