@@ -52,9 +52,21 @@ proc part1(game: Game): int =
       if board.hasWon:
         return board.unmarkedSum * drawnNumber
 
+proc part2(game: Game): int =
+  while true:
+    let drawnNumber = game.drawNumbers.popFirst()
+    for i in countdown(game.boards.high, game.boards.low):
+      game.boards[i].crossNumber(drawnNumber)
+      if game.boards[i].hasWon:
+        if game.boards.len == 1:
+          return game.boards[i].unmarkedSum * drawnNumber
+
+        game.boards.delete(i)
+
 proc solveDay4*: IntSolution =
   var game = readInputGame()
   result.part1 = part1(game)
+  result.part2 = part2(game)
 
 when isMainModule:
   echo solveDay4()
