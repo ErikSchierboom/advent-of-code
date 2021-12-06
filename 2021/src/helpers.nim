@@ -36,3 +36,7 @@ iterator readInputInts*(day: Day): int =
 iterator readInputBinaryNums*(day: Day): seq[int] =
   for line in lines(day.filepath):
     yield line.mapIt(parseInt($it))
+
+iterator splitToInts*(str: string, separator = ','): int =
+  for substr in str.split(','):
+    yield parseInt($substr)

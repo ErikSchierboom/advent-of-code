@@ -1,48 +1,28 @@
-import helpers, std/[math, sequtils, strutils]
+import helpers, std/math
 
-proc readInitialState: array[9, uint64] =
-  for timer in readInputString(day = 6).split(',').mapIt(parseBiggestUInt($it)):
+proc readInitialState: array[9, int] =
+  for timer in readInputString(day = 6).splitToInts():
     inc result[timer]
 
-func simulateDay(state: var array[9, uint64]) =
-  let old = state
+func simulate(state: var array[9, int]) =
+  let zeros = state[0]
 
-  for i in countdown(state.high, state.low):
-    # TODO: mod
-    if i == 0:
-      state[8] = old[0]
-      state[6] += old[0]
-    else:
-      state[i - 1] = old[i]
+  for i in 1 .. state.high:
+    state[i - 1] = state[i]
 
-proc part1(state: var array[9, uint64]): uint64 =
-  for i in 0..<80:
-    echo state
-    state.simulateDay()
+  state[8] = zeros
+  state[6] += zeros
 
-  result = state.sum
-  echo result
-
-proc part2(state: var array[9, uint64]): uint64 =
-  for i in 0..<256:
-    echo state
-    state.simulateDay()
-
-  result = state.sum
-  echo result
-
-proc solveDay6*: Solution[uint64, uint64] =
+proc solveDay6*: IntSolution =
   var state = readInitialState()
+
   for i in 1..256:
-    state.simulateDay()
+    state.simulate()
 
     if i == 80:
       result.part1 = state.sum
     elif i == 256:
       result.part2 = state.sum
-
-  # result.part1 = part1(state)
-  # result.part2 = part2(state)
 
 when isMainModule:
   echo solveDay6()
