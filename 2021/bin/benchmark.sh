@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # Find
-day_files=$(find src -maxdepth 1 -name 'day*.nim')
+files=$(find src -maxdepth 1 -name '*.nim' -not -name 'helpers.nim' | sort)
 
 # Compile
-echo $day_files | xargs -n1 nim c -d:danger
+echo $files | xargs -n1 nim c -d:danger
 
 # Benchmark
-hyperfine ${day_files//.nim/} --export-markdown "$(dirname "$0")/benchmark.md"
+hyperfine ${files//.nim/} --export-markdown "$(dirname "$0")/benchmark.md"

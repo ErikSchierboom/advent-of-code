@@ -9,3 +9,4 @@ tday*
 !day*.txt
 /.reference/
 /aoc
+/src/aoc
