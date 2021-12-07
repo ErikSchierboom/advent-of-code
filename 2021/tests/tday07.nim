@@ -7,4 +7,4 @@ suite "day 7":
 
   test "part 2":
     let solution = solveDay7()
-    check: 1613415325809 == solution.part2
+    check: 92439766 == solution.part2

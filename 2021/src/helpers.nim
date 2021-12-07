@@ -1,4 +1,4 @@
-import std/[os, sequtils, strscans, strutils, strformat]
+import std/[algorithm, os, sequtils, strscans, strutils, strformat]
 
 type
   Solution*[T, U] = object
@@ -47,3 +47,8 @@ func transpose*[T](s: seq[seq[T]]): seq[seq[T]] =
     result[i] = newSeq[T](s.len)
     for j in 0 .. s.high:
       result[i][j] = s[j][i]
+
+func median*(xs: seq[int]): int =
+  let xs = xs.sorted()
+  let middle = xs.len div 2
+  result = if xs.len mod 2 == 1: xs[middle] else: (xs[middle - 1] + xs[middle]) div 2
