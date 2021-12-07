@@ -1,4 +1,4 @@
-import std/[algorithm, os, sequtils, strscans, strutils, strformat]
+import std/[os, sequtils, strscans, strutils, strformat]
 
 type
   Solution*[T, U] = object
