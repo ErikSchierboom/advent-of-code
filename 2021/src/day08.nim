@@ -25,11 +25,13 @@ proc readInputEntries(): seq[Entry] =
   for (_, patterns, digits) in readInputScans(day = 8, pattern = "$+ | $+"):
     result.add (patterns: patterns.segments, digits: digits.segments)
 
+func part1(entries: seq[Entry]): int =
+  for entry in entries:
+    result.inc entry.digits.countIt(it.len in {2,3,4,7})
+
 proc solveDay8*: IntSolution =
   let entries = readInputEntries()
-
-  for entry in entries:
-    result.part1.inc entry.digits.countIt(it.len in {2,3,4,7})
+  result.part1 = part1(entries)
 
 when isMainModule:
   echo solveDay8()
