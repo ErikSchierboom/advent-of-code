@@ -22,7 +22,7 @@ proc numOverlappingPoints(lines: seq[Line], diagonal: bool): int =
         inc result
 
 iterator readInputLines(): Line =
-  for (_, x1, y1, x2, y2) in readInputScans(day = Day(5), pattern = "$i,$i -> $i,$i"):
+  for (_, x1, y1, x2, y2) in readInputScans(day = 5, pattern = "$i,$i -> $i,$i"):
     yield (a: (x: x1, y: y1), b: (x: x2, y: y2))
 
 proc solveDay5*: IntSolution =
