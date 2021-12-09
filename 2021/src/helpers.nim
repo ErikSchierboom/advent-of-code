@@ -1,4 +1,4 @@
-import std/[os, sequtils, strscans, strutils, strformat]
+import std/[os, sequtils, sets, strscans, strutils, strformat, tables]
 
 type
   Solution*[T, U] = object
@@ -47,3 +47,12 @@ func transpose*[T](s: seq[seq[T]]): seq[seq[T]] =
     result[i] = newSeq[T](s.len)
     for j in 0 .. s.high:
       result[i][j] = s[j][i]
+
+func find*[T](table: CountTable[T], count: int): seq[T] =
+  for k, v in table:
+    if v == count:
+      result.add k
+
+func keys*[T](table: CountTable[T]): seq[T] =
+  for k, _ in table:
+    result.add k
