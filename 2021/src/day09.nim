@@ -14,7 +14,11 @@ iterator neighbors(grid: seq[seq[int]], point: Point): Point =
   if point.y < grid.high:    yield (x: point.x,     y: point.y + 1)
 
 func isLowPoint(grid: seq[seq[int]], point: Point): bool =
-   grid.neighbors(point).toSeq.allIt(grid[point] < grid[it])
+  for neighbor in grid.neighbors(point):
+    if grid[point] >= grid[neighbor]:
+      return false
+
+  result = true
 
 func findLowPoints(grid: seq[seq[int]]): seq[Point] =
   for point in grid.points:
