@@ -1,22 +1,10 @@
-import helpers, std/[sets, sequtils, strscans, strutils, tables, typetraits]
+import helpers, std/[algorithm, sets, sequtils, strscans, strutils, tables, typetraits]
 
 type
   Encoding = HashSet[char]
   Entry = tuple[patterns: seq[Encoding], digits: seq[Encoding]]
 
-const digits =
-  [
-    @['a', 'b', 'c', 'e', 'f', 'g'],
-    @['c', 'f'],
-    @['a', 'c', 'd', 'e', 'g'],
-    @['a', 'c', 'd', 'f', 'g'],
-    @['b', 'c', 'd', 'f'],
-    @['a', 'b', 'd', 'f', 'g'],
-    @['a', 'b', 'd', 'e', 'f', 'g'],
-    @['a', 'c', 'f'],
-    @['a', 'b', 'c', 'd', 'e', 'f', 'g'],
-    @['a', 'b', 'c', 'd', 'f', 'g'],
-  ].mapIt(it.toHashSet)
+const originalDigits = ["abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg"]
 
 func encodings(input: string): seq[Encoding] =
   input.splitWhitespace.mapIt(it.toHashSet)
@@ -27,13 +15,13 @@ func createDecryptionTable(entry: Entry): Table[char, char] =
       if pattern.len == length: return pattern
 
   let segmentCounts = entry.patterns.mapIt(it.toSeq).concat.toCountTable
-  var e = segmentCounts.find(4)[0]
-  var b = segmentCounts.find(6)[0]
-  var f = segmentCounts.find(9)[0]
-
   let encodedOneSegment = entry.findPattern(length = 2)
   let encodedFourSegment = entry.findPattern(length = 4)
   let encodedSevenSegment = entry.findPattern(length = 3)
+
+  var e = segmentCounts.find(4)[0]
+  var b = segmentCounts.find(6)[0]
+  var f = segmentCounts.find(9)[0]
   var a = toSeq(encodedSevenSegment - encodedOneSegment)[0]
   var c = toSeq(segmentCounts.find(8).toHashSet - toHashSet([a]))[0]
   var d = toSeq(encodedFourSegment - encodedOneSegment - [b].toHashSet())[0]
@@ -42,10 +30,9 @@ func createDecryptionTable(entry: Entry): Table[char, char] =
   result = {a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g'}.toTable
 
 func decipherDigit(encodedDigit: Encoding, decriptionTable: Table[char, char]): int =
-  digits.find(encodedDigit.mapIt(decriptionTable[it]).toHashSet)
+  originalDigits.find(encodedDigit.mapIt(decriptionTable[it]).sorted.join)
 
-func digitsToDec(digits: seq[int]): int =
-  digits.foldl(a * 10 + b, 0)
+func digitsToDec(digits: seq[int]): int = digits.foldl(a * 10 + b, 0)
 
 proc readInputEntries(): seq[Entry] =
   for (_, patterns, digits) in readInputScans(day = 8, pattern = "$+ | $+"):
