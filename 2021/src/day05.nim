@@ -4,15 +4,16 @@ iterator points(line: Line, diagonal: bool): Point =
   let dx = cmp(line.b.x, line.a.x)
   let dy = cmp(line.b.y, line.a.y)
 
-  var point = line.a
-  while true:
-    if diagonal or dy == 0 or dx == 0: yield point
-    if point == line.b: break
-    point.x += dx
-    point.y += dy
+  if diagonal or dx == 0 or dy == 0:
+    var point = line.a
+    while true:
+      yield point
+      if point == line.b: break
+      point.x += dx
+      point.y += dy
 
 proc numOverlappingPoints(lines: seq[Line], diagonal: bool): int =
-  var grid = initCountTable[Point]()
+  var grid: CountTable[Point]
 
   for line in lines:
     for point in line.points(diagonal):
