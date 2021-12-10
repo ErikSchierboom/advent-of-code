@@ -43,7 +43,7 @@ proc part2(bitsSeq: seq[seq[int]]): int =
   result = oxygenGeneratorRating * co2ScrubberRating
 
 proc solveDay3*: IntSolution =
-  let bitsSeq = readInputBinaryNums(day = 3).toSeq
+  let bitsSeq = readInputDigits(day = 3).toSeq
   result.part1 = part1(bitsSeq)
   result.part2 = part2(bitsSeq)
 

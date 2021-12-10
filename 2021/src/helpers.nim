@@ -7,7 +7,7 @@ type
   IntSolution* = Solution[int, int]
   Point* = tuple[x, y: int]
   Line* = tuple[a, b: Point]
-  Day* = range[1..8]
+  Day* = range[1..9]
 
 func `$`*(day: Day): string =
   &"day{intToStr(day, 2)}"
@@ -33,7 +33,7 @@ iterator readInputInts*(day: Day): int =
   for line in lines(day.filepath):
     yield parseInt(line)
 
-iterator readInputBinaryNums*(day: Day): seq[int] =
+iterator readInputDigits*(day: Day): seq[int] =
   for line in lines(day.filepath):
     yield line.mapIt(parseInt($it))
 
