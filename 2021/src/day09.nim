@@ -1,13 +1,25 @@
 import helpers, std/sequtils
 
-func part1(grid: seq[seq[int]]): int =
+func `[]`(grid: seq[seq[int]], point: Point): int = grid[point.y][point.x]
+
+iterator points(grid: seq[seq[int]]): Point =
   for y in grid.low .. grid.high:
     for x in grid[0].low .. grid[0].high:
-      if (x == grid[0].low  or grid[y][x] < grid[y][x - 1]) and
-         (x == grid[0].high or grid[y][x] < grid[y][x + 1]) and
-         (y == grid.low  or grid[y][x] < grid[y - 1][x]) and
-         (y == grid.high or grid[y][x] < grid[y + 1][x]):
-           result.inc grid[y][x] + 1
+      yield (x: x, y: y)
+
+iterator neighbors(grid: seq[seq[int]], point: Point): Point =
+  if point.x > grid[0].low:  yield (x: point.x - 1, y: point.y)
+  if point.x < grid[0].high: yield (x: point.x + 1, y: point.y)
+  if point.y > grid.low:     yield (x: point.x,     y: point.y - 1)
+  if point.y < grid.high:    yield (x: point.x,     y: point.y + 1)
+
+func lowPoint(grid: seq[seq[int]], point: Point): bool =
+  grid.neighbors(point).toSeq.allIt(grid[point] < grid[it])
+
+func part1(grid: seq[seq[int]]): int =
+  for point in grid.points:
+    if grid.lowPoint(point):
+      result.inc grid[point] + 1
 
 proc solveDay9*: IntSolution =
   let grid = readInputDigits(day = 9).toSeq
