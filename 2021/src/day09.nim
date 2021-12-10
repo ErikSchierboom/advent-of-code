@@ -13,16 +13,13 @@ iterator neighbors(grid: seq[seq[int]], point: Point): Point =
   if point.y > grid.low:     yield (x: point.x,     y: point.y - 1)
   if point.y < grid.high:    yield (x: point.x,     y: point.y + 1)
 
-func isLowPoint(grid: seq[seq[int]], point: Point): bool =
-  for neighbor in grid.neighbors(point):
-    if grid[point] >= grid[neighbor]:
-      return false
-
-  result = true
-
 func findLowPoints(grid: seq[seq[int]]): seq[Point] =
   for point in grid.points:
-    if grid.isLowPoint(point):
+    var lowPoint = true
+    for neighbor in grid.neighbors(point):
+      lowPoint = lowPoint and grid[point] < grid[neighbor]
+
+    if lowPoint:
       result.add point
 
 func basinSize(grid: seq[seq[int]], lowPoint: Point): int =
