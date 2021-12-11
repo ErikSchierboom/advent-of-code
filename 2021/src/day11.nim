@@ -1,21 +1,12 @@
 import helpers, std/[sequtils, sets]
 
-func `[]`(grid: seq[seq[int]], point: Point): int = grid[point.y][point.x]
-
 iterator points(grid: seq[seq[int]]): Point =
   for y in grid.low .. grid.high:
     for x in grid[0].low .. grid[0].high:
       yield (x: x, y: y)
 
-const deltas = 
-  [
-    (-1, -1), (0, -1), (1, -1),
-    (-1,  0),          (1,  0),
-    (-1,  1), (0,  1), (1,  1)
-  ]
-
 iterator neighbors(grid: seq[seq[int]], point: Point): Point =
-  for (dx, dy) in deltas:
+  for (dx, dy) in [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]:
     let neighbor = (x: point.x + dx, y: point.y + dy)
     if neighbor.x in grid[0].low .. grid[0].high and
        neighbor.y in grid.low .. grid.high:
@@ -27,24 +18,23 @@ proc step(grid: var seq[seq[int]]): int =
 
   var toFlash: HashSet[Point]
   for point in grid.points:
-    if grid[point] > 9:
+    if grid[point.y][point.x] > 9:
       toFlash.incl point
 
   var flashed: HashSet[Point]
 
   while toFlash.len > 0:
-    echo toFlash
     let flash = toFlash.pop
     flashed.incl flash
     
     for neighbor in grid.neighbors(flash):
       inc grid[neighbor.y][neighbor.x]
 
-      if neighbor notin flashed and grid[neighbor] > 9:
+      if neighbor notin flashed and grid[neighbor.y][neighbor.x] > 9:
         toFlash.incl neighbor
 
   for point in grid.points:
-    if grid[point] > 9:
+    if grid[point.y][point.x] > 9:
       grid[point.y][point.x] = 0
 
   result = flashed.len
@@ -56,12 +46,8 @@ proc solveDay11*: IntSolution =
   while true:
     let flashed = grid.step
     inc result.part2
-    
-    if result.part2 < 100: 
-      inc result.part1, flashed
-
-    if flashed == total:
-      break
+    if result.part2 < 100: inc result.part1, flashed
+    if flashed == total: break
 
 when isMainModule:
   echo solveDay11()
