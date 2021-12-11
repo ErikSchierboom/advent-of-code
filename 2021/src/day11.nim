@@ -51,10 +51,17 @@ proc step(grid: var seq[seq[int]]): int =
 
 proc solveDay11*: IntSolution =
   var grid = readInputDigits(day = 11).toSeq
-  for _ in 1..100:
-    inc result.part1, grid.step
-  
-  echo grid
+  let total = grid.len * grid[0].len
+
+  while true:
+    let flashed = grid.step
+    inc result.part2
+    
+    if result.part2 < 100: 
+      inc result.part1, flashed
+
+    if flashed == total:
+      break
 
 when isMainModule:
   echo solveDay11()
