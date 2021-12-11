@@ -12,30 +12,23 @@ iterator neighbors(grid: seq[seq[int]], point: Point): Point =
        neighbor.y in grid.low .. grid.high:
       yield neighbor
 
-proc step(grid: var seq[seq[int]]): int =
+func step(grid: var seq[seq[int]]): int =
+  var flashed, unflashed: HashSet[Point]
+
   for point in grid.points:
     inc grid[point.y][point.x]
+    if grid[point.y][point.x] == 10: unflashed.incl point
 
-  var toFlash: HashSet[Point]
-  for point in grid.points:
-    if grid[point.y][point.x] > 9:
-      toFlash.incl point
-
-  var flashed: HashSet[Point]
-
-  while toFlash.len > 0:
-    let flash = toFlash.pop
-    flashed.incl flash
+  while unflashed.len > 0:
+    let flashPoint = unflashed.pop
+    flashed.incl flashPoint
     
-    for neighbor in grid.neighbors(flash):
+    for neighbor in grid.neighbors(flashPoint):
       inc grid[neighbor.y][neighbor.x]
+      if grid[neighbor.y][neighbor.x] == 10: unflashed.incl neighbor
 
-      if neighbor notin flashed and grid[neighbor.y][neighbor.x] > 9:
-        toFlash.incl neighbor
-
-  for point in grid.points:
-    if grid[point.y][point.x] > 9:
-      grid[point.y][point.x] = 0
+  for flashPoint in flashed:
+    grid[flashPoint.y][flashPoint.x] = 0
 
   result = flashed.len
 
