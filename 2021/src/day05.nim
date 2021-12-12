@@ -4,7 +4,8 @@ iterator points(line: Line, diagonal: bool): Point =
   let dx = cmp(line.b.x, line.a.x)
   let dy = cmp(line.b.y, line.a.y)
 
-  if diagonal or dx == 0 or dy == 0:
+  if (diagonal and not dx == 0 and not dy == 0) or
+     (not diagonal and (dx == 0 or dy == 0)):
     var point = line.a
     while true:
       yield point
@@ -12,9 +13,7 @@ iterator points(line: Line, diagonal: bool): Point =
       point.x += dx
       point.y += dy
 
-proc numOverlappingPoints(lines: seq[Line], diagonal: bool): int =
-  var grid: CountTable[Point]
-
+proc numOverlappingPoints(grid: var CountTable[Point], lines: seq[Line], diagonal: bool): int =
   for line in lines:
     for point in line.points(diagonal):
       if grid[point] <= 2:
@@ -28,8 +27,9 @@ iterator readInputLines(): Line =
 
 proc solveDay5*: IntSolution =
   let lines = readInputLines().toSeq()
-  result.part1 = lines.numOverlappingPoints(diagonal = false)
-  result.part2 = lines.numOverlappingPoints(diagonal = true)
+  var grid = initCountTable[Point](100_000)
+  result.part1 = grid.numOverlappingPoints(lines, diagonal = false)
+  result.part2 = grid.numOverlappingPoints(lines, diagonal = true)
 
 when isMainModule:
   echo solveDay5()
