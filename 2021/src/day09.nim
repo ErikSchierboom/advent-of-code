@@ -1,6 +1,6 @@
 import helpers, std/[algorithm, math, sets, sequtils]
 
-func `[]`(grid: seq[seq[int]], point: Point): int = grid[point.y][point.x]
+func `[]`(grid: seq[seq[int]], point: Point): int {.inline.} = grid[point.y][point.x]
 
 iterator points(grid: seq[seq[int]]): Point =
   for y in grid.low .. grid.high:
