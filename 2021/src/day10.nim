@@ -4,9 +4,9 @@ const opening = ['(', '[', '{', '<']
 const closing = [')', ']', '}', '>']
 const scores  = [3, 57, 1197, 25137]
 
-func openingChar(closingChar: char): char = opening[closing.find(closingChar)]
-func corruptScore(closingChar: char): int = scores[closing.find(closingChar)]
-func incompleteScore(openingChar: char): int = opening.find(openingChar) + 1
+func openingChar(closingChar: char): char {.inline.} = opening[closing.find(closingChar)]
+func corruptScore(closingChar: char): int {.inline.} = scores[closing.find(closingChar)]
+func incompleteScore(openingChar: char): int {.inline.} = opening.find(openingChar) + 1
 
 proc solveDay10*: IntSolution =
   var incompleteScores: seq[int]
