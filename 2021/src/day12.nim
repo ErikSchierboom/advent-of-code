@@ -9,26 +9,28 @@ proc readInputGraph: Table[string, seq[string]] =
 
 func isSmall(node: string): bool {.inline.} = node[0].isLowerAscii
 
-func findNumPathsToEnd(graph: Table[string, seq[string]], visitSmallTwice: bool): int =
-  func findNumPaths(currentNode: string, currentPath: seq[string], visitedSmall: HashSet[string], visitSmallTwice: bool): int =
+proc findNumPathsToEnd(graph: Table[string, seq[string]], visitSmallTwice: bool): int =
+  proc findNumPaths(currentNode: string, currentPath: seq[string], visitedSmall: HashSet[string], visitSmallTwice: bool): int =
     if currentNode == "end":
       return 1
     elif currentNode == "start" and currentPath.len > 0:
       return 0
-    elif currentNode in visitedSmall and not visitSmallTwice:
+    elif not visitSmallTwice and currentNode in visitedSmall:
       return 0
 
     var newVisitedSmall = visitedSmall
     var newVisitSmallTwice = visitSmallTwice
 
     if currentNode.isSmall:
-      newVisitSmallTwice = currentNode notin visitedSmall
+      if currentNode in visitedSmall:
+        newVisitSmallTwice = false
+
       newVisitedSmall.incl currentNode
 
     var newPath = currentPath
     newPath.add currentNode
 
-    for neighbor in graph.getOrDefault(currentNode, @[]):
+    for neighbor in graph[currentNode]:
       inc result, findNumPaths(neighbor, newPath, newVisitedSmall, newVisitSmallTwice)
 
   result = findNumPaths("start", @[], initHashSet[string](), visitSmallTwice)
