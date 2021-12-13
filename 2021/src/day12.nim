@@ -1,34 +1,42 @@
 import helpers, std/[sets, strscans, strutils, tables]
 
-proc readInputAdjacencyMatrix: Table[string, seq[string]] =
+proc readInputGraph: Table[string, seq[string]] =
   for (_, start, stop) in readInputScans(day = 12, "$w-$w"):
-    if result.hasKeyOrPut(start, @[stop]): result[start].add stop
-    if result.hasKeyOrPut(stop, @[start]): result[stop].add start
+    if result.hasKeyOrPut(start, @[stop]):
+      result[start].add stop
+    if result.hasKeyOrPut(stop, @[start]):
+      result[stop].add start
 
-func findPaths(node: string, path: seq[string], visited: var HashSet[seq[string]], adjacencyMatrix: Table[string, seq[string]]): seq[seq[string]] =
-  var newPath = path
-  newPath.add node
+func isSmall(node: string): bool {.inline.} = node[0].isLowerAscii
 
-  if newPath in visited:
-    return
+func findNumPathsToEnd(graph: Table[string, seq[string]], visitSmallTwice: bool): int =
+  func findNumPaths(currentNode: string, currentPath: seq[string], visitedSmall: HashSet[string], visitSmallTwice: bool): int =
+    if currentNode == "end":
+      return 1
+    elif currentNode == "start" and currentPath.len > 0:
+      return 0
+    elif currentNode in visitedSmall and not visitSmallTwice:
+      return 0
 
-  if node == "end":
-    visited.incl newPath
-    return @[newPath]
+    var newVisitedSmall = visitedSmall
+    var newVisitSmallTwice = visitSmallTwice
 
-  if node == node.toLowerAscii and node in path:
-    return
+    if currentNode.isSmall:
+      newVisitSmallTwice = currentNode notin visitedSmall
+      newVisitedSmall.incl currentNode
 
-  for neighbor in adjacencyMatrix.getOrDefault(node, @[]):
-    for path in findPaths(neighbor, newPath, visited, adjacencyMatrix):
-      result.add(path)
+    var newPath = currentPath
+    newPath.add currentNode
+
+    for neighbor in graph.getOrDefault(currentNode, @[]):
+      inc result, findNumPaths(neighbor, newPath, newVisitedSmall, newVisitSmallTwice)
+
+  result = findNumPaths("start", @[], initHashSet[string](), visitSmallTwice)
 
 proc solveDay12*: IntSolution =
-  let adjacencyMatrix = readInputAdjacencyMatrix()
-  
-  var visited: HashSet[seq[string]]
-  let paths = findPaths("start", @[], visited, adjacencyMatrix)
-  result.part1 = paths.len
+  let graph = readInputGraph()
+  result.part1 = findNumPathsToEnd(graph, visitSmallTwice = false)
+  result.part2 = findNumPathsToEnd(graph, visitSmallTwice = true)
  
 when isMainModule:
   echo solveDay12()
