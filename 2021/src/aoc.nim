@@ -1,13 +1,32 @@
-import helpers, std/[macros, sequtils]
+import helpers, std/[macros, monotimes, strformat, strutils, times]
 
-proc dayModuleImports(): NimNode =
-  result = newNimNode(nnkIncludeStmt)
+template timeIt(day: Day, body: untyped) =
+  block:
+    let before = getMonoTime()
+    discard body
+    let after = getMonoTime()
+    let duration = after - before
+    echo "Day" & intToStr(day, 2) & ": " & $duration.inMilliseconds & "ms"
+
+macro timeSolve(): untyped =
+  result = newStmtList()
+
+  var importStmt = newNimNode(nnkImportStmt)
+  result.add(importStmt)
 
   for day in Day.low .. Day.high:
-    result.add ident($day)
+    importStmt.add ident($day)
 
-macro solveDays(): untyped =
-  result = newStmtList(dayModuleImports())
+    var callStmt = newCall(
+      ident("timeIt"),
+      newNimNode(nnkExprEqExpr)
+        .add(ident("day"))
+        .add(newIntLitNode(day)),
+      newStmtList()
+        .add(newCall(ident("solve" & ($day).replace('d', 'D'))))
+    )
+
+    result.add(callStmt)
 
 when isMainModule:
-  solveDays()
+  timeSolve()
