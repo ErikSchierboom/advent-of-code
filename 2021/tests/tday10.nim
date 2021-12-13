@@ -1,4 +1,4 @@
-import day10, unittest
+import day10, std/unittest
 
 suite "day 10":
   test "part 1":

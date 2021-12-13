@@ -1,4 +1,4 @@
-import day13, unittest, std/strutils
+import day13, std/[strutils, unittest]
 
 suite "day 13":
   test "part 1":
