@@ -13,7 +13,7 @@ func simulate(state: var array[9, int]) =
   state[8] = zeros
   state[6] += zeros
 
-proc solveDay6*: IntSolution =
+proc solveDay06*: IntSolution =
   var state = readInitialState()
 
   for i in 1..256:
@@ -25,4 +25,4 @@ proc solveDay6*: IntSolution =
       result.part2 = state.sum
 
 when isMainModule:
-  echo solveDay6()
+  echo solveDay06()

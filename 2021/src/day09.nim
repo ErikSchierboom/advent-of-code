@@ -37,11 +37,11 @@ func basinSize(grid: seq[seq[int]], lowPoint: Point): int =
 
   result = processed.len
 
-proc solveDay9*: IntSolution =
+proc solveDay09*: IntSolution =
   let grid = readInputDigits(day = 9).toSeq
   let lowPoints = grid.findLowPoints
   result.part1 = lowPoints.mapIt(grid[it] + 1).sum
   result.part2 = lowPoints.mapIt(grid.basinSize(it)).sorted[^3..^1].prod
 
 when isMainModule:
-  echo solveDay9()
+  echo solveDay09()

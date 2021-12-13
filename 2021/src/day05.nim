@@ -24,11 +24,11 @@ iterator readInputLines(): Line =
   for (_, x1, y1, x2, y2) in readInputScans(day = 5, pattern = "$i,$i -> $i,$i"):
     yield (a: (x: x1, y: y1), b: (x: x2, y: y2))
 
-proc solveDay5*: IntSolution =
+proc solveDay05*: IntSolution =
   let lines = readInputLines().toSeq()
   var grid = initCountTable[Point](100_000)
   result.part1 = grid.numOverlappingPoints(lines, diagonal = false)
   result.part2 = result.part1 + grid.numOverlappingPoints(lines, diagonal = true)
 
 when isMainModule:
-  echo solveDay5()
+  echo solveDay05()

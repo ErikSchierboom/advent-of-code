@@ -1,6 +1,6 @@
 import helpers, std/sequtils
 
-proc solveDay1*: IntSolution =
+proc solveDay01*: IntSolution =
   let depths = readInputInts(day = 1).toSeq()
 
   for i in 0 .. depths.high:
@@ -10,4 +10,4 @@ proc solveDay1*: IntSolution =
       inc result.part2
 
 when isMainModule:
-  echo solveDay1()
+  echo solveDay01()

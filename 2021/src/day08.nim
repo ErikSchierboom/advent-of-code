@@ -47,10 +47,10 @@ proc part2(entries: seq[Entry]): int =
     let decryptionTable = createDecryptionTable(entry)
     result.inc entry.digits.mapIt(it.decipherDigit(decryptionTable)).digitsToDec
 
-proc solveDay8*: IntSolution =
+proc solveDay08*: IntSolution =
   let entries = readInputEntries()
   result.part1 = part1(entries)
   result.part2 = part2(entries)
 
 when isMainModule:
-  echo solveDay8()
+  echo solveDay08()

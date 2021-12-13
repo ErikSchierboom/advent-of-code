@@ -33,7 +33,7 @@ proc parseGame: Game =
   result.drawnNumbers = groups[0].splitToInts.toSeq.toDeque
   result.boards = groups[1..groups.high].map(parseBoard)
 
-proc solveDay4*: IntSolution =
+proc solveDay04*: IntSolution =
   var game = parseGame()
   
   while game.boards.len > 0:
@@ -50,4 +50,4 @@ proc solveDay4*: IntSolution =
         game.boards.delete(i)
 
 when isMainModule:
-  echo solveDay4()
+  echo solveDay04()

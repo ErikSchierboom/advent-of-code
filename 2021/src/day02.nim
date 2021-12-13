@@ -1,6 +1,6 @@
 import helpers, std/strscans
 
-proc solveDay2*: IntSolution =
+proc solveDay02*: IntSolution =
   var sub: tuple[x, y, aim: int]
 
   for (_, command, distance) in readInputScans(day = 2, pattern = "$w $i"):
@@ -17,4 +17,4 @@ proc solveDay2*: IntSolution =
   result.part2 = sub.x * sub.y
 
 when isMainModule:
-  echo solveDay2()
+  echo solveDay02()
