@@ -1,44 +1,36 @@
 import helpers, std/[sets, strscans, strutils, tables]
 
-proc readInputGraph: Table[string, seq[string]] =
+proc readInputGraph: TableRef[string, HashSet[string]] =
+  result = newTable[string, HashSet[string]]()
   for (_, start, stop) in readInputScans(day = 12, "$w-$w"):
-    if result.hasKeyOrPut(start, @[stop]):
-      result[start].add stop
-    if result.hasKeyOrPut(stop, @[start]):
-      result[stop].add start
+    result.mgetOrPut(start, [stop].toHashSet).incl stop
+    result.mgetOrPut(stop, [start].toHashSet).incl start
 
 func isSmall(node: string): bool {.inline.} = node[0].isLowerAscii
 
-proc findNumPathsToEnd(graph: Table[string, seq[string]], visitSmallTwice: bool): int =
-  proc findNumPaths(currentNode: string, currentPath: seq[string], visitedSmall: HashSet[string], visitSmallTwice: bool): int =
-    if currentNode == "end":
+proc findNumPathsFromStartToEnd(graph: TableRef[string, HashSet[string]], visitSmallTwice: bool): int =
+  proc findNumPaths(graph: TableRef[string, HashSet[string]], currentCave: string, visitedSmall: var HashSet[string], visitSmallTwice: bool): int =
+    if currentCave == "end":
       return 1
-    elif currentNode == "start" and currentPath.len > 0:
+    elif currentCave == "start" and currentCave in visitedSmall:
       return 0
-    elif not visitSmallTwice and currentNode in visitedSmall:
-      return 0
+    elif currentCave.isSmall:
+      visitedSmall.incl currentCave
 
-    var newVisitedSmall = visitedSmall
-    var newVisitSmallTwice = visitSmallTwice
+    for adjacentCave in graph[currentCave]:
+      if adjacentCave notin visitedSmall:
+        result.inc graph.findNumPaths(adjacentCave, visitedSmall, visitSmallTwice)
+        visitedSmall.excl adjacentCave
+      elif visitSmallTwice and adjacentCave.isSmall:
+        result.inc graph.findNumPaths(adjacentCave, visitedSmall, false)
 
-    if currentNode.isSmall:
-      if currentNode in visitedSmall:
-        newVisitSmallTwice = false
-
-      newVisitedSmall.incl currentNode
-
-    var newPath = currentPath
-    newPath.add currentNode
-
-    for neighbor in graph[currentNode]:
-      inc result, findNumPaths(neighbor, newPath, newVisitedSmall, newVisitSmallTwice)
-
-  result = findNumPaths("start", @[], initHashSet[string](), visitSmallTwice)
+  var visited: HashSet[string]
+  result = graph.findNumPaths("start", visited, visitSmallTwice)
 
 proc solveDay12*: IntSolution =
-  let graph = readInputGraph()
-  result.part1 = findNumPathsToEnd(graph, visitSmallTwice = false)
-  result.part2 = findNumPathsToEnd(graph, visitSmallTwice = true)
+  let graph = readInputGraph()  
+  result.part1 = graph.findNumPathsFromStartToEnd(visitSmallTwice = false)
+  result.part2 = graph.findNumPathsFromStartToEnd(visitSmallTwice = true)
  
 when isMainModule:
   echo solveDay12()
