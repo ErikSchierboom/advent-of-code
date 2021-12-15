@@ -56,3 +56,11 @@ func find*[T](table: CountTable[T], count: int): seq[T] =
 func keys*[T](table: CountTable[T]): seq[T] =
   for k, _ in table:
     result.add k
+
+template timeIt*(body: untyped) =
+  block:
+    let before = getMonoTime()
+    discard body
+    let after = getMonoTime()
+    let duration = after - before
+    echo $duration.inMilliseconds & "ms"

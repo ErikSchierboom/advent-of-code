@@ -1,6 +1,6 @@
 import helpers, std/[macros, monotimes, strformat, strutils, times]
 
-template timeIt(day: Day, body: untyped) =
+template timeDay(day: Day, body: untyped) =
   block:
     let before = getMonoTime()
     discard body
@@ -18,7 +18,7 @@ macro timeSolve(): untyped =
     importStmt.add ident($day)
 
     var callStmt = newCall(
-      ident("timeIt"),
+      ident("timeDay"),
       newNimNode(nnkExprEqExpr)
         .add(ident("day"))
         .add(newIntLitNode(day)),
