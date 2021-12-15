@@ -6,47 +6,48 @@ type Node = object
 
 proc `<` (a, b: Node): bool = a.cost < b.cost
 
-func points(grid: var seq[seq[int]]): seq[Point] =
+func points(grid: seq[seq[int]]): seq[Point] =
   for y in grid.low .. grid.high:
     for x in grid[0].low .. grid[0].high:
       result.add (x: x, y: y)
 
-iterator neighbors(grid: var seq[seq[int]], point: Point): Point =
+iterator neighbors(grid: seq[seq[int]], point: Point): Point =
   if point.x > grid[0].low:  yield (x: point.x - 1, y: point.y)
   if point.x < grid[0].high: yield (x: point.x + 1, y: point.y)
   if point.y > grid.low:     yield (x: point.x,     y: point.y - 1)
   if point.y < grid.high:    yield (x: point.x,     y: point.y + 1)
 
-proc solveDay15*: IntSolution =
-  var grid = readInputDigits(day = 15).toSeq
-  var points = grid.points
+proc shortestPath(grid: seq[seq[int]]): int =
+  let start = (x: 0, y: 0)
+  let stop = (x: grid[0].high, y: grid.high)
 
-  var source = (x: 0, y: 0)
-  var q: HeapQueue[Node]
-  var dist = newTable[Point, int]()
-  let target = (x: grid[0].high, y: grid.high)
+  var queue: HeapQueue[Node]
+  var dist = initCountTable[Point](initialSize = stop.x * stop.y)
 
-  for point in points:
+  for point in grid.points:
     dist[point] = high(int)
 
-  dist[source] = 0  
-  q.push Node(pos: source, cost: 0)
+  dist[start] = 0  
+  queue.push Node(pos: start, cost: 0)
   
-  while q.len > 0:
-    let u = q.pop()
+  while queue.len > 0:
+    let current = queue.pop()
 
-    if u.pos == target:
-      result.part1 = dist[target]
-      return
+    if current.pos == stop:
+      return dist[stop]
 
-    if u.cost > dist[u.pos]:
+    if current.cost > dist[current.pos]:
       continue
 
-    for v in grid.neighbors(u.pos):
-      let next = Node(cost: u.cost + grid[v.y][v.x], pos: v)
+    for neighbor in grid.neighbors(current.pos):
+      let next = Node(cost: current.cost + grid[neighbor.y][neighbor.x], pos: neighbor)
       if next.cost < dist[next.pos]:
-        q.push next
+        queue.push next
         dist[next.pos] = next.cost
+
+proc solveDay15*: IntSolution =
+  let grid = readInputDigits(day = 15).toSeq
+  result.part1 = shortestPath(grid)
  
 when isMainModule:
   echo solveDay15()
