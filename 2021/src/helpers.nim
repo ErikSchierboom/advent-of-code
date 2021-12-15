@@ -1,4 +1,4 @@
-import std/[os, sequtils, sets, strscans, strutils, strformat, tables]
+import std/[monotimes, os, sequtils, sets, strscans, strutils, strformat, tables, times]
 
 type
   Solution*[T, U] = object
@@ -58,9 +58,8 @@ func keys*[T](table: CountTable[T]): seq[T] =
     result.add k
 
 template timeIt*(body: untyped) =
-  block:
-    let before = getMonoTime()
-    discard body
-    let after = getMonoTime()
-    let duration = after - before
-    echo $duration.inMilliseconds & "ms"
+  let before = getMonoTime()
+  body
+  let after = getMonoTime()
+  let duration = after - before
+  echo $duration.inMilliseconds & "ms"
