@@ -6,6 +6,9 @@ type Node = object
 
 proc `<` (a, b: Node): bool = a.cost < b.cost
 
+func width(grid: seq[seq[int]]): int {.inline.} = grid[0].len
+func height(grid: seq[seq[int]]): int {.inline.} = grid.len
+
 func points(grid: seq[seq[int]]): seq[Point] =
   for y in grid.low .. grid.high:
     for x in grid[0].low .. grid[0].high:
@@ -22,7 +25,7 @@ proc shortestPath(grid: seq[seq[int]]): int =
   let stop = (x: grid[0].high, y: grid.high)
 
   var queue: HeapQueue[Node]
-  var dist = initCountTable[Point](initialSize = stop.x * stop.y)
+  var dist = initCountTable[Point](initialSize = grid.width * grid.height)
 
   for point in grid.points:
     dist[point] = high(int)
@@ -45,9 +48,23 @@ proc shortestPath(grid: seq[seq[int]]): int =
         queue.push next
         dist[next.pos] = next.cost
 
+proc expanded(grid: seq[seq[int]]): seq[seq[int]] =
+  for y in 0 ..< grid.height * 5:
+    result.add newSeq[int]()
+    for x in 0 ..< grid.width * 5:
+      let xmod = x div grid.width
+      let ymod = y div grid.height
+
+      var a = grid[y mod grid.height][x mod grid.width]
+      a = a + xmod + ymod
+      a = ((a - 1) mod 9) + 1
+
+      result[y].add a
+
 proc solveDay15*: IntSolution =
   let grid = readInputDigits(day = 15).toSeq
   result.part1 = shortestPath(grid)
+  result.part2 = shortestPath(grid.expanded)
  
 when isMainModule:
   echo solveDay15()
