@@ -1,28 +1,30 @@
-import helpers, std/[heapqueue, sequtils,strutils, tables]
+import helpers, std/[heapqueue, sequtils, tables]
 
-type Node = object
-  pos: Point
-  cost: int
+type 
+  Node = object
+    pos: Point
+    cost: int
+
+  Grid = object
+    cells: seq[seq[int]]
+    baseWidth, baseHeight, width, height: int
 
 proc `<` (a, b: Node): bool = a.cost < b.cost
 
-func width(grid: seq[seq[int]]): int {.inline.} = grid[0].len
-func height(grid: seq[seq[int]]): int {.inline.} = grid.len
-
-func points(grid: seq[seq[int]]): seq[Point] =
-  for y in grid.low .. grid.high:
-    for x in grid[0].low .. grid[0].high:
+func points(grid: Grid): seq[Point] =
+  for y in 0 ..< grid.height:
+    for x in 0 ..< grid.width:
       result.add (x: x, y: y)
 
-iterator neighbors(grid: seq[seq[int]], point: Point): Point =
-  if point.x > grid[0].low:  yield (x: point.x - 1, y: point.y)
-  if point.x < grid[0].high: yield (x: point.x + 1, y: point.y)
-  if point.y > grid.low:     yield (x: point.x,     y: point.y - 1)
-  if point.y < grid.high:    yield (x: point.x,     y: point.y + 1)
+iterator neighbors(grid: Grid, point: Point): Point =
+  if point.x > 0: yield (x: point.x - 1, y: point.y)  
+  if point.y > 0: yield (x: point.x, y: point.y - 1)
+  if point.x < grid.width - 1: yield (x: point.x + 1, y: point.y)
+  if point.y < grid.height - 1: yield (x: point.x, y: point.y + 1)
 
-proc shortestPath(grid: seq[seq[int]]): int =
+proc shortestPath(grid: Grid): int =
   let start = (x: 0, y: 0)
-  let stop = (x: grid[0].high, y: grid.high)
+  let stop = (x: grid.width - 1, y: grid.height - 1)
 
   var queue: HeapQueue[Node]
   var dist = initCountTable[Point](initialSize = grid.width * grid.height)
@@ -43,23 +45,22 @@ proc shortestPath(grid: seq[seq[int]]): int =
       continue
 
     for neighbor in grid.neighbors(current.pos):
-      let next = Node(cost: current.cost + grid[neighbor.y][neighbor.x], pos: neighbor)
+      let xmod = neighbor.x div grid.baseWidth
+      let ymod = neighbor.y div grid.baseHeight
+      let cost = (grid.cells[neighbor.y mod grid.baseHeight][neighbor.x mod grid.baseWidth] + xmod + ymod - 1) mod 9 + 1
+
+      let next = Node(cost: current.cost + cost, pos: neighbor)
       if next.cost < dist[next.pos]:
         queue.push next
         dist[next.pos] = next.cost
 
-proc expanded(grid: seq[seq[int]]): seq[seq[int]] =
-  for y in 0 ..< grid.height * 5:
-    result.add newSeqOfCap[int](grid.width * 5)
-    for x in 0 ..< grid.width * 5:
-      let xmod = x div grid.width
-      let ymod = y div grid.height
-      result[y].add (grid[y mod grid.height][x mod grid.width] + xmod + ymod - 1) mod 9 + 1
+func initGrid(cells: seq[seq[int]], dimension: int): Grid =
+  Grid(cells: cells, baseWidth: cells[0].len, baseHeight: cells.len, width: cells[0].len * dimension, height: cells[0].len * dimension )
 
 proc solveDay15*: IntSolution =
-  let grid = readInputDigits(day = 15).toSeq
-  result.part1 = shortestPath(grid)
-  result.part2 = shortestPath(grid.expanded)
+  let cells = readInputDigits(day = 15).toSeq
+  result.part1 = shortestPath(initGrid(cells, dimension = 1))
+  result.part2 = shortestPath(initGrid(cells, dimension = 5))
  
 when isMainModule:
   echo solveDay15()
