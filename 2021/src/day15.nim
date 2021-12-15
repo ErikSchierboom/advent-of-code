@@ -50,7 +50,7 @@ proc shortestPath(grid: seq[seq[int]]): int =
 
 proc expanded(grid: seq[seq[int]]): seq[seq[int]] =
   for y in 0 ..< grid.height * 5:
-    result.add newSeq[int]()
+    result.add newSeq[int](grid.width * 5)
     for x in 0 ..< grid.width * 5:
       let xmod = x div grid.width
       let ymod = y div grid.height
