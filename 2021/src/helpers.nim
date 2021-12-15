@@ -7,7 +7,7 @@ type
   IntSolution* = Solution[int, int]
   Point* = tuple[x, y: int]
   Line* = tuple[a, b: Point]
-  Day* = range[1..14]
+  Day* = range[1..15]
 
 func `$`*(day: Day): string =
   &"day{intToStr(day, 2)}"
