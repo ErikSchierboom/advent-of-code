@@ -54,12 +54,7 @@ proc expanded(grid: seq[seq[int]]): seq[seq[int]] =
     for x in 0 ..< grid.width * 5:
       let xmod = x div grid.width
       let ymod = y div grid.height
-
-      var a = grid[y mod grid.height][x mod grid.width]
-      a = a + xmod + ymod
-      a = ((a - 1) mod 9) + 1
-
-      result[y].add a
+      result[y].add (grid[y mod grid.height][x mod grid.width] + xmod + ymod - 1) mod 9 + 1
 
 proc solveDay15*: IntSolution =
   let grid = readInputDigits(day = 15).toSeq
