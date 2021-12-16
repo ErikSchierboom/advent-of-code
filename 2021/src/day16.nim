@@ -1,8 +1,8 @@
-import helpers, std/[bitops, heapqueue, sequtils, strutils, tables]
+import helpers, std/[bitops, sequtils, strutils]
 
 type
   TypeId = enum
-    tiLiteral, tiOperator
+    tiSum, tiProduct, tiMinimum, tiMaximum, tiLiteral, tiGreaterThan, tiLessThan, tiEqualTo
 
   LengthTypeId = enum
     ltLength, ltCount
@@ -11,7 +11,8 @@ type
     version: int
     case typeId: TypeId
       of tiLiteral: intVal: int
-      of tiOperator: children: seq[Packet]
+      of tiSum, tiProduct, tiMinimum, tiMaximum,
+         tiGreaterThan, tiLessThan, tiEqualTo: children: seq[Packet]
 
 func hexToBits(c: char): seq[int] =
   let hex = parseHexInt($c)
@@ -33,7 +34,18 @@ func parseVersion(bits: seq[int], index: var int): int =
   index.inc 3
 
 func parseTypeId(bits: seq[int], index: var int): TypeId =
-  result = if bitsToInt(bits[index..index + 2]) == 4: tiLiteral else: tiOperator
+  result = 
+    case bitsToInt(bits[index..index + 2]) 
+      of 0: tiSum
+      of 1: tiProduct
+      of 2: tiMinimum
+      of 3: tiMaximum
+      of 4: tiLiteral
+      of 5: tiGreaterThan
+      of 6: tiLessThan
+      of 7: tiEqualTo
+      else: raise newException(OSError, "the request to the OS failed")
+
   index.inc 3
 
 func parseLengthTypeId(bits: seq[int], index: var int): LengthTypeId =
@@ -72,7 +84,7 @@ proc parsePacket(bits: seq[int], index: var int): Packet =
   case typeId
     of tiLiteral:
       result = Packet(version: version, typeId: typeId, intVal: parseLiteralValue(bits, index))
-    of tiOperator:
+    else:
       result = Packet(version: version, typeId: typeId, children: parseChildren(bits, index))
 
 func part1(packet: Packet): int =
@@ -81,16 +93,32 @@ func part1(packet: Packet): int =
   case packet.typeId
     of tiLiteral:
       discard
-    of tiOperator:
+    else:
       for child in packet.children:
         result.inc part1(child)
+
+func part2(packet: Packet): int =
+  result = 
+    case packet.typeId
+      of tiSum: packet.children.foldl(a + part2(b), 0)
+      of tiProduct: packet.children.foldl(a * part2(b), 1)
+      of tiMinimum: packet.children.mapIt(part2(it)).min
+      of tiMaximum: packet.children.mapIt(part2(it)).max
+      of tiLiteral: packet.intVal
+      of tiGreaterThan:
+        if part2(packet.children[0]) > part2(packet.children[1]): 1 else: 0
+      of tiLessThan:
+        if part2(packet.children[0]) < part2(packet.children[1]): 1 else: 0
+      of tiEqualTo:
+        if part2(packet.children[0]) == part2(packet.children[1]): 1 else: 0
+      else: raise newException(OSError, "the request to the OS failed")
 
 proc solveDay16*: IntSolution =
   let bits = readInputBits()
   var index = 0
   let packet = parsePacket(bits, index)
   result.part1 = part1(packet)
-  # result.part2 = shortestPath(initGrid(cells, dimension = 5))
+  result.part2 = part2(packet)
  
 when isMainModule:
   echo solveDay16()
