@@ -25,7 +25,7 @@ proc solveDay17*: IntSolution =
   result.part1 = low(int)
 
   for dx in 1..target.bottomRight.x:
-    for dy in 1..target.bottomRight.y.abs:
+    for dy in target.bottomRight.y..target.bottomRight.y.abs:
       var probe = (x: 0, y: 0, dx: dx, dy: dy)
       var maxY = probe.y
       while probe.x <= target.bottomRight.x and probe.y >= target.bottomRight.y:
@@ -33,6 +33,7 @@ proc solveDay17*: IntSolution =
         if probe.x >= target.topLeft.x and probe.y <= target.topLeft.y:
           result.part1 = max(result.part1, maxY)
           inc result.part2
+          break
         probe.step
  
 when isMainModule:
