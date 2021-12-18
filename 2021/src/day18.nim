@@ -1,67 +1,55 @@
-import helpers, std/[sequtils, strutils]
+import helpers, std/[lists, sequtils, strutils]
 
 type
-  NumberKind = enum
-    nkLiteral, nkPair
-  Number = ref object
-    case kind: NumberKind
-      of nkLiteral: value: int
-      of nkPair: left, right: Number
+  NumberNode = tuple[value, depth: int]
+  Number = DoublyLinkedList[NumberNode]
 
-func `$`(number: Number): string =
-  case number.kind
-    of nkLiteral: $number.value
-    of nkPair: "[" & $number.left & "," & $number.right & "]"
+proc parseNumber(line: string): Number =
+  var depth, i: int
 
-func `+`(left: Number, right: Number): Number =
-  Number(kind: nkPair, left: left, right: right)
+  while i <= line.high:
+    if line[i] == '[':
+      inc depth
+      inc i
+      
+      var value: int
+      while line[i].isDigit: 
+        value = value * 10 + parseInt($line[i])
+        inc i
 
-proc reduce(number: Number): Number =
-  proc inner(number: Number, depth: int): Number =
-    case number.kind
-      of nkLiteral:
-        number
-      of nkPair:
-        Number(kind: nkPair, left: inner(number.left, depth + 1), right: inner(number.right, depth + 1))
+      if value > 0:
+        let numberNode = (value: value, depth: depth)
+        result.add(numberNode)
+    elif line[i] == ']':
+      dec depth
+      inc i
+    elif line[i] == ',':
+      inc i
+      var value: int
+      while line[i].isDigit: 
+        value = value * 10 + parseInt($line[i])
+        inc i
 
-  inner(number, 0)
+      if value > 0:
+        let numberNode = (value: value, depth: depth)
+        result.add(numberNode)
+    else:
+      inc i
 
-proc parseNumber(line: string, index: var int): Number
+proc `+`(left: Number, right: Number): Number =
+  for n in left:
+    result.add (value: n.value, depth: n.depth + 1)
 
-proc parsePair(line: string, index: var int): Number =
-  result = Number(kind: nkPair)
-  inc index # '['
-  result.left = parseNumber(line, index)
-  inc index # ','
-  result.right = parseNumber(line, index)
-  inc index # ']'
+  for n in right:
+    result.add (value: n.value, depth: n.depth + 1)
 
-proc parseLiteral(line: string, index: var int): Number =
-  var value: int
-
-  while line[index].isDigit:
-    value = value * 10 + parseInt($line[index])
-    inc index
-
-  Number(kind: nkLiteral, value: value)
-
-proc parseNumber(line: string, index: var int): Number =
-  if line[index] == '[':
-    parsePair(line, index)
-  else:
-    parseLiteral(line, index)
-
-proc readInputEquation: Number =
-  var numbers: seq[Number]
+proc readInputNumbers: seq[Number] =
   for line in readInputStrings(day = 18):
-    var index: int
-    numbers.add parseNumber(line, index)
-
-  numbers.foldl(a + b)
+    result.add parseNumber(line)
 
 proc solveDay18*: IntSolution =
-  var equation = readInputEquation()
-  echo equation.reduce()
+  let addedNumber = readInputNumbers().foldl(a + b)
+  echo addedNumber
  
 when isMainModule:
   echo solveDay18()
