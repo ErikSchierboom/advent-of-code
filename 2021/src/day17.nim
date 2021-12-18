@@ -1,40 +1,23 @@
-import helpers, std/[math, sequtils, strscans]
-
-type 
-  Area = tuple[topLeft, bottomRight: Point]
-  Probe = tuple[x, y, dx, dy: int]
-
-proc readInputTarget: Area =
-  let (_, xmin, xmax, ymax, ymin) = readInputString(day = 17).scanTuple("target area: x=$i..$i, y=$i..$i")
-  result.topLeft = (x: xmin, y: ymin)
-  result.bottomRight = (x: xmax, y: ymax)
-
-func inArea(probe: Probe, area: Area): bool {.inline.} =
-  probe.x >= area.topLeft.x and probe.x <= area.bottomRight.x and
-  probe.y >= area.topLeft.y and probe.y <= area.bottomRight.y
-
-proc step(probe: var Probe) =
-  inc probe.x, probe.dx
-  inc probe.y, probe.dy
-  if probe.dx > 0: dec probe.dx
-  dec probe.dy
+import helpers, std/strscans
 
 proc solveDay17*: IntSolution =
-  let target = readInputTarget()
-
+  let (_, stopXMin, stopXMax, stopYMax, stopYMin) = readInputString(day = 17).scanTuple("target area: x=$i..$i, y=$i..$i")
   result.part1 = low(int)
 
-  for dx in 1..target.bottomRight.x:
-    for dy in target.bottomRight.y..target.bottomRight.y.abs:
-      var probe = (x: 0, y: 0, dx: dx, dy: dy)
-      var maxY = probe.y
-      while probe.x <= target.bottomRight.x and probe.y >= target.bottomRight.y:
-        maxY = max(maxY, probe.y)
-        if probe.x >= target.topLeft.x and probe.y <= target.topLeft.y:
-          result.part1 = max(result.part1, maxY)
+  for startDx in 1..stopXMax:
+    for startDy in stopYMax..stopYMax.abs:
+      var x, y = 0; var dx = startDx; var dy = startDy; var yMax = y
+      while x <= stopXMax and y >= stopYMax:
+        yMax = max(yMax, y)
+        if x >= stopXMin and y <= stopYMin:
+          result.part1 = max(result.part1, yMax)
           inc result.part2
           break
-        probe.step
+
+        inc x, dx
+        inc y, dy
+        if dx > 0: dec dx
+        dec dy
  
 when isMainModule:
   echo solveDay17()
