@@ -27,21 +27,15 @@ proc parseNumber(line: string): Number =
         numbers = newSeq[int]()
         num = 0
       of ',':
-        if num > 0:
-          numbers.add num
+        if num > 0: numbers.add num
         num = 0
       else:
         num = num * 10 + parseInt($c)
 
 proc `+`(left: Number, right: Number): Number =
-  for n in left:
-    result.add n
-
-  for n in right:
-    result.add n
-
-  for n in result.nodes:
-    inc n.value.depth
+  for n in left:  result.add n
+  for n in right: result.add n
+  for n in result.nodes: inc n.value.depth
 
 proc readInputNumbers: seq[Number] =
   for line in readInputStrings(day = 18):
