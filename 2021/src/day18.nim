@@ -23,8 +23,8 @@ proc `+`(left: Number, right: Number): Number =
   result.depths = left.depths.concat(right.depths).mapIt(it + 1)
 
 proc split(number: var Number, index: int) =
-  let valueLow = (number.values[index] / 2).floor.int
-  let valueHigh = (number.values[index] / 2).ceil.int
+  let valueLow = number.values[index].floorDiv(2)
+  let valueHigh = number.values[index].ceilDiv(2)
   number.values[index] = valueLow
   inc number.depths[index]
   number.values.insert(valueHigh, index + 1)
@@ -43,7 +43,6 @@ proc explode(number: var Number, index: int) =
   number.depths.delete(index + 1)
 
 proc reduce(number: var Number) =
-  echo number
   var i = 0
 
   while i < number.depths.len:
@@ -52,7 +51,7 @@ proc reduce(number: var Number) =
       number.reduce()
     elif number.values[i] >= 10:
       number.split(i)
-      break
+      number.reduce()
     else:
       inc i
 
