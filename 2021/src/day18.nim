@@ -1,91 +1,65 @@
-import helpers, std/[lists, math, sequtils, strutils]
+import helpers, std/[math, sequtils, strutils]
 
-type
-  NumberNode = tuple[num, depth: int]
-  Number = DoublyLinkedList[NumberNode]
-
-proc `$`(number: Number): string =
-  var prevDepth = 0
-  for n in number.nodes:
-    if n.value.depth > prevDepth:
-      for i in 1..n.value.depth - prevDepth:
-        result.add '['
-    elif n.value.depth < prevDepth:
-      for i in 1..prevDepth - n.value.depth:
-        result.add ']'
-
-    result.add $n.value.num
-    prevDepth = n.value.depth
+type Number = tuple[values, depths: seq[int]]
 
 proc parseNumber(line: string): Number =
   var depth = 0
-  var num = -1
 
   for c in line:
-    case c
-      of '[':
-        inc depth
-      of ']':
-        if num >= 0: 
-          result.add((num: num, depth: depth))
-          num = -1
-        dec depth
-      of ',':
-        if num >= 0: 
-          result.add((num: num, depth: depth))
-          num = -1
-      else:
-        if num < 0:
-          num = 0
-        num = num * 10 + parseInt($c)
-
-proc `+`(left: Number, right: Number): Number =
-  for n in left:  result.add n
-  for n in right: result.add n
-  for n in result.nodes: inc n.value.depth
+    if c == '[':
+      inc depth
+    elif c == ']':
+      dec depth
+    elif c.isDigit:
+      result.values.add parseInt($c)
+      result.depths.add depth
 
 proc readInputNumbers: seq[Number] =
   for line in readInputStrings(day = 18):
     result.add parseNumber(line)
 
-proc split(node: DoublyLinkedNode[NumberNode]) =
-  let oldNext = node.next
-  node.next = newDoublyLinkedNode[NumberNode]((num: ceil(node.value.num / 2).abs.int, depth: node.value.depth + 1))
-  node.next.prev = node
-  node.next.next = oldNext
-  if oldNext != nil:
-    oldNext.prev = node.next
-  node.value.num = floor(node.value.num / 2).abs.int
-  inc node.value.depth
+proc `+`(left: Number, right: Number): Number =
+  result.values = left.values.concat(right.values)
+  result.depths = left.depths.concat(right.depths).mapIt(it + 1)
 
-proc explode(number: var Number, node: DoublyLinkedNode[NumberNode]) =
-  if node.prev != nil:
-    inc node.prev.value.num, node.value.num
+proc split(number: var Number, index: int) =
+  let valueLow = (number.values[index] / 2).floor.int
+  let valueHigh = (number.values[index] / 2).ceil.int
+  number.values[index] = valueLow
+  inc number.depths[index]
+  number.values.insert(valueHigh, index + 1)
+  number.depths.insert(number.depths[index], index + 1)
 
-  if node.next != nil and node.next.next != nil:
-    inc node.next.next.value.num, node.next.value.num
+proc explode(number: var Number, index: int) =
+  if index > number.values.low:
+    inc number.values[index - 1], number.values[index]
 
-  node.value.num = 0
-  dec node.value.depth
-  number.remove(node.next)
+  if index < number.values.high - 1:
+    inc number.values[index + 2], number.values[index + 1]
+
+  number.values[index] = 0
+  dec number.depths[index]
+  number.values.delete(index + 1)
+  number.depths.delete(index + 1)
 
 proc reduce(number: var Number) =
-  # echo number
-  for n in number.nodes:
-    if n.value.num >= 10:
-      echo "split"
-      n.split
-      number.reduce
-    elif n.value.depth == 5 and n.next != nil and n.next.value.depth == 5:
-      echo "explode"
-      number.explode(n)
-      number.reduce
+  echo number
+  var i = 0
+
+  while i < number.depths.len:
+    if number.depths[i] == 5:
+      number.explode(i)
+      number.reduce()
+    elif number.values[i] >= 10:
+      number.split(i)
+      break
+    else:
+      inc i
 
 proc solveDay18*: IntSolution =
-  var addedNumber = readInputNumbers().foldl(a + b)
-  # echo addedNumber
-  addedNumber.reduce()
-  echo addedNumber
+  var number = readInputNumbers().foldl(a + b)
+  number.reduce
+  echo number
  
 when isMainModule:
   echo solveDay18()
