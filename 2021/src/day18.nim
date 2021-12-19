@@ -1,4 +1,4 @@
-import helpers, std/[math, sequtils, strutils]
+import helpers, std/[algorithm, math, sequtils, strutils]
 
 type Number = tuple[values, depths: seq[int]]
 
@@ -55,10 +55,24 @@ proc reduce(number: var Number) =
     else:
       inc i
 
+proc part1(number: var Number): int =
+  while number.values.len > 1:
+    var i = 0
+    while i < number.values.high:
+      if number.depths[i] == number.depths[i + 1]:
+        number.values[i] = number.values[i] * 3 + number.values[i + 1] * 2
+        dec number.depths[i]
+        number.values.delete(i + 1)
+        number.depths.delete(i + 1)
+
+      inc i
+    
+  result = number.values[0]
+
 proc solveDay18*: IntSolution =
   var number = readInputNumbers().foldl(a + b)
   number.reduce
-  echo number
+  result.part1 = part1(number)
  
 when isMainModule:
   echo solveDay18()
