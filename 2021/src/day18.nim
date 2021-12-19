@@ -1,35 +1,29 @@
-import helpers, std/[lists, sequtils, strutils]
+import helpers, std/[lists, math, sequtils, strutils]
 
 type
-  NumberNodeKind = enum
-    nkSingle, nkPair
-  NumberNode = object
-    depth: int
-    case kind: NumberNodeKind
-      of nkSingle: num: int
-      of nkPair: left, right: int
+  NumberNode = tuple[num, depth: int]
   Number = DoublyLinkedList[NumberNode]
 
 proc parseNumber(line: string): Number =
-  var depth, num: int
-  var numbers: seq[int]
+  var depth = 0
+  var num = -1
 
   for c in line:
     case c
       of '[':
         inc depth
       of ']':
-        if numbers.len > 0:
-          result.add NumberNode(depth: depth, kind: nkPair, left: numbers[0], right: num)
-        else:
-          result.add NumberNode(depth: depth, kind: nkSingle, num: num)
+        if num >= 0: 
+          result.add((num: num, depth: depth))
+          num = -1
         dec depth
-        numbers = newSeq[int]()
-        num = 0
       of ',':
-        if num > 0: numbers.add num
-        num = 0
+        if num >= 0: 
+          result.add((num: num, depth: depth))
+          num = -1
       else:
+        if num < 0:
+          num = 0
         num = num * 10 + parseInt($c)
 
 proc `+`(left: Number, right: Number): Number =
@@ -41,22 +35,42 @@ proc readInputNumbers: seq[Number] =
   for line in readInputStrings(day = 18):
     result.add parseNumber(line)
 
-# proc reduce(number: var Number) =
-#   for n in number.nodes:
-#     if n.value.depth == 5:
-#       if n.next != nil and n.next.value.depth == 5:        
-#         inc n.next.value.num, n.next.next.value.num
-#         n.value.num = 0
-#         dec n.next.value.depth
-#         dec n.value.depth
-#         number.remove(n.next.next)
-#       echo "reduce"
+proc split(node: DoublyLinkedNode[NumberNode]) =
+  let oldNext = node.next
+  node.next = newDoublyLinkedNode[NumberNode]((num: ceil(node.value.num / 2).abs.int, depth: node.value.depth + 1))
+  node.next.prev = node
+  node.next.next = oldNext
+  oldNext.prev = node.next
+  node.value.num = floor(node.value.num / 2).abs.int
+  inc node.value.depth
+
+proc explode(number: var Number, node: DoublyLinkedNode[NumberNode]) =
+  if node.prev != nil:
+    inc node.prev.value.num, node.value.num
+
+  if node.next != nil and node.next.next != nil:
+    inc node.next.next.value.num, node.next.value.num
+
+  node.value.num = 0
+  dec node.value.depth
+  number.remove(node.next)
+
+proc reduce(number: var Number) =
+  echo number
+  for n in number.nodes:
+    if n.value.num >= 10:
+      echo "split"
+      n.split
+      number.reduce
+    elif n.value.depth == 5 and n.next != nil and n.next.value.depth == 5:
+      echo "explode"
+      number.explode(n)
+      number.reduce
 
 proc solveDay18*: IntSolution =
   var addedNumber = readInputNumbers().foldl(a + b)
+  addedNumber.reduce()
   echo addedNumber
-  # addedNumber.reduce
-  # echo addedNumber
  
 when isMainModule:
   echo solveDay18()
