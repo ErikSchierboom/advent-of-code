@@ -56,16 +56,17 @@ proc reduce(number: var Number) =
       inc i
 
 proc part1(number: var Number): int =
+  # TODO: don't use int
   while number.values.len > 1:
-    var i = 0
-    while i < number.values.high:
+    for i in 0 ..< number.values.high:
       if number.depths[i] == number.depths[i + 1]:
         number.values[i] = number.values[i] * 3 + number.values[i + 1] * 2
-        dec number.depths[i]
         number.values.delete(i + 1)
         number.depths.delete(i + 1)
+        if number.depths[i] > 1:
+          dec number.depths[i]
 
-      inc i
+        break
     
   result = number.values[0]
 
