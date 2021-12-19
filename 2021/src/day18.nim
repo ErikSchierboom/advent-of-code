@@ -4,6 +4,19 @@ type
   NumberNode = tuple[num, depth: int]
   Number = DoublyLinkedList[NumberNode]
 
+proc `$`(number: Number): string =
+  var prevDepth = 0
+  for n in number.nodes:
+    if n.value.depth > prevDepth:
+      for i in 1..n.value.depth - prevDepth:
+        result.add '['
+    elif n.value.depth < prevDepth:
+      for i in 1..prevDepth - n.value.depth:
+        result.add ']'
+
+    result.add $n.value.num
+    prevDepth = n.value.depth
+
 proc parseNumber(line: string): Number =
   var depth = 0
   var num = -1
@@ -40,7 +53,8 @@ proc split(node: DoublyLinkedNode[NumberNode]) =
   node.next = newDoublyLinkedNode[NumberNode]((num: ceil(node.value.num / 2).abs.int, depth: node.value.depth + 1))
   node.next.prev = node
   node.next.next = oldNext
-  oldNext.prev = node.next
+  if oldNext != nil:
+    oldNext.prev = node.next
   node.value.num = floor(node.value.num / 2).abs.int
   inc node.value.depth
 
@@ -56,7 +70,7 @@ proc explode(number: var Number, node: DoublyLinkedNode[NumberNode]) =
   number.remove(node.next)
 
 proc reduce(number: var Number) =
-  echo number
+  # echo number
   for n in number.nodes:
     if n.value.num >= 10:
       echo "split"
@@ -69,6 +83,7 @@ proc reduce(number: var Number) =
 
 proc solveDay18*: IntSolution =
   var addedNumber = readInputNumbers().foldl(a + b)
+  # echo addedNumber
   addedNumber.reduce()
   echo addedNumber
  
