@@ -51,7 +51,6 @@ proc split(number: var Number, index: int): bool =
   result = true
 
 proc reduce(number: var Number) =
-  echo "reduce"
   var i = 0
 
   while i < number.depths.len:
@@ -78,15 +77,14 @@ proc part1(number: var Number): int =
   result = number.values[0]
 
 proc solveDay18*: IntSolution =
-  proc folder(a, b: Number): Number =
-    var x = (a + b)
-    x.reduce()
-    result = x
-
-  var number = readInputNumbers().foldl(folder(a, b))
-  echo number
-  # echo number.reduce()
-  # result.part1 = part1(number)
+  let numbers = readInputNumbers()
+  var number = numbers[0]
+  for n in numbers[1..^1]:
+    number = number + n
+    number.reduce
+    echo number
+  
+  result.part1 = part1(number)
  
 when isMainModule:
   echo solveDay18()
