@@ -43,13 +43,12 @@ proc reduce(num: var Number) =
       num.explode(i)
     inc i
 
-  i = 0
-
-  while i < num.len:
-    if num[i].value >= 10:
-      num.split(i)
+  var j = 0
+  while j < num.len:
+    if num[j].value >= 10:
+      num.split(j)
       num.reduce()
-    inc i
+    inc j
 
 proc reduced(num: Number): Number =
   result = num
@@ -59,7 +58,7 @@ func magnitude(number: Number): int =
   var number = number
 
   while number.len > 1:
-    for i in 0 ..< number.high:
+    for i in number.low ..< number.high:
       if number[i].depth == number[i + 1].depth:
         number[i].value = number[i].value * 3 + number[i + 1].value * 2
         number.delete(i + 1)
@@ -67,7 +66,7 @@ func magnitude(number: Number): int =
           dec number[i].depth
 
         break
-    
+
   result = number[0].value
 
 proc part1(numbers: seq[Number]): int =
