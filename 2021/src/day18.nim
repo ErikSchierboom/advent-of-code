@@ -3,7 +3,7 @@ import helpers, std/[math, sequtils, strutils]
 type Number = seq[tuple[value, depth: int]]
 
 proc parseNumber(line: string): Number =
-  var depth = 0
+  var depth = -1
 
   for c in line:
     if c == '[':
@@ -23,7 +23,7 @@ proc `+`(left: Number, right: Number): Number =
     inc result[i].depth
 
 proc explode(number: var Number, index: int): bool =
-  if number[index].depth != 5:
+  if number[index].depth != 4:
     return false
   
   if index > number.low:
@@ -76,7 +76,7 @@ func magnitude(number: Number): int =
       if number[i].depth == number[i + 1].depth:
         number[i].value = number[i].value * 3 + number[i + 1].value * 2
         number.delete(i + 1)
-        if number[i].depth > 1:
+        if number[i].depth > 0:
           dec number[i].depth
 
         break
