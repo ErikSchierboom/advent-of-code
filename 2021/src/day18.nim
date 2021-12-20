@@ -25,6 +25,8 @@ proc `+`(left: Number, right: Number): Number =
 proc explode(number: var Number, index: int): bool =
   if number.depths[index] != 5:
     return false
+
+  echo "explode " & $index
   
   if index > number.values.low:
     inc number.values[index - 1], number.values[index]
@@ -36,6 +38,9 @@ proc explode(number: var Number, index: int): bool =
   dec number.depths[index]
   number.values.delete(index + 1)
   number.depths.delete(index + 1)
+
+  echo number
+
   result = true
 
 proc split(number: var Number, index: int): bool =
@@ -54,7 +59,18 @@ proc reduce(number: var Number) =
   var i = 0
 
   while i < number.depths.len:
-    if number.explode(i) or number.split(i):
+    if number.explode(i):
+      break
+
+    inc i
+
+  if i < number.depths.len:
+    number.reduce()
+
+  i = 0
+
+  while i < number.depths.len:
+    if number.split(i):
       break
 
     inc i
@@ -82,7 +98,11 @@ proc solveDay18*: IntSolution =
   for n in numbers[1..^1]:
     number = number + n
     number.reduce
-    echo number
+
+  # [[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]
+  # echo number
+  # number.reduce
+  echo number
   
   result.part1 = part1(number)
  
