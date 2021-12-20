@@ -22,32 +22,28 @@ proc `+`(left: Number, right: Number): Number =
   for i in result.low .. result.high:
     inc result[i].depth
 
-proc explode(number: var Number, index: int) =
-  if index > number.low:
-    inc number[index - 1].value, number[index].value
+proc explode(num: var Number, index: int) =
+  if index > num.low:
+    inc num[index - 1].value, num[index].value
 
-  if index < number.high - 1:
-    inc number[index + 2].value, number[index + 1].value
+  if index < num.high - 1:
+    inc num[index + 2].value, num[index + 1].value
 
-  number[index] = (value: 0, depth: number[index].depth - 1)
-  number.delete(index + 1)
+  num[index] = (value: 0, depth: num[index].depth - 1)
+  num.delete(index + 1)
 
-proc split(number: var Number, index: int) =
-  number.insert((value: number[index].value.ceilDiv(2), depth: number[index].depth + 1), index + 1)
-  number[index] = (value: number[index].value.floorDiv(2), depth: number[index].depth + 1)
+proc split(num: var Number, index: int) =
+  num.insert((value: num[index].value.ceilDiv(2), depth: num[index].depth + 1), index + 1)
+  num[index] = (value: num[index].value.floorDiv(2), depth: num[index].depth + 1)
 
-proc reduce(number: Number): Number =
-  result = number
+proc reduce(num: Number): Number =
+  result = num
+
   var i = 0
-
   while i < result.len:
     if result[i].depth == 4:
       result.explode(i)
-      break
     inc i
-
-  if i < result.len:
-    result = result.reduce()
 
   i = 0
 
