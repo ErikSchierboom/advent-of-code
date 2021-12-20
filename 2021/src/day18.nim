@@ -1,6 +1,6 @@
 import helpers, std/[math, sequtils, strutils]
 
-type Number = tuple[values, depths: seq[int]]
+type Number = seq[tuple[value, depth: int]]
 
 proc parseNumber(line: string): Number =
   var depth = 0
@@ -11,81 +11,77 @@ proc parseNumber(line: string): Number =
     elif c == ']':
       dec depth
     elif c.isDigit:
-      result.values.add parseInt($c)
-      result.depths.add depth
+      result.add (value: parseInt($c), depth: depth)
 
 proc readInputNumbers: seq[Number] =
   for line in readInputStrings(day = 18):
     result.add parseNumber(line)
 
 proc `+`(left: Number, right: Number): Number =
-  result.values = left.values.concat(right.values)
-  result.depths = left.depths.concat(right.depths).mapIt(it + 1)
+  result = left & right
+  for i in result.low .. result.high:
+    inc result[i].depth
 
 proc explode(number: var Number, index: int): bool =
-  if number.depths[index] != 5:
+  if number[index].depth != 5:
     return false
   
-  if index > number.values.low:
-    inc number.values[index - 1], number.values[index]
+  if index > number.low:
+    inc number[index - 1].value, number[index].value
 
-  if index < number.values.high - 1:
-    inc number.values[index + 2], number.values[index + 1]
+  if index < number.high - 1:
+    inc number[index + 2].value, number[index + 1].value
 
-  number.values[index] = 0
-  dec number.depths[index]
-  number.values.delete(index + 1)
-  number.depths.delete(index + 1)
+  number[index].value = 0
+  dec number[index].depth
+  number.delete(index + 1)
 
   result = true
 
 proc split(number: var Number, index: int): bool =
-  if number.values[index] < 10:
+  if number[index].value < 10:
     return false
 
-  let currentValue = number.values[index]
-  number.values[index] = currentValue.floorDiv(2)
-  inc number.depths[index]
-  number.values.insert(currentValue.ceilDiv(2), index + 1)
-  number.depths.insert(number.depths[index], index + 1)
+  let currentValue = number[index].value
+  number[index].value = currentValue.floorDiv(2)
+  inc number[index].depth
+  number.insert((value: currentValue.ceilDiv(2), depth: number[index].depth), index + 1)
   result = true
 
 proc reduce(number: Number): Number =
   result = number
   var i = 0
 
-  while i < result.depths.len:
+  while i < result.len:
     if result.explode(i): break
     inc i
 
-  if i < result.depths.len:
+  if i < result.len:
     result = result.reduce()
 
   i = 0
 
-  while i < result.depths.len:
+  while i < result.len:
     if result.split(i): break
     inc i
 
-  if i < result.depths.len:
+  if i < result.len:
     result = result.reduce()
 
 func magnitude(number: Number): int =
-  var values = number.values
-  var depths = number.depths
+  var number = number
 
-  while values.len > 1:
-    for i in 0 ..< values.high:
-      if depths[i] == depths[i + 1]:
-        values[i] = values[i] * 3 + values[i + 1] * 2
-        values.delete(i + 1)
-        depths.delete(i + 1)
-        if depths[i] > 1:
-          dec depths[i]
+  while number.len > 1:
+    for i in 0 ..< number.high:
+      if number[i].depth == number[i + 1].depth:
+        number[i].value = number[i].value * 3 + number[i + 1].value * 2
+        number.delete(i + 1)
+        if number[i].depth > 1:
+          dec number[i].depth
 
         break
     
-  result = values[0]
+  result = number[0].value
 
 proc part1(numbers: seq[Number]): int =
   result = numbers.foldl((a + b).reduce).magnitude
