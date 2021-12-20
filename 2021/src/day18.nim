@@ -36,25 +36,24 @@ proc split(num: var Number, index: int) =
   num.insert((value: num[index].value.ceilDiv(2), depth: num[index].depth + 1), index + 1)
   num[index] = (value: num[index].value.floorDiv(2), depth: num[index].depth + 1)
 
-proc reduce(num: Number): Number =
-  result = num
-
+proc reduce(num: var Number) =
   var i = 0
-  while i < result.len:
-    if result[i].depth == 4:
-      result.explode(i)
+  while i < num.len:
+    if num[i].depth == 4:
+      num.explode(i)
     inc i
 
   i = 0
 
-  while i < result.len:
-    if result[i].value >= 10:
-      result.split(i)
-      break
+  while i < num.len:
+    if num[i].value >= 10:
+      num.split(i)
+      num.reduce()
     inc i
 
-  if i < result.len:
-    result = result.reduce()
+proc reduced(num: Number): Number =
+  result = num
+  result.reduce()
 
 func magnitude(number: Number): int =
   var number = number
@@ -72,7 +71,7 @@ func magnitude(number: Number): int =
   result = number[0].value
 
 proc part1(numbers: seq[Number]): int =
-  result = numbers.foldl((a + b).reduce).magnitude
+  result = numbers.foldl((a + b).reduced).magnitude
 
 proc part2(numbers: seq[Number]): int =
   for i in numbers.low .. numbers.high:
@@ -80,7 +79,7 @@ proc part2(numbers: seq[Number]): int =
       if i == j:
         continue
 
-      result = result.max((numbers[i] + numbers[j]).reduce.magnitude)
+      result = result.max((numbers[i] + numbers[j]).reduced.magnitude)
 
 proc solveDay18*: IntSolution =
   let numbers = readInputNumbers() 
