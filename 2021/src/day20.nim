@@ -1,6 +1,6 @@
 import helpers, std/[sequtils, sets]
 
-type Grid = tuple[minX, maxX, minY, maxY: int, pixels: HashSet[Point], encoding: HashSet[int]]
+type Grid = tuple[minX, maxX, minY, maxY, unknown: int, pixels: HashSet[Point], encoding: HashSet[int]]
 
 iterator square(point: Point): Point =
   for dy in -1 .. 1:
@@ -14,7 +14,7 @@ func `notin`(point: Point, grid: Grid): bool =
 proc index(grid: Grid, point: Point): int =
   for gridPoint in point.square:
     result = result shl 1
-    if gridPoint notin grid and 0 in grid.encoding:
+    if gridPoint notin grid and grid.unknown in grid.encoding:
       result = result or 1
     elif gridPoint in grid.pixels:
       result = result or 1
@@ -33,7 +33,7 @@ proc parsePixels(lines: seq[string]): HashSet[Point] =
 proc parseGrid: Grid =
   let lines = readInputStrings(day = 20).toSeq
   let imageLines = lines[2..^1]
-  (minX: 0, maxX: imageLines[2].high, minY: 0, maxY: imageLines.high, pixels: parsePixels(imageLines), encoding: parseEncoding(lines[0]))
+  (minX: 0, maxX: imageLines[2].high, minY: 0, maxY: imageLines.high, unknown: 0, pixels: parsePixels(imageLines), encoding: parseEncoding(lines[0]))
 
 proc enhance(grid: Grid): Grid =
   result.minX = grid.minX - 2; result.maxX = grid.maxX + 2
@@ -45,6 +45,8 @@ proc enhance(grid: Grid): Grid =
       let point = (x: x, y: y)
       if grid.index(point) in grid.encoding:
         result.pixels.incl point
+
+  result.unknown = if result.unknown == 0: 511 else: 0
 
 proc solveDay20*: IntSolution =
   var grid = parseGrid()
