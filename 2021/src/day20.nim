@@ -1,4 +1,4 @@
-import helpers, std/[sequtils, sets, strutils]
+import helpers, std/[sequtils, sets]
 
 const lightPixel = '#'
 
@@ -7,14 +7,9 @@ iterator grid(point: Point): Point =
     for dx in -1 .. 1:
       yield (x: point.x + dx, y: point.y + dy)
 
-func pointsToEnhance(points: HashSet[Point]): HashSet[Point] =
-  for point in points:
-    for pointInGrid in point.grid:
-      result.incl pointInGrid
-
 proc index(points: HashSet[Point], point: Point): int =
-  for pointInGrid in point.grid:
-    result = result shl 1 or (if pointInGrid in points: 1 else: 0)
+  for gridPoint in point.grid:
+    result = result shl 1 or (if gridPoint in points: 1 else: 0)
 
 proc parseEnhancementAlgorithm(line: string): HashSet[int] =
   for i in line.low .. line.high:
@@ -28,9 +23,10 @@ proc parseInputImage(lines: seq[string]): HashSet[Point] =
         result.incl (x: x, y: y)
 
 proc enhance(points: HashSet[Point], enhancementAlgorithm: HashSet[int]): HashSet[Point] =
-  for point in pointsToEnhance(points):
-    if points.index(point) in enhancementAlgorithm:
-      result.incl point
+  for point in points:
+    for gridPoint in point.grid:
+      if points.index(gridPoint) in enhancementAlgorithm:
+        result.incl gridPoint
 
 proc solveDay20*: IntSolution =
   let lines = readInputStrings(day = 20).toSeq
