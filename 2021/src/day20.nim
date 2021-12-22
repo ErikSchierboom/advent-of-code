@@ -1,40 +1,57 @@
 import helpers, std/[sequtils, sets]
 
-iterator square(point: Point, offset: int): Point =
-  for dy in -offset .. offset:
-    for dx in -offset .. offset:
+type Grid = tuple[minX, maxX, minY, maxY: int, pixels: HashSet[Point], encoding: HashSet[int]]
+
+iterator square(point: Point): Point =
+  for dy in -1 .. 1:
+    for dx in -1 .. 1:
       yield (x: point.x + dx, y: point.y + dy)
 
-proc index(points: HashSet[Point], point: Point): int =
-  for gridPoint in point.square(offset = 1):
-    result = result shl 1 or (if gridPoint in points: 1 else: 0)
+func `notin`(point: Point, grid: Grid): bool =
+  point.x < grid.minX or point.x > grid.maxX or
+  point.y < grid.minY or point.y > grid.maxY
 
-proc parseLightPixelEncoding(line: string): HashSet[int] =
+proc index(grid: Grid, point: Point): int =
+  for gridPoint in point.square:
+    result = result shl 1
+    if gridPoint notin grid and 0 in grid.encoding:
+      result = result or 1
+    elif gridPoint in grid.pixels:
+      result = result or 1
+
+proc parseEncoding(line: string): HashSet[int] =
   for i in line.low .. line.high:
     if line[i] == '#':
       result.incl(i)
 
-proc parseLightPixels(lines: seq[string]): HashSet[Point] =
+proc parsePixels(lines: seq[string]): HashSet[Point] =
   for y in lines.low .. lines.high:
     for x in lines[0].low .. lines[0].high:
       if lines[y][x] == '#':
         result.incl (x: x, y: y)
 
-proc enhance(points: HashSet[Point], lightPixelEncoding: HashSet[int]): HashSet[Point] =
-  for point in points:
-    for gridPoint in point.square(offset = 2):
-      if points.index(gridPoint) in lightPixelEncoding:
-        result.incl gridPoint
+proc parseGrid: Grid =
+  let lines = readInputStrings(day = 20).toSeq
+  let imageLines = lines[2..^1]
+  (minX: 0, maxX: imageLines[2].high, minY: 0, maxY: imageLines.high, pixels: parsePixels(imageLines), encoding: parseEncoding(lines[0]))
+
+proc enhance(grid: Grid): Grid =
+  result.minX = grid.minX - 2; result.maxX = grid.maxX + 2
+  result.minY = grid.minY - 2; result.maxY = grid.maxY + 2
+  result.encoding = grid.encoding
+
+  for y in result.minY .. result.maxY:
+    for x in result.minX .. result.maxX:
+      let point = (x: x, y: y)
+      if grid.index(point) in grid.encoding:
+        result.pixels.incl point
 
 proc solveDay20*: IntSolution =
-  let lines = readInputStrings(day = 20).toSeq
-  let lightPixelEncoding = parseLightPixelEncoding(lines[0])
-  var lightPixels = parseLightPixels(lines[2..^1])
+  var grid = parseGrid()
+  grid = grid.enhance()
+  grid = grid.enhance()
 
-  lightPixels = lightPixels.enhance(lightPixelEncoding)
-  lightPixels = lightPixels.enhance(lightPixelEncoding)
-
-  result.part1 = lightPixels.len
+  result.part1 = grid.pixels.len
   # result.part2 = part2(numbers)
  
 when isMainModule:
