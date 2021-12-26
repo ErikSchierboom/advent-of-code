@@ -1,4 +1,4 @@
-import helpers, std/strscans
+import helpers, std/[math, strscans]
 
 type 
   Player = tuple[pos, score: int]
@@ -30,41 +30,44 @@ proc part1: int =
   else:
     result = game.p1.score * game.round * 3
 
-proc part2: int =
-  # proc playUntilWon(game: Game): tuple[p1Wins, p2Wins: int] =
-  #   if game.won(game.p1):
-  #     inc result.p1Wins
-  #   elif game.won(game.p2):
-  #     inc result.p2Wins
-  #   else
-  #     inc game.round
+proc part2: int64 =
+  proc playUntilWon(game: Game, rolls: seq[int]): tuple[p1Wins, p2Wins: int64] =
+    if game.won(game.p1):
+      inc result.p1Wins
+    elif game.won(game.p2):
+      inc result.p2Wins
+    else:
+      for roll in 1..3:
+        var newGame = game
+        var newRolls = rolls
+        inc newGame.round
+        newRolls.add roll
 
-  #     for roll in 1..3:
-  #       if game.round mod 2 == 1:
-  #         game.p1.pos = ((game.p1.pos - 1 + move(game.round)) mod 10) + 1
-  #         inc game.p1.score, game.p1.pos
-  #       else:
-  #         game.p2.pos = ((game.p2.pos - 1 + move(game.round)) mod 10) + 1
-  #         inc game.p2.score, game.p2.pos
-  #   echo ""
+        if newRolls.len == 3:
+          if ((newGame.round - 1) div 3) mod 2 == 0:
+            # echo "p1"
+            
+            newGame.p1.pos = modulo(newGame.p1.pos + newRolls.sum, 10, 1)
+            inc newGame.p1.score, newGame.p1.pos
+            # echo newGame
+          else:
+            # echo "p2"
+            newGame.p2.pos = modulo(newGame.p2.pos + newRolls.sum, 10, 1)
+            inc newGame.p2.score, newGame.p2.pos
 
-  # var game = parseInputGame(winningScore = 21)
-  # for roll in 1..3:
-  #   let wins = playUntilWon(game)
-  # while not game.won:
-  #   inc game.round
+            # echo newGame
 
-  #   if game.round mod 2 == 1:
-  #     game.p1.pos = ((game.p1.pos - 1 + move(game.round)) mod 10) + 1
-  #     inc game.p1.score, game.p1.pos
-  #   else:
-  #     game.p2.pos = ((game.p2.pos - 1 + move(game.round)) mod 10) + 1
-  #     inc game.p2.score, game.p2.pos
+          newRolls = @[]
 
-  # result = (if game.won(game.p1): game.p2 else: game.p1).score * game.round * 3
-  echo ""
+        let gameResult = playUntilWon(newGame, newRolls)
+        result.p1Wins = result.p1Wins + gameResult.p1Wins
+        result.p2Wins = result.p2Wins + gameResult.p2Wins
 
-proc solveDay21*: IntSolution =
+  let game = parseInputGame(winningScore = 21)
+  let endResult = game.playUntilWon(rolls = @[])
+  result = if endResult.p1Wins > endResult.p2Wins: endResult.p1Wins else: endResult.p2Wins
+
+proc solveDay21*: Solution[int, int64] =
   result.part1 = part1()
   result.part2 = part2()
 
