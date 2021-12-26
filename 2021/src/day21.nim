@@ -7,8 +7,7 @@ type
 func modulo(x, y, offset: int): int {.inline.} = ((x - offset) mod y) + offset
 func won(game: Game, player: Player): bool {.inline.} = player.score >= game.winningScore
 func won(game: Game): bool {.inline.} = game.won(game.p1) or game.won(game.p2)
-func move(game: Game): int {.inline.} = (game.round.pred * 3) mod 10
-func move(player: Player, steps: int): int {.inline.} = modulo(player.pos + steps, 10, 1)
+func move(player: Player, round: int): int {.inline.} = modulo(player.pos + (round.pred * 3) mod 10, 10, 1)
 func player1Turn(game: Game): bool {.inline.} = (game.round div 3) mod 2 == 1
 
 proc parseInputGame(winningScore: int): Game =
@@ -21,13 +20,13 @@ proc part1: int =
     inc game.round, 3
     
     if game.player1Turn:
-      game.p1.pos = move(game.p1, game.move)
+      game.p1.pos = move(game.p1, game.round)
       inc game.p1.score, game.p1.pos
     else:
-      game.p2.pos = move(game.p2, game.move)
+      game.p2.pos = move(game.p2, game.round)
       inc game.p2.score, game.p2.pos
 
-  result = if game.won(game.p1): game.p2.score * game.round else: game.p1.score * game.round
+  result = min(game.p1.score, game.p2.score) * game.round
 
 # proc part2: int64 =
 #   var p1Wins, p2Wins: int64
