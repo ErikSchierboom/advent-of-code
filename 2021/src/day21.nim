@@ -4,10 +4,9 @@ type
   Player = tuple[pos, score: int]
   Game = tuple[p1, p2: Player, round, winningScore: int]
 
-func modulo(x, y, offset: int): int {.inline.} = ((x - offset) mod y) + offset
 func won(game: Game, player: Player): bool {.inline.} = player.score >= game.winningScore
 func won(game: Game): bool {.inline.} = game.won(game.p1) or game.won(game.p2)
-func move(player: Player, round: int): int {.inline.} = modulo(player.pos + (round.pred * 3) mod 10, 10, 1)
+func move(player: Player, round: int): int {.inline.} = floorMod((player.pos + (round.pred * 3) - 1), 10) + 1
 func player1Turn(game: Game): bool {.inline.} = (game.round div 3) mod 2 == 1
 
 proc parseInputGame(winningScore: int): Game =
@@ -28,17 +27,29 @@ proc part1: int =
 
   result = min(game.p1.score, game.p2.score) * game.round
 
-# proc part2: int64 =
-#   var p1Wins, p2Wins: int64
-#   var oldP1Pos, oldP1Score, oldP2Pos, oldP2Score: int
-#   var rolls: seq[int]
+proc part2: int64 =
+  var rolls: seq[int]
+  var game = parseInputGame(winningScore = 21)
 
-#   var game = parseInputGame(winningScore = 21)
-#   while not game.won:
-#     inc game.round
+  proc determineWinCount(): tuple[p1Wins, p2Wins: int64] =
+    if game.won(game.p1):
+      inc result.p1Wins
+    elif game.won(game.p2):
+      inc result.p2Wins
+    else:
+      inc game.round
 
+      for roll in 1..3:
+        rolls.add roll
 
-#     if newRolls.len == 3:
+        if game.player1Turn:
+          game.p1.pos = move(game.p1, game.round)
+          inc game.p1.score, game.p1.pos
+        else:
+          game.p2.pos = move(game.p2, game.round)
+          inc game.p2.score, game.p2.pos
+
+        #     if newRolls.len == 3:
 #           if ((game.round - 1) div 3) mod 2 == 0:
 
 #     oldP1Pos = game.p1.pos; oldP1Score = game.p1.score
@@ -51,9 +62,18 @@ proc part1: int =
 #       game.p2.pos = modulo(game.p2.pos + move, 10, 1)
 #       inc game.p2.score, game.p2.pos
 
-#   result = if p1Wins > p2Wins: p1Wins else: p2Wins
+        let winCount = determineWinCount()
+        result.p1Wins = result.p1Wins + winCount.p1Wins
+        result.p2Wins = result.p2Wins + winCount.p2Wins
+        discard rolls.pop
+
+      dec game.round
+    
+  let winCount = determineWinCount()
+  result = if winCount.p1Wins > winCount.p2Wins: winCount.p1Wins else: winCount.p2Wins
 
 proc solveDay21*: Solution[int, int64] =
+  echo floorMod(-1, 4)
   result.part1 = part1()
   # result.part2 = part2()
 
