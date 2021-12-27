@@ -1,12 +1,11 @@
-import helpers, std/[math, strscans]
+import helpers, std/[math, strscans, tables]
 
 type 
   Player = tuple[pos, score: int]
   Game = tuple[p1, p2: Player, round, winningScore: int]
 
 func won(game: Game, player: Player): bool {.inline.} = player.score >= game.winningScore
-func won(game: Game): bool {.inline.} = game.won(game.p1) or game.won(game.p2)
-func move(player: Player, round: int): int {.inline.} = floorMod((player.pos + (round.pred * 3) - 1), 10) + 1
+func move(player: Player, steps: int): int {.inline.} = floorMod((player.pos + steps - 1), 10) + 1
 func player1Turn(game: Game): bool {.inline.} = (game.round div 3) mod 2 == 1
 
 proc parseInputGame(winningScore: int): Game =
@@ -15,67 +14,49 @@ proc parseInputGame(winningScore: int): Game =
 
 proc part1: int =
   var game = parseInputGame(winningScore = 1000)
-  while not game.won:
+  while not game.won(game.p1) or game.won(game.p2):
     inc game.round, 3
     
     if game.player1Turn:
-      game.p1.pos = move(game.p1, game.round)
+      game.p1.pos = move(game.p1, game.round.pred * 3)
       inc game.p1.score, game.p1.pos
     else:
-      game.p2.pos = move(game.p2, game.round)
+      game.p2.pos = move(game.p2, game.round.pred * 3)
       inc game.p2.score, game.p2.pos
 
   result = min(game.p1.score, game.p2.score) * game.round
 
 proc part2: int64 =
-  var rolls: seq[int]
-  var game = parseInputGame(winningScore = 21)
+  const moveFreqs = {3:1, 4:3, 5:6, 6:7, 7:6, 8:3, 9:1}.toTable
 
-  proc determineWinCount(): tuple[p1Wins, p2Wins: int64] =
-    if game.won(game.p1):
-      inc result.p1Wins
-    elif game.won(game.p2):
-      inc result.p2Wins
-    else:
-      inc game.round
+  proc determineWinCount(game: Game): tuple[p1Wins, p2Wins: int64] =
+    for steps, count in moveFreqs:
+      var newGame = game
+      inc newGame.round, 3
 
-      for roll in 1..3:
-        rolls.add roll
+      if newGame.player1Turn:
+        newGame.p1.pos = move(newGame.p1, steps)
+        inc newGame.p1.score, newGame.p1.pos
+      else:
+        newGame.p2.pos = move(newGame.p2, steps)
+        inc newGame.p2.score, newGame.p2.pos
 
-        if game.player1Turn:
-          game.p1.pos = move(game.p1, game.round)
-          inc game.p1.score, game.p1.pos
-        else:
-          game.p2.pos = move(game.p2, game.round)
-          inc game.p2.score, game.p2.pos
+      if newGame.won(newGame.p1):
+        inc result.p1Wins
+      elif newGame.won(newGame.p2):
+        inc result.p2Wins
+      else:
+        let winCount = determineWinCount(newGame)
+        result.p1Wins = result.p1Wins + count * winCount.p1Wins
+        result.p2Wins = result.p2Wins + count * winCount.p2Wins
 
-        #     if newRolls.len == 3:
-#           if ((game.round - 1) div 3) mod 2 == 0:
-
-#     oldP1Pos = game.p1.pos; oldP1Score = game.p1.score
-#     oldP2Pos = game.p2.pos; oldP2Score = game.p1.score
-
-#     if game.round mod 2 == 1:
-#       game.p1.pos = modulo(game.p1.pos + move, 10, 1)
-#       inc game.p1.score, game.p1.pos
-#     else:
-#       game.p2.pos = modulo(game.p2.pos + move, 10, 1)
-#       inc game.p2.score, game.p2.pos
-
-        let winCount = determineWinCount()
-        result.p1Wins = result.p1Wins + winCount.p1Wins
-        result.p2Wins = result.p2Wins + winCount.p2Wins
-        discard rolls.pop
-
-      dec game.round
-    
-  let winCount = determineWinCount()
+  let game = parseInputGame(winningScore = 21)
+  let winCount = determineWinCount(game)
   result = if winCount.p1Wins > winCount.p2Wins: winCount.p1Wins else: winCount.p2Wins
 
 proc solveDay21*: Solution[int, int64] =
-  echo floorMod(-1, 4)
   result.part1 = part1()
-  # result.part2 = part2()
+  result.part2 = part2()
 
 when isMainModule:
   echo solveDay21()
