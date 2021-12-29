@@ -1,38 +1,60 @@
-import helpers, std/strscans
+import helpers, std/[math, strscans, tables]
 
-type 
-  Player = tuple[pos, score: int]
-  Game = tuple[p1, p2: Player, round, winningScore: int]
+type Game = tuple[p1Pos, p1Score, p2Pos, p2Score, round: int]
 
-func move(round: int): int = (round * 9 - 3) mod 10
-func won(game: Game, player: Player): bool = player.score >= game.winningScore
-func won(game: Game): bool = game.won(game.p1) or game.won(game.p2)
+func mod1(x, y: int): int = floorMod(x - 1, y) + 1
+func move(pos, steps: int): int {.inline.} = mod1(pos + steps, 10)
 
-proc parseInputGame(winningScore: int): Game =
+proc parseInputGame: Game =
   let (_, p1Pos, p2Pos) = readInputString(day = 21).scanTuple("Player 1 starting position: $i\nPlayer 2 starting position: $i")
-  (p1: (pos: p1Pos, score: 0), p2: (pos: p2Pos, score: 0), round: 0, winningScore: winningScore)
-
-proc play(game: var Game) =
-  inc game.round
-
-  if game.round mod 2 == 1:
-    game.p1.pos = ((game.p1.pos - 1 + move(game.round)) mod 10) + 1
-    inc game.p1.score, game.p1.pos
-  else:
-    game.p2.pos = ((game.p2.pos - 1 + move(game.round)) mod 10) + 1
-    inc game.p2.score, game.p2.pos
+  (p1Pos: p1Pos, p1Score: 0, p2Pos: p2Pos, p2Score: 0, round: 0)
 
 proc part1: int =
-  var game = parseInputGame(winningScore = 1000)
-  while not game.won:
-    game.play()
+  const winningScore = 1000
+  var (p1Pos, p1Score, p2Pos, p2Score, round) = parseInputGame()
+  while p1Score < winningScore and p2Score < winningScore:
+    inc round
+    
+    if round mod 2 == 1:
+      p1Pos = move(p1Pos, (round * 3).pred * 3)
+      inc p1Score, p1Pos
+    else:
+      p2Pos = move(p2Pos, (round * 3).pred * 3)
+      inc p2Score, p2Pos
 
-  result = (if game.won(game.p1): game.p2 else: game.p1).score * game.round * 3
+  result = min(p1Score, p2Score) * round * 3
 
+proc part2: int64 =
+  const winningScore = 21
+  const pathFreqs = {3:1, 4:3, 5:6, 6:7, 7:6, 8:3, 9:1}.toTable
 
+  proc determineWinCount(game: Game, paths: int): tuple[p1Wins, p2Wins: int64] =
+    for steps, freq in pathFreqs:
+      var newGame = game
+      inc newGame.round
+    
+      if newGame.round mod 2 == 1:
+        newGame.p1Pos = move(newGame.p1Pos, steps)
+        inc newGame.p1Score, newGame.p1Pos
+      else:
+        newGame.p2Pos = move(newGame.p2Pos, steps)
+        inc newGame.p2Score, newGame.p2Pos
 
-proc solveDay21*: IntSolution =
+      if newGame.p1Score >= winningScore:
+        inc result.p1Wins, paths * freq
+      elif newGame.p2Score >= winningScore:
+        inc result.p2Wins, paths * freq
+      else:
+        let (p1Wins, p2Wins) = determineWinCount(newGame, paths * freq)
+        result.p1Wins += p1Wins
+        result.p2Wins += p2Wins
+
+  let (p1Wins, p2Wins) = determineWinCount(parseInputGame(), 1)
+  result = max(p1Wins, p2Wins)
+
+proc solveDay21*: Solution[int, int64] =
   result.part1 = part1()
+  result.part2 = part2()
 
 when isMainModule:
   echo solveDay21()
