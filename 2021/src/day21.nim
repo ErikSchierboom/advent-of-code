@@ -28,10 +28,8 @@ proc part2: int64 =
   const winningScore = 21
   const pathFreqs = {3:1, 4:3, 5:6, 6:7, 7:6, 8:3, 9:1}.toTable
 
-  # proc determineWinCount(p1Pos, p1Score, p2Pos, p2Score, round, paths: int): tuple[p1Wins, p2Wins: int64] =
   proc determineWinCount(game: Game, paths: int): tuple[p1Wins, p2Wins: int64] =
     for steps, freq in pathFreqs:
-      # var (newP1Pos, newP1Score, newP2Pos, newP2Score, newRound) = (p1Pos, p1Score, p2Pos, p2Score, round)
       var newGame = game
       inc newGame.round
     
