@@ -29,7 +29,7 @@ proc part1: int =
 proc part2: int64 =
   const moveFreqs = {3:1, 4:3, 5:6, 6:7, 7:6, 8:3, 9:1}.toTable
 
-  proc determineWinCount(game: Game): tuple[p1Wins, p2Wins: int64] =
+  proc determineWinCount(game: Game, paths: int): tuple[p1Wins, p2Wins: int64] =
     for steps, count in moveFreqs:
       var newGame = game
       inc newGame.round, 3
@@ -42,16 +42,16 @@ proc part2: int64 =
         inc newGame.p2.score, newGame.p2.pos
 
       if newGame.won(newGame.p1):
-        inc result.p1Wins
+        inc result.p1Wins, paths * count
       elif newGame.won(newGame.p2):
-        inc result.p2Wins
+        inc result.p2Wins, paths * count
       else:
-        let winCount = determineWinCount(newGame)
-        result.p1Wins = result.p1Wins + count * winCount.p1Wins
-        result.p2Wins = result.p2Wins + count * winCount.p2Wins
+        let winCount = determineWinCount(newGame, paths * count)
+        result.p1Wins = result.p1Wins + winCount.p1Wins
+        result.p2Wins = result.p2Wins + winCount.p2Wins
 
   let game = parseInputGame(winningScore = 21)
-  let winCount = determineWinCount(game)
+  let winCount = determineWinCount(game, 1)
   result = if winCount.p1Wins > winCount.p2Wins: winCount.p1Wins else: winCount.p2Wins
 
 proc solveDay21*: Solution[int, int64] =
