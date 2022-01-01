@@ -1,4 +1,23 @@
-import helpers, std/[deques, math, sequtils, strscans, strutils, strformat, tables]
+import helpers, std/[algorithm, deques, math, sequtils, strscans, strutils, strformat, tables]
+
+# 0:inp w
+# 1:mul x 0
+# 2:add x z
+# 3:mod x 26
+# 4:div z 26 (or div z 1)
+# 5:add x -14 (or add x ...) (if < 0 then div z 26 else div z 1)
+# 6:eql x w
+# 7:eql x 0
+# 8:mul y 0
+# 9:add y 25
+# 10:mul y x
+# 11:add y 1
+# 12:mul z y
+# 13:mul y 0
+# 14:add y w
+# 15:add y 10 (or add y ...)
+# 16:mul y x
+# 17:add z y
 
 proc readInstructionBlocks: seq[seq[seq[string]]] =
   for line in readInputStrings(day = 24):
@@ -30,40 +49,42 @@ proc run(state: Table[string, int], instructions: seq[seq[string]], input: int):
 
 proc solveDay24*: Solution[int64, int64] =
   let instructions = readInstructionBlocks()
-  echo instructions.len
+  echo instructions.deduplicate.len
+  # echo instructions.len
 
-  const initialState = {"w": 0, "x": 0, "y": 0, "z": 0}.toTable
+  # const initialState = {"w": 0, "x": 0, "y": 0, "z": 0}.toTable
 
-  for d1 in 1..9:
-    let state1 = run(initialState, instructions[0], d1)
-    for d2 in 1..9:
-      let state2 = run(state1, instructions[1], d2)
-      for d3 in 1..9:
-        let state3 = run(state2, instructions[2], d3)
-        for d4 in 1..9:
-          let state4 = run(state3, instructions[3], d4)
-          for d5 in 1..9:
-            let state5 = run(state4, instructions[4], d5)
-            for d6 in 1..9:
-              let state6 = run(state5, instructions[5], d6)
-              for d7 in 1..9:
-                let state7 = run(state6, instructions[6], d7)
-                for d8 in 1..9:
-                  let state8 = run(state7, instructions[7], d8)
-                  for d9 in 1..9:
-                    let state9 = run(state8, instructions[8], d9)
-                    for d10 in 1..9:
-                      let state10 = run(state9, instructions[9], d10)
-                      for d11 in 1..9:
-                        let state11 = run(state10, instructions[10], d11)
-                        for d12 in 1..9:
-                          let state12 = run(state11, instructions[11], d12)
-                          for d13 in 1..9:
-                            let state13 = run(state12, instructions[12], d13)
-                            for d14 in 1..9:
-                              let state14 = run(state13, instructions[13], d14)
-                              if state14["z"] == 0:
-                                result.part1 = max(result.part1, parseInt(&"{d1}{d2}{d3}{d4}{d5}{d6}{d7}{d8}{d9}{d10}{d11}{d12}{d13}{d4}"))
+  # for d1 in 1..9:
+  #   let state1 = run(initialState, instructions[0], d1)
+  #   for d2 in 1..9:
+  #     let state2 = run(state1, instructions[1], d2)
+  #     echo state2
+      # for d3 in 1..9:
+      #   let state3 = run(state2, instructions[2], d3)
+      #   for d4 in 1..9:
+      #     let state4 = run(state3, instructions[3], d4)
+      #     for d5 in 1..9:
+      #       let state5 = run(state4, instructions[4], d5)
+      #       for d6 in 1..9:
+      #         let state6 = run(state5, instructions[5], d6)
+      #         for d7 in 1..9:
+      #           let state7 = run(state6, instructions[6], d7)
+      #           for d8 in 1..9:
+      #             let state8 = run(state7, instructions[7], d8)
+      #             for d9 in 1..9:
+      #               let state9 = run(state8, instructions[8], d9)
+      #               for d10 in 1..9:
+      #                 let state10 = run(state9, instructions[9], d10)
+      #                 for d11 in 1..9:
+      #                   let state11 = run(state10, instructions[10], d11)
+      #                   for d12 in 1..9:
+      #                     let state12 = run(state11, instructions[11], d12)
+      #                     for d13 in 1..9:
+      #                       let state13 = run(state12, instructions[12], d13)
+      #                       for d14 in 1..9:
+      #                         let state14 = run(state13, instructions[13], d14)
+      #                         if state14["z"] == 0:
+      #                           result.part1 = max(result.part1, parseInt(&"{d1}{d2}{d3}{d4}{d5}{d6}{d7}{d8}{d9}{d10}{d11}{d12}{d13}{d4}"))
 
 when isMainModule:
   echo solveDay24()
