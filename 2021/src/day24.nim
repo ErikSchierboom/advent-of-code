@@ -1,5 +1,7 @@
 import helpers, std/[algorithm, deques, math, sequtils, strscans, strutils, strformat, tables]
 
+type Instructions = tuple[param1, param2: int]
+
 # 0:inp w
 # 1:mul x 0
 # 2:add x z
@@ -19,72 +21,94 @@ import helpers, std/[algorithm, deques, math, sequtils, strscans, strutils, strf
 # 16:mul y x
 # 17:add z y
 
-proc readInstructionBlocks: seq[seq[seq[string]]] =
-  for line in readInputStrings(day = 24):
-    let instruction = line.splitWhitespace
-    if instruction[0] == "inp": result.add(newSeq[seq[string]]())
-    result[result.high].add instruction
+# w = NUM
+# x = 0
+# x = x + z
+# x = x mod 26
+# z = z div 1 (or z = z div 26)
+# x = x + PARAM1
+# x = x == w (1 if true, 0 if false)
+# x = x == 0 
+# y = 0
+# y = y + 25
+# y = y * x
+# y = y + 1
+# z = z * y
+# y = 0
+# y = y + w
+# y = y + PARAM2
+# y = y * x
+# z = z + y
 
-proc run(state: Table[string, int], instructions: seq[seq[string]], input: int): Table[string, int] =
-  result = state
+# w = NUM
+# x = z
+# x = x mod 26
+# z = z div 1 (or z = z div 26)
+# x = x + PARAM1
+# x = x == w (1 if true, 0 if false)
+# x = x == 0 
+# y = (25 * x) + 1
+# z = z * y
+# y = (w + PARAM2) * x
+# z = z + y
 
-  for instruction in instructions:
-    case instruction[0]
-      of "inp":
-        result[instruction[1]] = input
-      of "add":
-        result[instruction[1]] = result[instruction[1]] + (if instruction[2][0].isAlphaAscii: result[instruction[2]] else: parseInt(instruction[2]))
-      of "mul":
-        result[instruction[1]] = result[instruction[1]] * (if instruction[2][0].isAlphaAscii: result[instruction[2]] else: parseInt(instruction[2]))
-      of "div":
-        result[instruction[1]] = result[instruction[1]] div (if instruction[2][0].isAlphaAscii: result[instruction[2]] else: parseInt(instruction[2]))
-      of "mod":
-        result[instruction[1]] = result[instruction[1]] mod (if instruction[2][0].isAlphaAscii: result[instruction[2]] else: parseInt(instruction[2]))
-      of "eql":
-        result[instruction[1]] = 
-          if result[instruction[1]] == (if instruction[2][0].isAlphaAscii: result[instruction[2]] else: parseInt(instruction[2])):
-            1
-          else:
-            0
+# SIMPLIFIED
+# PATH 1: div 1
+# w = NUM
+# x = if z mod 26 + PARAM1 == w: 0 else: 1
+#
+# PATH 2: div 26
+# w = NUM
+# x = if z mod 26 + PARAM1 == w: 0 else: 1
+# z = z div 26
+
+# TWO PATHS: x = 0 and x = 1
+#
+# PATH 1: x = 0
+# NOTHING CHANGES
+#
+# PATH 2: x = 1
+# z = (z * 26) + w + PARAM2
+
+func eval(instructions: Instructions, w, z: int): int =
+  let x =  if (z mod 26) + instructions.param1 == w: 0 else: 1
+  var z = if instructions.param1 < 0: z div 26 else: z
+  if x == 1: z = (z * 26) + w + instructions.param2
+  z
+
+  # SIMPLIFIED
+# PATH 1: div 1
+# w = NUM
+# x = if z mod 26 + PARAM1 == w: 0 else: 1
+#
+# PATH 2: div 26
+# w = NUM
+# x = if z mod 26 + PARAM1 == w: 0 else: 1
+# z = z div 26
+
+# TWO PATHS: x = 0 and x = 1
+#
+# PATH 1: x = 0
+# NOTHING CHANGES
+#
+# PATH 2: x = 1
+# z = (z * 26) + w + PARAM2
+
+proc readInstructions: seq[Instructions] =
+  let lines = readInputStrings(day = 24).toSeq
+  for instructions in lines.distribute(lines.len div 18):
+    let param1 = parseInt(instructions[5].splitWhitespace[^1])
+    let param2 = parseInt(instructions[15].splitWhitespace[^1])
+    result.add (param1: param1, param2: param2)
+
 
 proc solveDay24*: Solution[int64, int64] =
-  let instructions = readInstructionBlocks()
-  echo instructions.deduplicate.len
-  # echo instructions.len
+  let instructions = readInstructions()
 
+  for num in 11111111111111 .. 11111111111111:
+    let digits = ($num).toSeq.mapIt(parseInt($it))
+    echo digits
   # const initialState = {"w": 0, "x": 0, "y": 0, "z": 0}.toTable
-
-  # for d1 in 1..9:
-  #   let state1 = run(initialState, instructions[0], d1)
-  #   for d2 in 1..9:
-  #     let state2 = run(state1, instructions[1], d2)
-  #     echo state2
-      # for d3 in 1..9:
-      #   let state3 = run(state2, instructions[2], d3)
-      #   for d4 in 1..9:
-      #     let state4 = run(state3, instructions[3], d4)
-      #     for d5 in 1..9:
-      #       let state5 = run(state4, instructions[4], d5)
-      #       for d6 in 1..9:
-      #         let state6 = run(state5, instructions[5], d6)
-      #         for d7 in 1..9:
-      #           let state7 = run(state6, instructions[6], d7)
-      #           for d8 in 1..9:
-      #             let state8 = run(state7, instructions[7], d8)
-      #             for d9 in 1..9:
-      #               let state9 = run(state8, instructions[8], d9)
-      #               for d10 in 1..9:
-      #                 let state10 = run(state9, instructions[9], d10)
-      #                 for d11 in 1..9:
-      #                   let state11 = run(state10, instructions[10], d11)
-      #                   for d12 in 1..9:
-      #                     let state12 = run(state11, instructions[11], d12)
-      #                     for d13 in 1..9:
-      #                       let state13 = run(state12, instructions[12], d13)
-      #                       for d14 in 1..9:
-      #                         let state14 = run(state13, instructions[13], d14)
-      #                         if state14["z"] == 0:
-      #                           result.part1 = max(result.part1, parseInt(&"{d1}{d2}{d3}{d4}{d5}{d6}{d7}{d8}{d9}{d10}{d11}{d12}{d13}{d4}"))
 
 when isMainModule:
   echo solveDay24()
