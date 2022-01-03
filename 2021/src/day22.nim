@@ -5,7 +5,8 @@ type
   Cuboid = tuple[on: bool, min, max: Point3D]
 
 func volume(cuboid: Cuboid): int {.inline.} =
-  (if cuboid.on: 1 else: -1) * (cuboid.max.x - cuboid.min.x + 1) * (cuboid.max.y - cuboid.min.y + 1) * (cuboid.max.z - cuboid.min.z + 1)
+  let total = (cuboid.max.x - cuboid.min.x + 1) * (cuboid.max.y - cuboid.min.y + 1) * (cuboid.max.z - cuboid.min.z + 1)
+  if cuboid.on: total else: -total
 
 func `*`(left, right: Cuboid): Option[Cuboid] {.inline.} =
   let min = (x: max(left.min.x, right.min.x), y: max(left.min.y, right.min.y), z: max(left.min.z, right.min.z))
@@ -31,13 +32,17 @@ proc solveDay22*: IntSolution =
 
     for processed in processedCuboids:
       let intersection = processed * cuboid
-      if intersection.isSome: addToProcessed.add intersection.get
+      if intersection.isSome:
+        addToProcessed.add intersection.get
 
     processedCuboids.add addToProcessed
-    if cuboid.on: processedCuboids.add cuboid
+    if cuboid.on:
+      processedCuboids.add cuboid
 
   for cuboid in processedCuboids:
-    if cuboid.inInitRegion: inc result.part1, cuboid.volume
+    if cuboid.inInitRegion:
+      inc result.part1, cuboid.volume
+
     inc result.part2, cuboid.volume
 
 when isMainModule:
