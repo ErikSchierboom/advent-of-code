@@ -14,9 +14,7 @@ func `*`(left, right: Cuboid): Option[Cuboid] {.inline.} =
     result = some (on: not left.on, min: min, max: max)
 
 func inInitRegion(cuboid: Cuboid): bool {.inline.} =
-  cuboid.min.x in -50..50 and cuboid.max.x in -50..50 and
-  cuboid.min.y in -50..50 and cuboid.max.y in -50..50 and 
-  cuboid.min.z in -50..50 and cuboid.max.z in -50..50
+  cuboid.min.x >= -50 and cuboid.max.x <= 50 and cuboid.min.y >= -50 and cuboid.max.y <= 50 and cuboid.min.z >= -50 and cuboid.max.z <= 50
 
 proc readCuboids: seq[Cuboid] =
   for (_, on, xMin, xMax, yMin, yMax, zMin, zMax) in readInputScans(day = 22, pattern = "$w x=$i..$i,y=$i..$i,z=$i..$i"):
