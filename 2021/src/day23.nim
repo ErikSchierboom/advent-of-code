@@ -25,10 +25,29 @@ func organized(grid: Grid): bool =
   grid.rooms[2] == 'C' and grid.rooms[6] == 'C' and
   grid.rooms[3] == 'D' and grid.rooms[7] == 'D'
 
-func tryMoveToHallway(state: State, room, roomIndex, hallwayIndex: int): Option[State] =
-  if state.grid.hallway[hallwayIndex] in amphipods:
+func tryMoveToHallway(state: State, room, hallway: int): Option[State] =
+  # Can't move to occupied place
+  if state.grid.hallway[hallway] in amphipods:
     return
 
+  # Can't move to hallway above room
+  if hallway in {2, 4, 6, 8}:
+    return
+
+  # Can't move due to being blocked
+  if room >= 4 and state.grid.rooms[room - 4] in amphipods:
+    return
+
+  if room mod 4 > hallway:
+    for x in room mod 4 .. hallway:
+      # Occupied
+      if state.grid.hallway[x] in amphipods:
+        return
+  else:
+    for x in hallway .. room mod 4:
+      # Occupied
+      if state.grid.hallway[x] in amphipods:
+        return
 
 proc moves(state: State): seq[State] =
   for room in 0..3:
