@@ -1,7 +1,7 @@
 import helpers, std/[heapqueue, options, sequtils, tables]
 
 type
-  Grid = tuple[hallway: array[11, char], rooms: array[4, array[2, char]]]
+  Grid = tuple[hallway: array[11, char], rooms: array[8, char]]
   State = tuple[grid: Grid, energy: int]
 
 const amphipods = "ABCD"
@@ -16,33 +16,41 @@ proc readInputState: State =
     result.grid.hallway[i] = '.'
 
   for i in 0..3:
-    result.grid.rooms[i][0] = lines[2][3 + i * 2]
-    result.grid.rooms[i][1] = lines[3][3 + i * 2]
+    result.grid.rooms[i] = lines[2][3 + i * 2]
+    result.grid.rooms[i + 4] = lines[3][3 + i * 2]
 
 func organized(grid: Grid): bool =
-  grid.rooms[0][0] == 'A' and grid.rooms[0][1] == 'A' and
-  grid.rooms[1][0] == 'B' and grid.rooms[1][1] == 'B' and
-  grid.rooms[2][0] == 'C' and grid.rooms[2][1] == 'C' and
-  grid.rooms[3][0] == 'D' and grid.rooms[3][1] == 'D'
+  grid.rooms[0] == 'A' and grid.rooms[4] == 'A' and
+  grid.rooms[1] == 'B' and grid.rooms[5] == 'B' and
+  grid.rooms[2] == 'C' and grid.rooms[6] == 'C' and
+  grid.rooms[3] == 'D' and grid.rooms[7] == 'D'
+
+func tryMoveToHallway(state: State, room, roomIndex, hallwayIndex: int): Option[State] =
+  if state.grid.hallway[hallwayIndex] in amphipods:
+    return
+
 
 proc moves(state: State): seq[State] =
-  for room in state.grid.rooms.low .. state.grid.rooms.high:
+  for room in 0..3:
     # Top position in room is amphipod
-    if state.grid.rooms[room][0] in amphipods:
+    if state.grid.rooms[room] in amphipods:
       # Amphipod in wrong room
-      if amphipods[room] != state.grid.rooms[room][0]:
+      if amphipods[room] != state.grid.rooms[room]:
         echo $room & ":top amphipod in wrong room"
+
+        # for tile in state.grid.hallway.low .. state.grid.hallway.high:
+        #   if state.grid.hallway[tile] notin amphipods:
       # Amphipod blocking other amphipod
-      elif amphipods[room] != state.grid.rooms[room][1]:
+      elif amphipods[room] != state.grid.rooms[room + 4]:
         echo $room & ":top amphipod blocking room"
       else:
         echo $room & ":top amphipod in correct room"
 
     # Bottom position in room is amphipod
-    if state.grid.rooms[room][1] in amphipods:
+    if state.grid.rooms[room + 4] in amphipods:
       # Amphipod in wrong room
-      if amphipods[room] != state.grid.rooms[room][1]:
-        if state.grid.rooms[room][0] in amphipods:
+      if amphipods[room mod 4] != state.grid.rooms[room + 4]:
+        if state.grid.rooms[room mod 4] in amphipods:
           echo $room & ":bottom amphipod in wrong room and blocked"
         else:
           echo $room & ":bottom amphipod in wrong room and unblocked"
