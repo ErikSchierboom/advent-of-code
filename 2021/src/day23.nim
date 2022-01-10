@@ -80,7 +80,7 @@ proc moveToHallway(state: State, idx: int, pos: int): seq[State] =
       newState.grid.hallway[x] = state.grid.rooms[idx][pos]
       newState.grid.rooms[idx][pos] = '.'
       inc newState.energy, energy
-      # result.add newState
+      result.add newState
 
   for x in countup(idx.roomToHallwayIdx + 1, 10):
     if x in openHallwayX:
@@ -94,10 +94,20 @@ proc moveToHallway(state: State, idx: int, pos: int): seq[State] =
       newState.grid.hallway[x] = state.grid.rooms[idx][pos]
       newState.grid.rooms[idx][pos] = '.'
       inc newState.energy, energy
-      # result.add newState
+      result.add newState
 
-func canMoveBetweenRooms(state: State, room1, room2: int): bool =
+proc canMoveBetweenRooms(state: State, room1, room2: int): bool =
+  echo $room1 & ":" & $room1.roomToHallwayIdx
+  echo $room2 & ":" & $room2.roomToHallwayIdx
+
   for x in min(room1.roomToHallwayIdx, room2.roomToHallwayIdx)..max(room1.roomToHallwayIdx, room2.roomToHallwayIdx):
+    if state.grid.hallway[x] != '.':
+      return false
+
+  true
+
+proc canMoveToRoom(state: State, hallway, room: int): bool =
+  for x in min(room.roomToHallwayIdx, hallway)..max(room.roomToHallwayIdx, hallway):
     if state.grid.hallway[x] != '.':
       return false
 
@@ -116,17 +126,27 @@ proc moveFromRoom(state: State, idx: int): seq[State] =
     else:
       result.add moveToHallway(state, idx, 0)
   elif state.grid.rooms[idx][1] != '.':
-    let correctRoom = roomType.find(state.grid.rooms[idx][0])
+    let correctRoom = roomType.find(state.grid.rooms[idx][1])
     echo "move from room " & $idx & ": bottom is incorrect"
     if state.grid.rooms[correctRoom][1] == '.' and canMoveBetweenRooms(state, correctRoom, idx):
-      echo "move to open pos in correct room"
+      echo "move to open bottom pos in correct room"
+    elif state.grid.rooms[correctRoom][0] == '.' and state.grid.rooms[correctRoom][1] == state.grid.rooms[idx][1] and canMoveBetweenRooms(state, correctRoom, idx):
+      echo "move to open top pos in correct room"
     else:
       result.add moveToHallway(state, idx, 1)
   else:
     echo "move from room " & $idx & ": empty room"
 
 proc moveFromHallway(state: State, idx: int): seq[State] =
-  echo "move from hallway " & $idx
+  if state.grid.hallway[idx] == '.':
+    return
+
+  let correctRoom = roomType.find(state.grid.hallway[idx])
+  echo "move from hallway " & $idx & ": bottom is incorrect"
+  if state.grid.rooms[correctRoom][1] == '.' and canMoveToRoom(state, correctRoom, idx):
+    echo "move to open bottom pos in correct room"
+  elif state.grid.rooms[correctRoom][0] == '.' and state.grid.rooms[correctRoom][1] == state.grid.hallway[idx] and canMoveToRoom(state, correctRoom, idx):
+    echo "move to open top pos in correct room"
 
 proc moves(state: State): seq[State] =
   for idx, _ in state.grid.rooms:
@@ -154,14 +174,12 @@ proc part1(state: State): int =
       continue
 
     for move in current.moves:
-      echo move
-      if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
-        queue.push move
-        energyCounts[move.grid] = move.energy
+      # if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
+      #   queue.push move
+      #   energyCounts[move.grid] = move.energy
 
 proc solveDay23*: IntSolution =
   let state = readInputState()
-  echo state.grid.organized
   result.part1 = part1(state)
 
 when isMainModule:
