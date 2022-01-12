@@ -7,42 +7,33 @@ type
 func `<` (a, b: State): bool = a.energy < b.energy
 
 const amphipods = "ABCD"
+const hallwayXs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+const roomXs = [3, 5, 7, 9]
+const roomYs = [2, 3]
 
 func moveCost(amphipod: char): int = 
   const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
   costs[amphipod]
 
 func `$`(grid: Grid): string =
-  result.add "#############\n"
-  result.add "#"
-  for x in 1..11:
+  result.add "#############\n#"
+  for x in hallwayXs:
     result.add grid.getOrDefault((x: x, y: 1), '.')
-  result.add "#\n"
-  result.add "###"
-  result.add grid.getOrDefault((x: 3, y: 2), '.')
-  result.add '#'
-  result.add grid.getOrDefault((x: 5, y: 2), '.')
-  result.add '#'
-  result.add grid.getOrDefault((x: 7, y: 2), '.')
-  result.add '#'
-  result.add grid.getOrDefault((x: 9, y: 2), '.')
-  result.add "###\n"
-  result.add "  #"
-  result.add grid.getOrDefault((x: 3, y: 3), '.')
-  result.add '#'
-  result.add grid.getOrDefault((x: 5, y: 3), '.')
-  result.add '#'
-  result.add grid.getOrDefault((x: 7, y: 3), '.')
-  result.add '#'
-  result.add grid.getOrDefault((x: 9, y: 3), '.')
-  result.add "#\n"
-  result.add "  #########  "
+  result.add "#\n###"
+  for x in roomXs:
+    result.add grid.getOrDefault((x: x, y: 2), '.')
+    result.add '#'
+  result.add "##\n  #"
+  for x in roomXs:
+    result.add grid.getOrDefault((x: x, y: 3), '.')
+    result.add '#'
+  result.add "\n  #########  "
 
-# func `$`(state: State): string =
-#   result.add "Energy: " & $state.energy
-#   result.add '\n'
-#   result.add $state.grid
-#   result.add '\n'
+func `$`(state: State): string =
+  result.add "Energy: " & $state.energy
+  result.add '\n'
+  result.add $state.grid
+  result.add '\n'
 
 proc readInputState: State =
   let lines = readInputStrings(day = 23).toSeq
@@ -51,106 +42,27 @@ proc readInputState: State =
       if lines[y][x] in amphipods:
         result.grid.add((x: x, y: y), lines[y][x])
 
-func organized(grid: Grid): bool =
-  grid.rooms[0][0] == 'A' and grid.rooms[0][1] == 'A' and
-  grid.rooms[1][0] == 'B' and grid.rooms[1][1] == 'B' and
-  grid.rooms[2][0] == 'C' and grid.rooms[2][1] == 'C' and
-  grid.rooms[3][0] == 'D' and grid.rooms[3][1] == 'D'
+func inCorrectRoom(point: Point, kind: char): bool = amphipods.find(kind) == [3, 5, 7, 9].find(point.x)
+func inTopOfRoom(point: Point): bool = point.y == roomYs[0]
+func inBottomOfRoom(point: Point): bool = point.y == roomYs[1]
+func organized(grid: Grid): bool = grid.pairs.toSeq.allIt(inCorrectRoom(it[0], it[1]))
 
-func roomToHallwayIdx(idx: int): int = idx * 2 + 2
+proc move(point: Point, kind: char, state: State): seq[State] =
+  echo &"move point {point}, kind{kind}"
 
-proc moveToHallway(state: State, idx: int, pos: int): seq[State] =
-  const openHallwayX = [2, 4, 6, 8]
-  let movesToHallway = pos + 1
+  if inCorrectRoom(point, kind) and inBottomOfRoom(point):
+      echo &"move point {point}, kind{kind}: correct room at bottom position"
+  elif not inCorrectRoom(point, kind) and inBottomOfRoom(point):
 
-  for x in countdown(idx.roomToHallwayIdx - 1, 0):
-    if x in openHallwayX:
-      continue
-
-    if state.grid.hallway[x] == '.':
-      let moves = movesToHallway + abs(idx.roomToHallwayIdx - x)
-      let energy = moves * moveCost[state.grid.rooms[idx][pos]]
-      echo "move " & $state.grid.rooms[idx][pos] & " to hallway " & $x & " from room " & $idx & " pos " & $pos & " in " & $moves & " moves for " & $energy & " energy"
-      var newState = state
-      newState.grid.hallway[x] = state.grid.rooms[idx][pos]
-      newState.grid.rooms[idx][pos] = '.'
-      inc newState.energy, energy
-      result.add newState
-
-  for x in countup(idx.roomToHallwayIdx + 1, 10):
-    if x in openHallwayX:
-      continue
-
-    if state.grid.hallway[x] == '.':
-      let moves = movesToHallway + abs(idx.roomToHallwayIdx - x)
-      let energy = moves * moveCost[state.grid.rooms[idx][pos]]
-      echo "move " & $state.grid.rooms[idx][pos] & " to hallway " & $x & " from room " & $idx & " pos " & $pos & " in " & $moves & " moves for " & $energy & " energy"
-      var newState = state
-      newState.grid.hallway[x] = state.grid.rooms[idx][pos]
-      newState.grid.rooms[idx][pos] = '.'
-      inc newState.energy, energy
-      result.add newState
-
-proc canMoveBetweenRooms(state: State, room1, room2: int): bool =
-  echo $room1 & ":" & $room1.roomToHallwayIdx
-  echo $room2 & ":" & $room2.roomToHallwayIdx
-
-  for x in min(room1.roomToHallwayIdx, room2.roomToHallwayIdx)..max(room1.roomToHallwayIdx, room2.roomToHallwayIdx):
-    if state.grid.hallway[x] != '.':
-      return false
-
-  true
-
-proc canMoveToRoom(state: State, hallway, room: int): bool =
-  for x in min(room.roomToHallwayIdx, hallway)..max(room.roomToHallwayIdx, hallway):
-    if state.grid.hallway[x] != '.':
-      return false
-
-  true
-
-proc moveFromRoom(state: State, idx: int): seq[State] =
-  if state.grid.rooms[idx][0] == roomType[idx] and
-     state.grid.rooms[idx][1] == roomType[idx]:
-    echo "move from room " & $idx & ": both in correct place"
-    return  
-  elif state.grid.rooms[idx][0] != '.':
-    echo "move from room " & $idx & ": top is incorrect"
-    let correctRoom = roomType.find(state.grid.rooms[idx][0])
-    if state.grid.rooms[correctRoom][0] == '.' and state.grid.rooms[correctRoom][1] == '.' and canMoveBetweenRooms(state, correctRoom, idx):
-      echo "move to bottom open pos in correct room"
-    elif state.grid.rooms[correctRoom][0] == '.' and state.grid.rooms[correctRoom][1] == state.grid.rooms[idx][0] and canMoveBetweenRooms(state, correctRoom, idx):
-      echo "move to top open pos in correct room"
     else:
-      result.add moveToHallway(state, idx, 0)
-  elif state.grid.rooms[idx][1] != '.':
-    let correctRoom = roomType.find(state.grid.rooms[idx][1])
-    echo "move from room " & $idx & ": bottom is incorrect"
-    if state.grid.rooms[correctRoom][1] == '.' and canMoveBetweenRooms(state, correctRoom, idx):
-      echo "move to open bottom pos in correct room"
-    elif state.grid.rooms[correctRoom][0] == '.' and state.grid.rooms[correctRoom][1] == state.grid.rooms[idx][1] and canMoveBetweenRooms(state, correctRoom, idx):
-      echo "move to open top pos in correct room"
-    else:
-      result.add moveToHallway(state, idx, 1)
-  else:
-    echo "move from room " & $idx & ": empty room"
-
-proc moveFromHallway(state: State, idx: int): seq[State] =
-  if state.grid.hallway[idx] == '.':
-    return
-
-  let correctRoom = roomType.find(state.grid.hallway[idx])
-  echo "move from hallway " & $idx & ": bottom is incorrect"
-  if state.grid.rooms[correctRoom][1] == '.' and canMoveToRoom(state, correctRoom, idx):
-    echo "move to open bottom pos in correct room"
-  elif state.grid.rooms[correctRoom][0] == '.' and state.grid.rooms[correctRoom][1] == state.grid.hallway[idx] and canMoveToRoom(state, correctRoom, idx):
-    echo "move to open top pos in correct room"
+      let topRoomPoint = (x: point.x, y: roomYs[0])
+      if topRoomPoint in state.grid:
+      else:
+        echo &"move point {point}, kind{kind}: correct room at top position with empty bottom position"
 
 proc moves(state: State): seq[State] =
-  for idx, _ in state.grid.rooms:
-    result.add moveFromRoom(state, idx)
-
-  for idx, _ in state.grid.hallway:
-    result.add moveFromHallway(state, idx)
+  for point, kind in state.grid:
+    result.add move(point, kind, state)
 
 proc part1(state: State): int =
   var queue: HeapQueue[State]
