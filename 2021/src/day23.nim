@@ -1,7 +1,10 @@
 import helpers, std/[heapqueue, options, sequtils, strformat, tables]
 
 type 
-  Grid = Table[Point, char]
+  Room = tuple[top, bottom: char]
+  Rooms = array[4, Room]
+  Hallway = array[11, char]
+  Grid = tuple[hallway: Hallway, rooms: Rooms]
   State = tuple[grid: Grid, energy: int]
 
 func `<` (a, b: State): bool = a.energy < b.energy
@@ -17,15 +20,15 @@ func moveCost(amphipod: char): int =
 
 func `$`(grid: Grid): string =
   result.add "#############\n#"
-  for x in hallwayXs:
-    result.add grid.getOrDefault((x: x, y: 1), '.')
+  for hall in grid.hallway:
+    result.add hall
   result.add "#\n###"
-  for x in roomXs:
-    result.add grid.getOrDefault((x: x, y: 2), '.')
+  for room in grid.rooms:
+    result.add room.top
     result.add '#'
   result.add "##\n  #"
-  for x in roomXs:
-    result.add grid.getOrDefault((x: x, y: 3), '.')
+  for room in grid.rooms:
+    result.add room.bottom
     result.add '#'
   result.add "\n  #########  "
 
@@ -37,32 +40,27 @@ func `$`(state: State): string =
 
 proc readInputState: State =
   let lines = readInputStrings(day = 23).toSeq
-  for y in 0..lines.high:
-    for x in 0..lines[y].high:
-      if lines[y][x] in amphipods:
-        result.grid.add((x: x, y: y), lines[y][x])
 
-func inCorrectRoom(point: Point, kind: char): bool = amphipods.find(kind) == [3, 5, 7, 9].find(point.x)
-func inTopOfRoom(point: Point): bool = point.y == roomYs[0]
-func inBottomOfRoom(point: Point): bool = point.y == roomYs[1]
-func organized(grid: Grid): bool = grid.pairs.toSeq.allIt(inCorrectRoom(it[0], it[1]))
+  for x in result.grid.hallway.low .. result.grid.hallway.high:
+    result.grid.hallway[x] = lines[1][x + 1]
+
+  for x in result.grid.rooms.low .. result.grid.rooms.high:
+    result.grid.rooms[x].top = lines[2][x * 2 + 3]
+    result.grid.rooms[x].bottom = lines[3][x * 2 + 3]
 
 proc move(point: Point, kind: char, state: State): seq[State] =
   echo &"move point {point}, kind{kind}"
 
-  if inCorrectRoom(point, kind) and inBottomOfRoom(point):
-      echo &"move point {point}, kind{kind}: correct room at bottom position"
-  elif not inCorrectRoom(point, kind) and inBottomOfRoom(point):
-
-    else:
-      let topRoomPoint = (x: point.x, y: roomYs[0])
-      if topRoomPoint in state.grid:
-      else:
-        echo &"move point {point}, kind{kind}: correct room at top position with empty bottom position"
+func organized(grid: Grid): bool {.inline.} =
+  grid.rooms[0].top == 'A' and grid.rooms[0].bottom == 'A' and
+  grid.rooms[1].top == 'B' and grid.rooms[1].bottom == 'B' and
+  grid.rooms[2].top == 'C' and grid.rooms[2].bottom == 'C' and
+  grid.rooms[3].top == 'D' and grid.rooms[3].bottom == 'D'
 
 proc moves(state: State): seq[State] =
-  for point, kind in state.grid:
-    result.add move(point, kind, state)
+  echo "moves"
+  # for point, kind in state.grid:
+  #   result.add move(point, kind, state)
 
 proc part1(state: State): int =
   var queue: HeapQueue[State]
