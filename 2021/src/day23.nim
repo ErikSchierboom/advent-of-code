@@ -57,6 +57,18 @@ func organizedRoom(grid: Grid, idx: int): bool {.inline.} =
 func organized(grid: Grid): bool {.inline.} =
   grid.organizedRoom(0) and grid.organizedRoom(1) and grid.organizedRoom(2) and grid.organizedRoom(3)
 
+# proc tryMoveToHallway(state: State, roomIdx, hallwayIdx: int): seq[State] =
+
+proc hallwayToRoomIsEmpty(state: State, roomIdx, hallwayIdx: int): bool =
+  let hallwayIdxAboveRoom = (roomIdx * 2 + 3) - 1
+  for x in min(hallwayIdx, hallwayIdxAboveRoom)..max(hallwayIdx, hallwayIdxAboveRoom):
+    if x == hallwayIdx:
+      continue
+    elif state.grid.hallway[x] != '.':
+      return false
+
+  true
+
 proc movesFromHallway(state: State, idx: int): seq[State] =
   if state.grid.hallway[idx] == '.':
     echo &"hallway {idx}: is empty"
@@ -69,7 +81,15 @@ proc movesFromHallway(state: State, idx: int): seq[State] =
   if room.top != '.':
     echo &"hallway {idx}: target room {roomIdx} has top taken"
   elif room.bottom == hallway:
-    echo &"hallway {idx}: target room {roomIdx} has bottom correct"
+    if hallwayToRoomIsEmpty(state, roomIdx, idx):
+      echo &"hallway {idx}: target room {roomIdx} has bottom correct and hallway is empty"
+    else:
+      echo &"hallway {idx}: target room {roomIdx} has bottom correct and hallway is blocked"
+  elif room.bottom == '.':
+    if hallwayToRoomIsEmpty(state, roomIdx, idx):
+      echo &"hallway {idx}: target room {roomIdx} has bottom empty and hallway is empty"
+    else:
+      echo &"hallway {idx}: target room {roomIdx} has bottom empty and hallway is blocked"
   else:
     echo &"hallway {idx}: target room {roomIdx} has bottom incorrect"
 
@@ -79,6 +99,8 @@ proc movesFromRoom(state: State, idx: int): seq[State] =
     return
 
   let room = state.grid.rooms[idx]
+
+  # TODO: move directly to target room
 
   if room.top == '.':
     echo &"room {idx}: top is empty"
