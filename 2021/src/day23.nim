@@ -63,16 +63,11 @@ func organized(grid: Grid): bool {.inline.} =
 
 func empty(room: Room): bool {.inline.} = room.top == '.' and room.bottom == '.'
 
-# proc tryMoveToHallway(state: State, roomIdx, hallwayIdx: int): seq[State] =
-
 func roomIdxToHallwayIdxAboveRoom(roomIdx: int): int = (roomIdx * 2 + 3) - 1
 
-proc hallwayToRoomIsEmpty(state: State, roomIdx, hallwayIdx: int): bool =
-  let hallwayIdxAboveRoom = roomIdxToHallwayIdxAboveRoom(roomIdx)
-  for x in min(hallwayIdx, hallwayIdxAboveRoom)..max(hallwayIdx, hallwayIdxAboveRoom):
-    if x == hallwayIdx:
-      continue
-    elif state.grid.hallway[x] != '.':
+proc hallwayToRoomIsEmpty(state: State, hallwayIdx1, hallwayIdx2: int): bool =
+  for x in min(hallwayIdx1, hallwayIdx2)..max(hallwayIdx1, hallwayIdx2):
+    if state.grid.hallway[x] != '.':
       return false
 
   true
@@ -89,7 +84,7 @@ proc movesFromHallway(state: State, idx: int): seq[State] =
   if room.top != '.':
     echo &"hallway {idx}: target room {roomIdx} has top taken"
   elif room.bottom == hallway:
-    if hallwayToRoomIsEmpty(state, roomIdx, idx):
+    if hallwayToRoomIsEmpty(state, roomIdxToHallwayIdxAboveRoom(roomIdx), idx):
       echo &"hallway {idx}: target room {roomIdx} has bottom correct and hallway is empty"
     else:
       echo &"hallway {idx}: target room {roomIdx} has bottom correct and hallway is blocked"
@@ -104,19 +99,22 @@ proc movesFromHallway(state: State, idx: int): seq[State] =
 proc movesFromTopOfRoom(state: State, idx: int): seq[State] =
   let room = state.grid.rooms[idx]
   let correctRoomIdx = amphipods.find(room.top)
-  
-
-  let hallwayIdxAboveRoom = roomIdxToHallwayIdxAboveRoom(correctRoomIdx)
-  if hallwayToRoomIsEmpty(state, correctRoomIdx, hallwayIdxAboveRoom):
-    let correctRoom = state.grid.rooms[correctRoomIdx]
-    if correctRoom.empty:
-      echo &"room {idx}: top is not correct but can move directly to correct room that is empty"
-    elif correctRoom.top == '.' and correctRoom.bottom == room.top:
-      echo &"room {idx}: top is not correct but can move directly to correct room which bottom is correct"
+  if idx == correctRoomIdx:
+    if room.bottom == '.':
+      echo &"room {idx}: top is correct and can move directly to bottom of room"
     else:
-      echo &"room {idx}: top is not correct and can't move directly to correct room due to room not correct"
+      echo &"room {idx}: top is correct but blocking incorrect bottom of room"
   else:
-    echo &"room {idx}: top is not correct and can't move directly to correct room due to hallway closed"
+    if hallwayToRoomIsEmpty(state, roomIdxToHallwayIdxAboveRoom(idx), roomIdxToHallwayIdxAboveRoom(correctRoomIdx)):
+      let correctRoom = state.grid.rooms[correctRoomIdx]
+      if correctRoom.empty:
+        echo &"room {idx}: top is not correct but can move directly to correct room that is empty"
+      elif correctRoom.top == '.' and correctRoom.bottom == room.top:
+        echo &"room {idx}: top is not correct but can move directly to correct room which bottom is correct"
+      else:
+        echo &"room {idx}: top is not correct and can't move directly to correct room due to room taken"
+    else:
+      echo &"room {idx}: top is not correct and can't move directly to correct room due to hallway closed"
 
 proc movesFromBottomOfRoom(state: State, idx: int): seq[State] =
   let room = state.grid.rooms[idx]
@@ -125,11 +123,12 @@ proc movesFromBottomOfRoom(state: State, idx: int): seq[State] =
      echo &"room {idx}: bottom is correct"
   else:
     let correctRoomIdx = amphipods.find(room.bottom)
-    let hallwayIdxAboveRoom = roomIdxToHallwayIdxAboveRoom(correctRoomIdx)
-    if hallwayToRoomIsEmpty(state, correctRoomIdx, hallwayIdxAboveRoom):
+    if room.top != '.':
+      echo &"room {idx}: bottom is incorrect but can't move directly to correct room due to blocked top"
+    elif hallwayToRoomIsEmpty(state, roomIdxToHallwayIdxAboveRoom(idx), roomIdxToHallwayIdxAboveRoom(correctRoomIdx)):
       echo &"room {idx}: bottom is incorrect but can move directly to correct room"
     else:
-      echo &"room {idx}: bottom is incorrect but can't move directly to correct room"
+      echo &"room {idx}: bottom is incorrect but can't move directly to correct room due to blocked hallway"
 
 proc movesFromRoom(state: State, idx: int): seq[State] =
   if state.grid.rooms[idx].empty:
