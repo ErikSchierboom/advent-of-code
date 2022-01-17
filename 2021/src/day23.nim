@@ -51,16 +51,57 @@ proc readInputState: State =
 proc move(point: Point, kind: char, state: State): seq[State] =
   echo &"move point {point}, kind{kind}"
 
+func organizedRoom(grid: Grid, idx: int): bool {.inline.} =
+  grid.rooms[idx].top == amphipods[idx] and grid.rooms[idx].bottom == amphipods[idx]
+
 func organized(grid: Grid): bool {.inline.} =
-  grid.rooms[0].top == 'A' and grid.rooms[0].bottom == 'A' and
-  grid.rooms[1].top == 'B' and grid.rooms[1].bottom == 'B' and
-  grid.rooms[2].top == 'C' and grid.rooms[2].bottom == 'C' and
-  grid.rooms[3].top == 'D' and grid.rooms[3].bottom == 'D'
+  grid.organizedRoom(0) and grid.organizedRoom(1) and grid.organizedRoom(2) and grid.organizedRoom(3)
+
+proc movesFromHallway(state: State, idx: int): seq[State] =
+  if state.grid.hallway[idx] == '.':
+    echo &"hallway {idx}: is empty"
+    return
+
+  let hallway = state.grid.hallway[idx]
+  let roomIdx = amphipods.find(hallway)
+  let room = state.grid.rooms[roomIdx]
+
+  if room.top != '.':
+    echo &"hallway {idx}: target room {roomIdx} has top taken"
+  elif room.bottom == hallway:
+    echo &"hallway {idx}: target room {roomIdx} has bottom correct"
+  else:
+    echo &"hallway {idx}: target room {roomIdx} has bottom incorrect"
+
+proc movesFromRoom(state: State, idx: int): seq[State] =
+  if state.grid.organizedRoom(idx):
+    echo &"room {idx}: top and bottom are correct"
+    return
+
+  let room = state.grid.rooms[idx]
+
+  if room.top == '.':
+    echo &"room {idx}: top is empty"
+    if room.bottom == amphipods[idx]:
+     echo &"room {idx}: bottom is correct"
+    elif room.top == '.':
+      echo &"room {idx}: bottom is incorrect and top is empty"
+    else:
+      echo &"room {idx}: bottom is incorrect and top is taken"
+  elif room.top == amphipods[idx]:
+    if room.bottom == '.':
+      echo &"room {idx}: top is correct and bottom is empty"
+    else:
+      echo &"room {idx}: top is correct and bottom is incorrect"
+  else:
+    echo &"room {idx}: top is not correct"
 
 proc moves(state: State): seq[State] =
-  echo "moves"
-  # for point, kind in state.grid:
-  #   result.add move(point, kind, state)
+  for idx in state.grid.rooms.low .. state.grid.rooms.high:
+    result.add movesFromRoom(state, idx)
+
+  for idx in state.grid.hallway.low .. state.grid.hallway.high:
+    result.add movesFromHallway(state, idx)
 
 proc part1(state: State): int =
   var queue: HeapQueue[State]
