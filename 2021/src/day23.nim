@@ -16,7 +16,7 @@ const hallway = [0, 1, 4, 7, 10, 13, 14]
 const roomTops = [2, 5, 8, 11]
 const roomBottoms = [3, 6, 9, 12]
 
-func moveCost(amphipod: char): int = 
+func cost(amphipod: char): int = 
   const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
   costs[amphipod]
 
@@ -76,7 +76,30 @@ proc moves(state: State): seq[State] =
         else:
           echo &"moves for room bottom {i} ({c}): bottom is incorrect and blocked"
       else:
-        echo &"moves for hallway {i} ({c})"
+        let roomTopIdx = roomTops[amphipods.find(c)]
+        let roomBottomIdx = roomBottoms[amphipods.find(c)]
+
+        if state.grid[roomTopIdx] == '.':
+          if state.grid[roomBottomIdx] == '.':
+            let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
+            if traversable:
+              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty and hallway empty"
+            else:
+              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty but hallway blocked"
+          elif state.grid[roomBottomIdx] == c:
+            let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
+            if traversable:
+              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is correct and hallway empty"
+              var newState = state
+              newState.grid[roomTopIdx] = c
+              newState.grid[i] = '.'
+              newState.energy
+            else:
+              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is correct but hallway blocked"
+          else:
+            echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is incorrect"
+        else:
+          echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is blocked"
 
 proc part1(state: State): int =
   var queue: HeapQueue[State]
