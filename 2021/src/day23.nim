@@ -1,4 +1,4 @@
-import helpers, std/[heapqueue, options, sequtils, strformat, tables]
+import helpers, std/[math, heapqueue, options, sequtils, strformat, tables]
 
 # 0 1 4 7 10 13 14
 #    2 5 8 11
@@ -56,6 +56,14 @@ func cost(amphipod: char): int =
   const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
   costs[amphipod]
 
+func hallwayMoves(idx1, idx2: int): int =
+  for x in idx1 ..< idx2:
+    if x in hallway:
+      if x in [1, 4, 7, 10]:
+        inc result, 2
+      else:
+        inc result
+
 proc moves(state: State): seq[State] =
   for i, c in state.grid:
     if c != '.':
@@ -74,6 +82,7 @@ proc moves(state: State): seq[State] =
                   newState.grid[j] = c
                   newState.grid[i] = '.'
                   inc newState.energy, (moves * c.cost)
+                  result.add newState
                   echo newState
                 else:
                   break
@@ -88,6 +97,7 @@ proc moves(state: State): seq[State] =
                   newState.grid[j] = c
                   newState.grid[i] = '.'
                   inc newState.energy, (moves * c.cost)
+                  result.add newState
                   echo newState
                 else:
                   break
@@ -102,6 +112,7 @@ proc moves(state: State): seq[State] =
                 newState.grid[j] = c
                 newState.grid[i] = '.'
                 inc newState.energy, (moves * c.cost)
+                result.add newState
                 echo newState
               else:
                 break
@@ -116,6 +127,7 @@ proc moves(state: State): seq[State] =
                 newState.grid[j] = c
                 newState.grid[i] = '.'
                 inc newState.energy, (moves * c.cost)
+                result.add newState
                 echo newState
               else:
                 break
@@ -133,6 +145,7 @@ proc moves(state: State): seq[State] =
                 newState.grid[j] = c
                 newState.grid[i] = '.'
                 inc newState.energy, (moves * c.cost)
+                result.add newState
                 echo newState
               else:
                 break
@@ -147,6 +160,7 @@ proc moves(state: State): seq[State] =
                 newState.grid[j] = c
                 newState.grid[i] = '.'
                 inc newState.energy, (moves * c.cost)
+                result.add newState
                 echo newState
               else:
                 break
@@ -161,12 +175,32 @@ proc moves(state: State): seq[State] =
             let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
             if traversable:
               echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty and hallway empty"
+              var moves = max(i, roomTopIdx) - min(i, roomTopIdx) + 1
+
+              var newState = state
+              newState.grid[roomBottomIdx] = c
+              newState.grid[i] = '.'
+              inc newState.energy, (moves * c.cost)
+              result.add newState
+              echo newState
             else:
               echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty but hallway blocked"
           elif state.grid[roomBottomIdx] == c:
             let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
             if traversable:
               echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is correct and hallway empty"
+
+              var moves = 2
+              if i < roomTopIdx:
+                inc moves, hallwayMoves(i + 2, roomTopIdx)
+              else:
+                inc moves, hallwayMoves(roomTopIdx, i - 1)
+              var newState = state
+              newState.grid[roomTopIdx] = c
+              newState.grid[i] = '.'
+              inc newState.energy, (moves * c.cost)
+              result.add newState
+              echo newState
             else:
               echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is correct but hallway blocked"
           else:
@@ -197,8 +231,6 @@ proc part1(state: State): int =
         queue.push move
         energyCounts[move.grid] = move.energy
 
-
-
 proc readInputState: State =
   let lines = readInputStrings(day = 23).toSeq
   # TODO: refactor
@@ -220,11 +252,8 @@ proc readInputState: State =
 
 proc solveDay23*: IntSolution =
   let state = readInputState()
+  echo state
   result.part1 = part1(state)
 
 when isMainModule:
   echo solveDay23()
-
-# 0 1 4 7 10 13 14
-#    2 5 8 11
-#    3 6 9 12
