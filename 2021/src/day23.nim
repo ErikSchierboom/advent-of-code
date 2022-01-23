@@ -66,44 +66,90 @@ proc moves(state: State): seq[State] =
           else:
             var moves = 0
             for j in countdown(i - 1, state.grid.low):
-              if j in hallway and state.grid[j] == '.':
-                inc moves, (if j in [0, 14]: 1 else: 2)
-                echo &"moves for room top {i} ({c}): top is correct but bottom isn't, move to hallway {j}"
-                var newState = state
-                newState.grid[j] = c
-                newState.grid[i] = '.'
-                inc newState.energy, (moves * c.cost)
-                echo newState
+              if j in hallway:
+                if state.grid[j] == '.':
+                  echo &"moves for room top {i} ({c}): top is correct but bottom isn't, move to hallway {j}"
+                  inc moves, (if j in [0, 14]: 1 else: 2)
+                  var newState = state
+                  newState.grid[j] = c
+                  newState.grid[i] = '.'
+                  inc newState.energy, (moves * c.cost)
+                  echo newState
+                else:
+                  break
 
             moves = 0
             for j in countup(i + 1, state.grid.high):
-              if j in hallway and state.grid[j] == '.':
+              if j in hallway:
+                if state.grid[j] == '.':
+                  echo &"moves for room top {i} ({c}): top is correct but bottom isn't, move to hallway {j}"
+                  inc moves, (if j in [0, 14]: 1 else: 2)
+                  var newState = state
+                  newState.grid[j] = c
+                  newState.grid[i] = '.'
+                  inc newState.energy, (moves * c.cost)
+                  echo newState
+                else:
+                  break
+        else:
+          var moves = 0
+          for j in countdown(i - 1, state.grid.low):
+            if j in hallway:
+              if state.grid[j] == '.':
+                echo &"moves for room top {i} ({c}): top is incorrect, move to hallway {j}"
                 inc moves, (if j in [0, 14]: 1 else: 2)
-                echo &"moves for room top {i} ({c}): top is correct but bottom isn't, move to hallway {j}"
                 var newState = state
                 newState.grid[j] = c
                 newState.grid[i] = '.'
                 inc newState.energy, (moves * c.cost)
                 echo newState
-        else:
-          for j in countdown(i - 1, state.grid.low):
-            if j in hallway and state.grid[j] == '.':
-              echo &"moves for room top {i} ({c}): top is incorrect, move to hallway {j}"
+              else:
+                break
 
+          moves = 0
           for j in countup(i + 1, state.grid.high):
-            if j in hallway and state.grid[j] == '.':
-              echo &"moves for room top {i} ({c}): top is incorrect, move to hallway {j}"
+            if j in hallway:
+              if state.grid[j] == '.':
+                echo &"moves for room top {i} ({c}): top is incorrect, move to hallway {j}"
+                inc moves, (if j in [0, 14]: 1 else: 2)
+                var newState = state
+                newState.grid[j] = c
+                newState.grid[i] = '.'
+                inc newState.energy, (moves * c.cost)
+                echo newState
+              else:
+                break
       elif i in roomBottoms:
         if organizedGrid[i] == c:
           echo &"moves for room bottom {i} ({c}): bottom is correct"
         elif state.grid[i - 1] == '.':
+          var moves = 1
           for j in countdown(i - 1, state.grid.low):
-            if j in hallway and state.grid[j] == '.':
-              echo &"moves for room bottom {i} ({c}): bottom is incorrect but not blocked, move to hallway {j}"
+            if j in hallway:
+              if state.grid[j] == '.':
+                echo &"moves for room bottom {i} ({c}): bottom is incorrect but not blocked, move to hallway {j}"
+                inc moves, (if j in [0, 14]: 1 else: 2)
+                var newState = state
+                newState.grid[j] = c
+                newState.grid[i] = '.'
+                inc newState.energy, (moves * c.cost)
+                echo newState
+              else:
+                break
 
+          moves = 1
           for j in countup(i + 1, state.grid.high):
-            if j in hallway and state.grid[j] == '.':
-              echo &"moves for room bottom {i} ({c}): bottom is incorrect but not blocked, move to hallway {j}"
+            if j in hallway:
+              if state.grid[j] == '.':
+                echo &"moves for room bottom {i} ({c}): bottom is incorrect but not blocked, move to hallway {j}"
+                inc moves, (if j in [0, 14]: 1 else: 2)
+                var newState = state
+                newState.grid[j] = c
+                newState.grid[i] = '.'
+                inc newState.energy, (moves * c.cost)
+                echo newState
+              else:
+                break
         else:
           echo &"moves for room bottom {i} ({c}): bottom is incorrect and blocked"
       else:
