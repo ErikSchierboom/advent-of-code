@@ -219,8 +219,6 @@ proc part1(state: State): int =
     let current = queue.pop()
 
     if current.grid == organizedGrid:
-      echo "organized"
-      echo current.grid
       return current.energy
 
     if current.energy > energyCounts.getOrDefault(current.grid, high(int)):
@@ -250,10 +248,33 @@ proc readInputState: State =
   result.grid.add lines[1][10]
   result.grid.add lines[1][11]
 
+proc movesBetween(idx1, idx2: int): int =
+  if idx1 in hallway:
+    if idx2 in roomTops:
+      echo &"moves from hallway {idx1} to top of room {idx2}"
+    else:
+      echo &"moves from hallway {idx1} to bottom of room {idx2}"
+  elif idx2 in hallway:
+    echo &"moves from room {idx1} to hallway {idx2}"
+  else:
+    echo &"move from room {idx1} to room {idx2}"
+
+# 0 1 4 7 10 13 14
+#    2 5 8 11
+#    3 6 9 12
+
 proc solveDay23*: IntSolution =
-  let state = readInputState()
-  echo state
-  result.part1 = part1(state)
+  echo movesBetween(0, 2)
+  echo movesBetween(0, 3)
+  echo movesBetween(0, 5)
+  echo movesBetween(0, 6)
+  echo movesBetween(0, 8)
+  echo movesBetween(0, 9)
+  echo movesBetween(0, 10)
+  echo movesBetween(0, 11)
+  # let state = readInputState()
+  # echo state
+  # result.part1 = part1(state)
 
 when isMainModule:
   echo solveDay23()
