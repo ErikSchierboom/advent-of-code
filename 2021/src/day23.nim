@@ -1,263 +1,99 @@
-import helpers, std/[math, heapqueue, options, sequtils, strformat, tables]
+import algorithm
+import heapqueue
+import sequtils
+import tables
+import helpers
 
-# 0 1 4 7 10 13 14
-#    2 5 8 11
-#    3 6 9 12
+const cols = { 'A': 3, 'B': 5, 'C': 7, 'D': 9 }.toTable
 
-type
-  State = tuple[grid: string, energy: int]
+const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-func `<` (a, b: State): bool = a.energy < b.energy
+type Amphipod = tuple[a: char, p: Point]
 
-const amphipods = "ABCD"
-const organizedGrid = "..AA.BB.CC.DD.."
+type State = tuple[grid: seq[seq[char]], energy: int]
 
-const hallway = [0, 1, 4, 7, 10, 13, 14]
-const roomTops = [2, 5, 8, 11]
-const roomBottoms = [3, 6, 9, 12]
+# func `[]`*(grid: seq[seq[char]], p: Point): char = grid[p.y][p.x]
 
-func `$`(state: State): string =
-  result.add "Energy: " & $state.energy
-  result.add '\n'
-  result.add "#############\n#"
-  result.add state.grid[0]
-  result.add state.grid[1]
-  result.add '.'
-  result.add state.grid[4]
-  result.add '.'
-  result.add state.grid[7]
-  result.add '.'
-  result.add state.grid[10]
-  result.add '.'
-  result.add state.grid[13]
-  result.add state.grid[14]
-  result.add "#\n###"
-  result.add state.grid[2]
-  result.add '#'
-  result.add state.grid[5]
-  result.add '#'
-  result.add state.grid[8]
-  result.add '#'
-  result.add state.grid[11]
-  result.add '#'
-  result.add "##\n  #"
-  result.add state.grid[3]
-  result.add '#'
-  result.add state.grid[6]
-  result.add '#'
-  result.add state.grid[9]
-  result.add '#'
-  result.add state.grid[12]
-  result.add '#'
-  result.add "\n  #########  "
-  result.add '\n'
+func `-`*(a: Point, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
 
-func cost(amphipod: char): int = 
-  const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
-  costs[amphipod]
+func findAmphipods(grid: seq[seq[char]]): seq[Amphipod] =
+  for y in 0 ..< grid.len:
+    for x in 0 ..< grid[y].len:
+      if grid[y][x] in cols: result.add (grid[y][x], (x, y))
 
-proc movesBetween*(idx1, idx2: int): int =
-  for i in idx1 + 1..idx2:
-    if i in hallway:
-      if i in [4, 7, 10, 13]:
-        inc result, 2
-      else:
-        inc result
+func isDone(grid: seq[seq[char]]): bool =
+  for k, v in cols:
+    if (2 .. (grid.len - 2)).anyIt(grid[it][v] != k): return false
+  return true
 
-proc moves(state: State): seq[State] =
-  for i, c in state.grid:
-    if c != '.':
-      if i in roomTops:
-        if organizedGrid[i] == c:
-          if state.grid[i + 1] == c:
-            echo &"moves for room top {i} ({c}): top and bottom are correct"
-          else:
-            var moves = 0
-            for j in countdown(i - 1, state.grid.low):
-              if j in hallway:
-                if state.grid[j] == '.':
-                  echo &"moves for room top {i} ({c}): top is correct but bottom isn't, move to hallway {j}"
-                  inc moves, (if j in [0, 14]: 1 else: 2)
-                  var newState = state
-                  newState.grid[j] = c
-                  newState.grid[i] = '.'
-                  inc newState.energy, (moves * c.cost)
-                  result.add newState
-                  echo newState
-                else:
-                  break
+func isHallwayClear(a: int, b: int, grid: seq[seq[char]]): bool =
+  (a.min(b) .. a.max(b)).allIt(grid[1][it] == '.')
 
-            moves = 0
-            for j in countup(i + 1, state.grid.high):
-              if j in hallway:
-                if state.grid[j] == '.':
-                  echo &"moves for room top {i} ({c}): top is correct but bottom isn't, move to hallway {j}"
-                  inc moves, (if j in [0, 14]: 1 else: 2)
-                  var newState = state
-                  newState.grid[j] = c
-                  newState.grid[i] = '.'
-                  inc newState.energy, (moves * c.cost)
-                  result.add newState
-                  echo newState
-                else:
-                  break
-        else:
-          var moves = 0
-          for j in countdown(i - 1, state.grid.low):
-            if j in hallway:
-              if state.grid[j] == '.':
-                echo &"moves for room top {i} ({c}): top is incorrect, move to hallway {j}"
-                inc moves, (if j in [0, 14]: 1 else: 2)
-                var newState = state
-                newState.grid[j] = c
-                newState.grid[i] = '.'
-                inc newState.energy, (moves * c.cost)
-                result.add newState
-                echo newState
-              else:
-                break
+func moves(amphipod: Amphipod, grid: seq[seq[char]], rest: seq[int]): seq[Point] =
+  let (a, p) = amphipod
+  if p.y == 1: # Hallway
+    if rest.anyIt(grid[it][cols[a]] notin [a, '.']): return @[]
+    let
+      x = if p.x < cols[a]: p.x + 1 else: p.x - 1
+      y = rest.filterIt(grid[it][cols[a]] == '.').max
+    return @[(cols[a], y)].filterIt(x.isHallwayClear(cols[a], grid))
+  # Room correct
+  if p.x == cols[a] and (p.y .. rest.max).allIt(grid[it][p.x] == a):
+    return @[]
+  if grid[p.y - 1][p.x] != '.': # Top of room not empty
+    @[]
+  else:
+    [1, 2, 4, 6, 8, 10, 11].filterIt(p.x.isHallwayClear(it, grid)).mapIt((it, 1))
 
-          moves = 0
-          for j in countup(i + 1, state.grid.high):
-            if j in hallway:
-              if state.grid[j] == '.':
-                echo &"moves for room top {i} ({c}): top is incorrect, move to hallway {j}"
-                inc moves, (if j in [0, 14]: 1 else: 2)
-                var newState = state
-                newState.grid[j] = c
-                newState.grid[i] = '.'
-                inc newState.energy, (moves * c.cost)
-                result.add newState
-                echo newState
-              else:
-                break
-      elif i in roomBottoms:
-        if organizedGrid[i] == c:
-          echo &"moves for room bottom {i} ({c}): bottom is correct"
-        elif state.grid[i - 1] == '.':
-          var moves = 1
-          for j in countdown(i - 1, state.grid.low):
-            if j in hallway:
-              if state.grid[j] == '.':
-                echo &"moves for room bottom {i} ({c}): bottom is incorrect but not blocked, move to hallway {j}"
-                inc moves, (if j in [0, 14]: 1 else: 2)
-                var newState = state
-                newState.grid[j] = c
-                newState.grid[i] = '.'
-                inc newState.energy, (moves * c.cost)
-                result.add newState
-                echo newState
-              else:
-                break
+func moves(state: State, rest: seq[int]): seq[State] =
+  for a in state.grid.findAmphipods:
+    for next in a.moves(state.grid, rest):
+      var updated = state
+      updated.grid[a.p.y][a.p.x] = '.'
+      updated.grid[next.y][next.x] = a.a
+      inc updated.energy, costs[a.a] * (a.p - next)
+      result.add updated
 
-          moves = 1
-          for j in countup(i + 1, state.grid.high):
-            if j in hallway:
-              if state.grid[j] == '.':
-                echo &"moves for room bottom {i} ({c}): bottom is incorrect but not blocked, move to hallway {j}"
-                inc moves, (if j in [0, 14]: 1 else: 2)
-                var newState = state
-                newState.grid[j] = c
-                newState.grid[i] = '.'
-                inc newState.energy, (moves * c.cost)
-                result.add newState
-                echo newState
-              else:
-                break
-        else:
-          echo &"moves for room bottom {i} ({c}): bottom is incorrect and blocked"
-      else:
-        let roomTopIdx = roomTops[amphipods.find(c)]
-        let roomBottomIdx = roomBottoms[amphipods.find(c)]
+func `<`(a: State, b: State): bool = a.energy < b.energy
 
-        if state.grid[roomTopIdx] == '.':
-          if state.grid[roomBottomIdx] == '.':
-            let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
-            if traversable:
-              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty and hallway empty"
-              var moves = 3
-              if i < roomTopIdx:
-                inc moves, movesBetween(i, roomTopIdx - 1)
-              else:
-                inc moves, movesBetween(roomTopIdx + 2, i)
-
-              var newState = state
-              newState.grid[roomBottomIdx] = c
-              newState.grid[i] = '.'
-              inc newState.energy, (moves * c.cost)
-              result.add newState
-              echo newState
-            else:
-              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty but hallway blocked"
-          elif state.grid[roomBottomIdx] == c:
-            let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
-            if traversable:
-              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is correct and hallway empty"
-
-              var moves = 2
-              if i < roomTopIdx:
-                inc moves, movesBetween(i, roomTopIdx - 1)
-              else:
-                inc moves, movesBetween(roomTopIdx + 2, i)
-              echo "calculated moves: " & $moves
-              var newState = state
-              newState.grid[roomTopIdx] = c
-              newState.grid[i] = '.'
-              inc newState.energy, (moves * c.cost)
-              result.add newState
-              echo newState
-            else:
-              echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is correct but hallway blocked"
-          else:
-            echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is empty and bottom is incorrect"
-        else:
-          echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} is blocked"
-
-proc part1(state: State): int =
+func process(state: State, rest: seq[int]): int =
   var queue: HeapQueue[State]
-  var energyCounts = initCountTable[string]()
+  queue.push(state)
 
-  energyCounts[state.grid] = 0
-  queue.push state
+  var energyCounts: CountTable[seq[seq[char]]]
+  energyCounts[state.grid] = state.energy
 
   while queue.len > 0:
     let current = queue.pop()
 
-    if current.grid == organizedGrid:
+    if current.grid.isDone:
       return current.energy
 
     if current.energy > energyCounts.getOrDefault(current.grid, high(int)):
       continue
 
-    for move in current.moves:
+    for move in current.moves(rest):
       if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
         queue.push move
         energyCounts[move.grid] = move.energy
 
-proc readInputState: State =
-  let lines = readInputStrings(day = 23).toSeq
-  # TODO: refactor
-  result.grid.add lines[1][1]
-  result.grid.add lines[1][2]
-  result.grid.add lines[2][3]
-  result.grid.add lines[3][3]
-  result.grid.add lines[1][4]
-  result.grid.add lines[2][5]
-  result.grid.add lines[3][5]
-  result.grid.add lines[1][6]
-  result.grid.add lines[2][7]
-  result.grid.add lines[3][7]
-  result.grid.add lines[1][8]
-  result.grid.add lines[2][9]
-  result.grid.add lines[3][9]
-  result.grid.add lines[1][10]
-  result.grid.add lines[1][11]
+func part1*(state: State): int = state.process @[2, 3]
+
+func part2*(state: State): int = state.process @[2, 3]
+  # let grid = 
+  #   @[
+  #     state.grid[0 .. 2],
+  #     @["  #D#C#B#A#  ", "  #D#B#A#C#  "].mapIt(it.items.toSeq),
+  #     state.grid[^2 .. ^1]
+  #   ].foldl(a & b, newSeq[seq[char]]())
+  # let newState = state
+  # .process @[2, 3, 4, 5]
 
 proc solveDay23*: IntSolution =
-  let state = readInputState()
-  echo state
+  let grid = readInputStrings(day = 23).toSeq.mapIt(it.toSeq)
+  let state = (grid: grid, energy: 0)
   result.part1 = part1(state)
-  echo movesBetween(4, 13)
+  result.part2 = part2(state)
 
 when isMainModule:
   echo solveDay23()
