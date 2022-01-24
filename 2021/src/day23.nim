@@ -56,10 +56,10 @@ func cost(amphipod: char): int =
   const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
   costs[amphipod]
 
-func hallwayMoves(idx1, idx2: int): int =
-  for x in idx1 ..< idx2:
-    if x in hallway:
-      if x in [1, 4, 7, 10]:
+proc movesBetween*(idx1, idx2: int): int =
+  for i in idx1 + 1..idx2:
+    if i in hallway:
+      if i in [4, 7, 10, 13]:
         inc result, 2
       else:
         inc result
@@ -175,7 +175,11 @@ proc moves(state: State): seq[State] =
             let traversable = hallway.filterIt(it > min(i, roomTopIdx) and it < max(i, roomTopIdx)).allIt(state.grid[it] == '.')
             if traversable:
               echo &"moves for hallway {i} ({c}): target room top {roomTopIdx} and bottom are empty and hallway empty"
-              var moves = max(i, roomTopIdx) - min(i, roomTopIdx) + 1
+              var moves = 3
+              if i < roomTopIdx:
+                inc moves, movesBetween(i, roomTopIdx - 1)
+              else:
+                inc moves, movesBetween(roomTopIdx + 2, i)
 
               var newState = state
               newState.grid[roomBottomIdx] = c
@@ -192,9 +196,10 @@ proc moves(state: State): seq[State] =
 
               var moves = 2
               if i < roomTopIdx:
-                inc moves, hallwayMoves(i + 2, roomTopIdx)
+                inc moves, movesBetween(i, roomTopIdx - 1)
               else:
-                inc moves, hallwayMoves(roomTopIdx, i - 1)
+                inc moves, movesBetween(roomTopIdx + 2, i)
+              echo "calculated moves: " & $moves
               var newState = state
               newState.grid[roomTopIdx] = c
               newState.grid[i] = '.'
@@ -248,33 +253,11 @@ proc readInputState: State =
   result.grid.add lines[1][10]
   result.grid.add lines[1][11]
 
-proc movesBetween(idx1, idx2: int): int =
-  if idx1 in hallway:
-    if idx2 in roomTops:
-      echo &"moves from hallway {idx1} to top of room {idx2}"
-    else:
-      echo &"moves from hallway {idx1} to bottom of room {idx2}"
-  elif idx2 in hallway:
-    echo &"moves from room {idx1} to hallway {idx2}"
-  else:
-    echo &"move from room {idx1} to room {idx2}"
-
-# 0 1 4 7 10 13 14
-#    2 5 8 11
-#    3 6 9 12
-
 proc solveDay23*: IntSolution =
-  echo movesBetween(0, 2)
-  echo movesBetween(0, 3)
-  echo movesBetween(0, 5)
-  echo movesBetween(0, 6)
-  echo movesBetween(0, 8)
-  echo movesBetween(0, 9)
-  echo movesBetween(0, 10)
-  echo movesBetween(0, 11)
-  # let state = readInputState()
-  # echo state
-  # result.part1 = part1(state)
+  let state = readInputState()
+  echo state
+  result.part1 = part1(state)
+  echo movesBetween(4, 13)
 
 when isMainModule:
   echo solveDay23()
