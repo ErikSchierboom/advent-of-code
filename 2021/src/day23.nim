@@ -6,10 +6,12 @@ type
 
 const rooms = { 'A': 3, 'B': 5, 'C': 7, 'D': 9 }.toTable
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
+const hallwayXs = [1, 2, 4, 6, 8, 10, 11]
+const hallwayY = 1
 
 func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
 
-func isDone(grid: Grid): bool =
+func isOrganized(grid: Grid): bool =
   for kind, x in rooms:
     if grid.getOrDefault((x: x, y: 2)) != kind or 
        grid.getOrDefault((x: x, y: 3)) != kind:
@@ -25,19 +27,22 @@ func isHallwayClear(a, b: int, grid: Grid): bool =
   true
 
 func moves(a: char, p: Point, state: State): seq[Point] =
-  if p.y == 1: # Hallway
-    if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a): return @[]
-    let
-      x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
-      y = state.roomYs.toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
-    return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
+   # Hallway
+  if p.y == hallwayY:
+    if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
+      return
+    else:
+      let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
+      let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.grid).max
+      return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
   # Room correct
-  if p.x == rooms[a] and (p.y .. state.roomYs.max).toSeq.allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
-    return @[]
-  if (x: p.x, y: p.y - 1) in state.grid: # Top of room not empty
-    @[]
+  elif p.x == rooms[a] and (p.y .. state.roomYs.max).allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
+    return
+   # Top of room not empty
+  elif (x: p.x, y: p.y - 1) in state.grid:
+    return
   else:
-    [1, 2, 4, 6, 8, 10, 11].filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
+    return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
 
 func moves(state: State): seq[State] =
   for p, a in state.grid:
@@ -60,7 +65,7 @@ func solve(state: State): int =
   while queue.len > 0:
     let current = queue.pop()
 
-    if current.grid.isDone:
+    if current.grid.isOrganized:
       return current.energy
 
     if current.energy > energyCounts.getOrDefault(current.grid, high(int)):
