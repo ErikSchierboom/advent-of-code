@@ -7,7 +7,7 @@ type
 const rooms = { 'A': 3, 'B': 5, 'C': 7, 'D': 9 }.toTable
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-func `-`*(a: Point, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
+func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
 
 func isDone(grid: Grid): bool =
   for kind, x in rooms:
@@ -41,7 +41,7 @@ func moves(state: State, rest: seq[int]): seq[State] =
       var updated = state
       updated.grid.del((x: p.x, y: p.y))
       updated.grid[next] = a
-      inc updated.energy, costs[a] * (p - next)
+      inc updated.energy, costs[a] * manhattanDistance(p, next)
       result.add updated
 
 func `<`(a: State, b: State): bool = a.energy < b.energy
