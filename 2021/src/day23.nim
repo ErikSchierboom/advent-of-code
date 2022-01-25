@@ -18,7 +18,11 @@ func isDone(grid: Grid): bool =
   true
 
 func isHallwayClear(a, b: int, grid: Grid): bool =
-  (a.min(b) .. a.max(b)).allIt((x: it, y: 1) notin grid)
+  for x in min(a, b) .. max(a, b):
+    if (x: x, y: 1) in grid:
+      return false
+
+  true
 
 func moves(a: char, p: Point, grid: Grid, rest: seq[int]): seq[Point] =
   if p.y == 1: # Hallway
@@ -67,11 +71,10 @@ func process(state: State, rest: seq[int]): int =
         queue.push move
         energyCounts[move.grid] = move.energy
 
-proc readInputState(lines: seq[string]): State = 
-  for y in lines.low .. lines.high:
-    for x in lines[y].low .. lines[y].high:
-      if lines[y][x] in rooms:
-        result.grid[(x: x, y: y)] = lines[y][x]
+proc readInputState(lines: seq[string]): State =
+  for _, x in rooms:
+    for y in 2 ..< lines.high:
+      result.grid[(x: x, y: y)] = lines[y][x]
 
 proc part1*: int = 
   let lines = readInputStrings(day = 23).toSeq
