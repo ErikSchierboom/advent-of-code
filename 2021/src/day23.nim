@@ -68,9 +68,6 @@ func solve(state: State): int =
     if current.grid.isOrganized:
       return current.energy
 
-    if current.energy > energyCounts.getOrDefault(current.grid, high(int)):
-      continue
-
     for move in current.moves:
       if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
         queue.push move
