@@ -15,9 +15,14 @@ func targetRoom(state: State, grid: Grid, amphipod: char): string =
   let roomEndIdx = roomBeginIdx + grid.roomSize - 1
   state.cells[roomBeginIdx..roomEndIdx]
 
+func inOrganizedRoom(state: State, grid: Grid, amphipod: char): bool =
+  targetRoom(state, grid, amphipod).allIt(it == amphipod)
+
+func inBlockedRoom(state: State, grid: Grid, idx: int): bool =
+  let roomBeginIdx = idx - 7 - (idx mod grid.roomSize)
+
 proc moves(state: State, grid: Grid, oldIdx: int, amphipod: char): seq[int] =
-   # Hallway
-  if state.inHallway(grid, oldIdx):
+  if state.inHallway(grid, oldIdx): 
     echo "in hallway"
 #     if state.roomYs.anyIt(state.cells.getOrDefault((x: rooms[a], y: it), a) != a):
 #       return
@@ -25,15 +30,12 @@ proc moves(state: State, grid: Grid, oldIdx: int, amphipod: char): seq[int] =
 #       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
 #       let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.cells).max
 #       return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.cells))
+  elif state.inOrganizedRoom(grid, amphipod): 
+    return
+  elif state.inBlockedRoom(grid, oldIdx):
+    return
   else:
     return
-
-#   # Room correct
-#   elif p.x == rooms[a] and (p.y .. state.roomYs.max).allIt(state.cells.getOrDefault((x: p.x, y: it)) == a):
-#     return
-#    # Top of room not empty
-#   elif (x: p.x, y: p.y - 1) in state.cells:
-#     return
 #   else:
 #     return hallwayXs.filterIt(p.x.isHallwayClear(it, state.cells)).mapIt((it, 1))
 
@@ -66,6 +68,8 @@ proc solve(state: State): int =
   echo targetRoom(state, grid, 'B')
   echo targetRoom(state, grid, 'C')
   echo targetRoom(state, grid, 'D')
+
+  # TODO: flip rooms and hallway
 
   var queue: HeapQueue[State]
   queue.push(state)
