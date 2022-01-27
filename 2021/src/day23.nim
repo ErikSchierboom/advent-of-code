@@ -1,6 +1,6 @@
 import helpers, std/[heapqueue, sequtils, strutils, tables]
 
-type State = tuple[grid: string, cost, energy, roomSize: int]
+type State = tuple[hallway, rooms: string, energy, roomSize: int]
 
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
@@ -12,12 +12,21 @@ func isHallwayClear(a, b: int, grid: string): bool =
 
 func inHallway(state: State, idx: int): bool = idx < 7
 func room(state: State, idx: int): int = (idx - 7) div state.roomSize
+func roomIdx(state: State, idx: int): int = 7 + state.room(idx) * state.roomSize
 
-func moves(state: State, oldIdx: int, amphipod: char): seq[int] =
-  return
-#    # Hallway
-#   if p.y == hallwayY:
-#     if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
+proc roomOrganized(state: State, idx: int): bool =
+  let roomIdx = (idx -  7) div state.roomSize
+  let roomAmphipod = amphipods[roomIdx]
+  echo "room " & $roomIdx & ": " & $roomAmphipod & "," & $state.grid[roomIdx * ..roomIdx + state.roomSize]
+  # state.grid[roomIdx..<roomIdx + state.roomSize].allIt(it == roomAmphipod)
+
+proc moves(state: State, oldIdx: int, amphipod: char): seq[int] =
+   # Hallway
+  if state.inHallway(oldIdx):
+    echo "in hallway"
+  else:
+    return
+    # if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
 #       return
 #     else:
 #       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
@@ -32,17 +41,17 @@ func moves(state: State, oldIdx: int, amphipod: char): seq[int] =
 #   else:
 #     return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
 
-func moves(state: State): seq[State] =
+proc moves(state: State): seq[State] =
   for oldIdx, amphipod in state.grid:
     for newIdx in moves(state, oldIdx, amphipod):
       var updated = state
       updated.grid[oldIdx] = '.'
       updated.grid[newIdx] = amphipod
-      # TODO: calculate total costs using manhattan distance
       # inc updated.energy, costs[amphipod] * manhattanDistance(p, next)
       result.add updated
 
-func `<`(a: State, b: State): bool = a.cost < b.cost
+# TODO: compare using total costs using manhattan distance
+func `<`(a: State, b: State): bool = a.energy < b.energy
 
 func organizedGrid(state: State): string =
   for _ in 0 ..< 7: # Hallway
@@ -53,11 +62,20 @@ func organizedGrid(state: State): string =
       result.add amphipods[x]
 
 proc solve(state: State): int =
+  echo roomOrganized(state, 7)
+  echo roomOrganized(state, 8)
+  echo roomOrganized(state, 9)
+  echo roomOrganized(state, 10)
+  echo roomOrganized(state, 11)
+  echo roomOrganized(state, 12)
+  echo roomOrganized(state, 13)
+  echo roomOrganized(state, 14)
+
   var queue: HeapQueue[State]
   queue.push(state)
 
   var costs: CountTable[string]
-  costs[state.grid] = state.cost
+  costs[state.grid] = state.energy
 
   let organizedGrid = state.organizedGrid
 
@@ -68,9 +86,9 @@ proc solve(state: State): int =
       return current.energy
 
     for move in current.moves:
-      if move.cost < costs.getOrDefault(move.grid, high(int)):
+      if move.energy < costs.getOrDefault(move.grid, high(int)):
         queue.push move
-        costs[move.grid] = move.cost
+        costs[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
   result.roomSize = lines.len - 3
