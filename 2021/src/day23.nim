@@ -1,4 +1,4 @@
-import helpers, std/[heapqueue, sequtils, strutils, strformat, tables]
+import helpers, std/[algorithm, heapqueue, sequtils, strutils, strformat, tables]
 
 type State = tuple[grid: string, energy: int]
 
@@ -33,7 +33,8 @@ const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 # #   else:
 # #     return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
 
-# proc moves(state: State, grid: Grid): seq[State] =
+proc moves(state: State): seq[State] =
+  echo "moves"
 #   for oldIdx, amphipod in state.grid:
 #     for newIdx in moves(state, grid, oldIdx, amphipod):
 #       var updated = state
@@ -45,45 +46,42 @@ const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 # TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
+func roomSize(state: State): int = (state.grid.len - 7) div 4
+
 iterator rooms(state: State): tuple[idx: int, room: string] =
-  let roomEndIdx = state.grid.len - 7
-  let roomSize = roomEndIdx div 4
-  for x in countup(0, roomEndIdx - 1, roomSize):
-    yield (idx: x, room: state.grid[x..<x + roomSize])
+  for x in countup(0, state.grid.len - 8, state.roomSize):
+    yield (idx: x, room: state.grid[x..<x + state.roomSize])
 
 iterator hallway(state: State): tuple[idx: int, cell: char] =
   for x in state.grid.len - 7..state.grid.high:
     yield (idx: x, cell: state.grid[x])
 
-# func roomIdxs(state: State): seq[seq[int]] =
-#   for 
-
-# func isOrganized(state: State): bool =
+proc isOrganized(state: State): bool = state.grid[0..^8].sorted == state.grid[0..^8]
 
 
 proc solve(state: State): int =
-  for idx, cell in state.hallway:
-    echo &"hallway idx: {idx}, cell: {cell}"
+  # for idx, cell in state.hallway:
+  #   echo &"hallway idx: {idx}, cell: {cell}"
 
-  for idx, cells in state.rooms:
-    echo &"room idx: {idx}, cells: {cells}"
+  # for idx, cells in state.rooms:
+  #   echo &"room idx: {idx}, cells: {cells}"
 
-  # var queue: HeapQueue[State]
-  # queue.push(state)
+  var queue: HeapQueue[State]
+  queue.push(state)
 
-  # var costs: CountTable[string]
-  # costs[state.grid] = state.energy
+  var costs: CountTable[string]
+  costs[state.grid] = state.energy
 
-  # while queue.len > 0:
-  #   let current = queue.pop()
+  while queue.len > 0:
+    let current = queue.pop()
 
-  #   if current.grid == current.isOrganized:
-  #     return current.energy
+    if current.isOrganized:
+      return current.energy
 
-  #   for move in current.moves:
-  #     if move.energy < costs.getOrDefault(move.grid, high(int)):
-  #       queue.push move
-  #       costs[move.grid] = move.energy
+    for move in current.moves:
+      if move.energy < costs.getOrDefault(move.grid, high(int)):
+        queue.push move
+        costs[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
   for x in 0 ..< 4: # Rooms
