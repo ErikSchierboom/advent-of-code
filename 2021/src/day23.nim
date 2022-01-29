@@ -1,90 +1,97 @@
-import helpers, std/[heapqueue, sequtils, strutils, tables]
+import helpers, std/[heapqueue, sequtils, strutils, strformat, tables]
 
-type 
-  Grid = tuple[roomIdxs: array[4, seq[int]], hallwayIdxs: array[7, int]]
-  State = tuple[cells: string, energy: int]
+type State = tuple[grid: string, energy: int]
 
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
-func isHallwayClear(a, b: int, cells: string): bool = cells[min(a, b) .. max(a, b)].allIt(it == '0')
-func inHallway(state: State, grid: Grid, idx: int): bool = idx in grid.hallwayIdxs
+# func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
+# func isHallwayClear(a, b: int, cells: string): bool = cells[min(a, b) .. max(a, b)].allIt(it == '0')
+# func inHallway(state: State, grid: Grid, idx: int): bool = idx in grid.hallwayIdxs
 
-func inOrganizedRoom(state: State, grid: Grid, idx: int, amphipod: char): bool =
-  grid.roomIdxs[amphipods.find(amphipod)].allIt(state.cells[it] == amphipod)
+# func inOrganizedRoom(state: State, grid: Grid, idx: int, amphipod: char): bool =
+#   grid.roomIdxs[amphipods.find(amphipod)].allIt(state.grid[it] == amphipod)
 
-func inBlockedRoom(state: State, grid: Grid, idx: int, amphipod: char): bool =
-  grid.roomIdxs[amphipods.find(amphipod)].filterIt(it < idx).allIt(state.cells[it] == '.')
+# func inBlockedRoom(state: State, grid: Grid, idx: int, amphipod: char): bool =
+#   grid.roomIdxs[amphipods.find(amphipod)].filterIt(it < idx).allIt(state.grid[it] == '.')
 
-proc moves(state: State, grid: Grid, oldIdx: int, amphipod: char): seq[int] =
-  if state.inHallway(grid, oldIdx): 
-    echo "in hallway"
-#     if state.roomYs.anyIt(state.cells.getOrDefault((x: rooms[a], y: it), a) != a):
-#       return
-#     else:
-#       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
-#       let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.cells).max
-#       return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.cells))
-  elif state.inOrganizedRoom(grid, oldIdx, amphipod) or
-       state.inBlockedRoom(grid, oldIdx, amphipod):
-    return
-  else:
-    return
+# proc moves(state: State, grid: Grid, oldIdx: int, amphipod: char): seq[int] =
+#   echo ""
+#   if state.inHallway(grid, oldIdx): 
+#     echo "in hallway"
+# #     if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
+# #       return
+# #     else:
+# #       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
+# #       let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.grid).max
+# #       return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
+#   elif state.inOrganizedRoom(grid, oldIdx, amphipod) or
+#        state.inBlockedRoom(grid, oldIdx, amphipod):
+#     return
 #   else:
-#     return hallwayXs.filterIt(p.x.isHallwayClear(it, state.cells)).mapIt((it, 1))
+#     return
+# #   else:
+# #     return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
 
-proc moves(state: State, grid: Grid): seq[State] =
-  for oldIdx, amphipod in state.cells:
-    for newIdx in moves(state, grid, oldIdx, amphipod):
-      var updated = state
-      updated.cells[oldIdx] = '.'
-      updated.cells[newIdx] = amphipod
-      # inc updated.energy, costs[amphipod] * manhattanDistance(p, next)
-      result.add updated
+# proc moves(state: State, grid: Grid): seq[State] =
+#   for oldIdx, amphipod in state.grid:
+#     for newIdx in moves(state, grid, oldIdx, amphipod):
+#       var updated = state
+#       updated.grid[oldIdx] = '.'
+#       updated.grid[newIdx] = amphipod
+#       # inc updated.energy, costs[amphipod] * manhattanDistance(p, next)
+#       result.add updated
 
 # TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
-func toGrid(state: State): Grid =
-  result.roomSize = ( - 7) div 4
+iterator rooms(state: State): tuple[idx: int, room: string] =
+  let roomEndIdx = state.grid.len - 7
+  let roomSize = roomEndIdx div 4
+  for x in countup(0, roomEndIdx - 1, roomSize):
+    yield (idx: x, room: state.grid[x..<x + roomSize])
 
-  for x in 0 ..< 4: # Rooms
-    for y in 0 ..< result.roomSize:
-      result.organized.add amphipods[x]
+iterator hallway(state: State): tuple[idx: int, cell: char] =
+  for x in state.grid.len - 7..state.grid.high:
+    yield (idx: x, cell: state.grid[x])
 
-  for x in 0 ..< 7: # Hallway
-    result.hallwayIdxs[x] = 
+# func roomIdxs(state: State): seq[seq[int]] =
+#   for 
+
+# func isOrganized(state: State): bool =
+
 
 proc solve(state: State): int =
-  let grid = state.toGrid
+  for idx, cell in state.hallway:
+    echo &"hallway idx: {idx}, cell: {cell}"
 
-  # TODO: flip rooms and hallway
+  for idx, cells in state.rooms:
+    echo &"room idx: {idx}, cells: {cells}"
 
-  var queue: HeapQueue[State]
-  queue.push(state)
+  # var queue: HeapQueue[State]
+  # queue.push(state)
 
-  var costs: CountTable[string]
-  costs[state.cells] = state.energy
+  # var costs: CountTable[string]
+  # costs[state.grid] = state.energy
 
-  while queue.len > 0:
-    let current = queue.pop()
+  # while queue.len > 0:
+  #   let current = queue.pop()
 
-    if current.cells == grid.isOrganized:
-      return current.energy
+  #   if current.grid == current.isOrganized:
+  #     return current.energy
 
-    for move in current.moves(grid):
-      if move.energy < costs.getOrDefault(move.cells, high(int)):
-        queue.push move
-        costs[move.cells] = move.energy
+  #   for move in current.moves:
+  #     if move.energy < costs.getOrDefault(move.grid, high(int)):
+  #       queue.push move
+  #       costs[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
   for x in 0 ..< 4: # Rooms
     for y in 0 ..< lines.len - 3:
-      result.cells.add lines[2 + y][3 + x * 2]
+      result.grid.add lines[2 + y][3 + x * 2]
 
   for _ in 0 ..< 7: # Hallway
-    result.cells.add '.'
+    result.grid.add '.'
 
 proc part1*: int = 
   let lines = readInputStrings(day = 23).toSeq
