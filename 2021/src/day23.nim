@@ -1,81 +1,58 @@
 import helpers, std/[algorithm, heapqueue, sequtils, strutils, strformat, tables]
 
-type State = tuple[grid: string, energy: int]
+type 
+  Grid = tuple[hallway, rooms: string, roomSize: int]
+  State = tuple[grid: Grid, energy: int]
 
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-# func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
-# func isHallwayClear(a, b: int, cells: string): bool = cells[min(a, b) .. max(a, b)].allIt(it == '0')
-# func inHallway(state: State, grid: Grid, idx: int): bool = idx in grid.hallwayIdxs
+func isHallwayClear(grid: Grid, a, b: int): bool = grid.hallway[min(a, b) .. max(a, b)].allIt(it == '0')
 
-# func inOrganizedRoom(state: State, grid: Grid, idx: int, amphipod: char): bool =
-#   grid.roomIdxs[amphipods.find(amphipod)].allIt(state.grid[it] == amphipod)
+func room(grid: Grid, num: int): string = 
+  let roomIdx = num * grid.roomSize
+  grid.rooms[roomIdx ..< roomIdx + grid.roomSize]
 
-# func inBlockedRoom(state: State, grid: Grid, idx: int, amphipod: char): bool =
-#   grid.roomIdxs[amphipods.find(amphipod)].filterIt(it < idx).allIt(state.grid[it] == '.')
-
-# proc moves(state: State, grid: Grid, oldIdx: int, amphipod: char): seq[int] =
-#   echo ""
-#   if state.inHallway(grid, oldIdx): 
-#     echo "in hallway"
-# #     if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
-# #       return
-# #     else:
-# #       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
-# #       let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.grid).max
-# #       return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
-#   elif state.inOrganizedRoom(grid, oldIdx, amphipod) or
-#        state.inBlockedRoom(grid, oldIdx, amphipod):
-#     return
-#   else:
-#     return
-# #   else:
-# #     return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
+func room(grid: Grid, amphipod: char): string =
+  grid.room(amphipods.find(amphipod))
 
 proc moves(state: State): seq[State] =
   echo "moves"
-#   for oldIdx, amphipod in state.grid:
-#     for newIdx in moves(state, grid, oldIdx, amphipod):
-#       var updated = state
-#       updated.grid[oldIdx] = '.'
-#       updated.grid[newIdx] = amphipod
-#       # inc updated.energy, costs[amphipod] * manhattanDistance(p, next)
-#       result.add updated
+  # for amphipod in amphipods:
+  #   if state.grid.room(amphipod).allIt(it == amphipod):
+  #     continue
+  
+
+
+# func moves(a: char, p: Point, state: State): seq[Point] =
+#   if p.y == 1: # Hallway
+#     if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a): return @[]
+#     let
+#       x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
+#       y = state.roomYs.toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
+#     return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
+#   # Room correct
+#   if p.x == rooms[a] and (p.y .. state.roomYs.max).toSeq.allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
+#     return @[]
+#   if (x: p.x, y: p.y - 1) in state.grid: # Top of room not empty
+#     @[]
+#   else:
+#     [1, 2, 4, 6, 8, 10, 11].filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
 
 # TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
-func roomSize(state: State): int = (state.grid.len - 7) div 4
-
-iterator rooms(state: State): tuple[idx: int, room: string] =
-  for x in countup(0, state.grid.len - 8, state.roomSize):
-    yield (idx: x, room: state.grid[x..<x + state.roomSize])
-
-iterator hallway(state: State): tuple[idx: int, cell: char] =
-  for x in state.grid.len - 7..state.grid.high:
-    yield (idx: x, cell: state.grid[x])
-
-proc isOrganized(state: State): bool = state.grid[0..^8].sorted == state.grid[0..^8]
-
-
-proc solve(state: State): int =
-  # for idx, cell in state.hallway:
-  #   echo &"hallway idx: {idx}, cell: {cell}"
-
-  # for idx, cells in state.rooms:
-  #   echo &"room idx: {idx}, cells: {cells}"
-
+proc solve(state: State, goal: Grid): int =
   var queue: HeapQueue[State]
   queue.push(state)
 
-  var costs: CountTable[string]
+  var costs: CountTable[Grid]
   costs[state.grid] = state.energy
 
   while queue.len > 0:
     let current = queue.pop()
 
-    if current.isOrganized:
+    if current.grid == goal:
       return current.energy
 
     for move in current.moves:
@@ -83,26 +60,34 @@ proc solve(state: State): int =
         queue.push move
         costs[move.grid] = move.energy
 
-proc readInputState(lines: seq[string]): State =
+func initState(lines: seq[string], roomSize: int): State =
   for x in 0 ..< 4: # Rooms
     for y in 0 ..< lines.len - 3:
-      result.grid.add lines[2 + y][3 + x * 2]
+      result.grid.rooms.add lines[2 + y][3 + x * 2]
 
-  for _ in 0 ..< 7: # Hallway
-    result.grid.add '.'
+  result.grid.roomSize = roomSize
+  result.grid.hallway = "......."
 
-proc part1*: int = 
-  let lines = readInputStrings(day = 23).toSeq
-  solve(readInputState(lines))
+func initGoalGrid(roomSize: int): Grid =
+  for amphipod in amphipods:
+    for y in 0 ..< roomSize:
+      result.rooms.add amphipod
 
-proc part2*: int = 
-  var lines = readInputStrings(day = 23).toSeq
+  result.roomSize = roomSize
+  result.hallway = "......."
+
+proc part1*(lines: seq[string]): int = 
+  solve(initState(lines, roomSize = 2), initGoalGrid(roomSize = 2))
+
+proc part2*(lines: seq[string]): int = 
+  var lines = lines
   lines.insert(@["  #D#C#B#A#  ", "  #D#B#A#C#  "], pos = 3)
-  solve(readInputState(lines))
+  solve(initState(lines, roomSize = 4), initGoalGrid(roomSize = 4))
 
 proc solveDay23*: IntSolution =
-  result.part1 = part1()
-  # result.part2 = part2()
+  var lines = readInputStrings(day = 23).toSeq
+  result.part1 = part1(lines)
+  result.part2 = part2(lines)
 
 when isMainModule:
   echo solveDay23()
