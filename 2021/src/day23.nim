@@ -7,8 +7,23 @@ type
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-func isHallwayClear(grid: Grid, a, b: int): bool =
-  grid.hallway[min(a, b) .. max(a, b)].allIt(it == '0')
+proc isHallwayClear(grid: Grid, roomIdx, hallwayIdx: int): bool =
+  let pivotIdx = roomIdx + 2
+  if hallwayIdx < pivotIdx:
+    let r = hallwayIdx + 1..<pivotIdx
+    let a = grid.hallway[hallwayIdx + 1..pivotIdx]
+    echo &"hallwayIdx {hallwayIdx} to roomIdx {roomIdx}: {r}"
+    grid.hallway[hallwayIdx + 1..pivotIdx].allIt(it == '.')
+  else:
+    let r = pivotIdx..hallwayIdx
+    let b = grid.hallway[pivotIdx..hallwayIdx]
+    echo &"hallwayIdx {hallwayIdx} to roomIdx {roomIdx}: {r}"
+    grid.hallway[pivotIdx..hallwayIdx - 1].allIt(it == '.')
+
+  # 0 -> 0..1, 2..6
+  # 1 -> 0..2, 3..6
+  # 2 -> 0..3, 4..6
+  # 3 -> 0..4, 5..6
 
 func room(grid: Grid, num: int): string = 
   let roomIdx = num * grid.roomSize
@@ -24,17 +39,14 @@ proc moves(state: State): seq[State] =
     if room.allIt(it == amphipod):
       echo "room is organized"
       continue
-    else:
-      for y in 0..<state.grid.roomSize:
-        if room[y] == '.':
-          continue
-        else:
+    # else:
+    #   for y in 0..<state.grid.roomSize:
+    #     if room[y] == '.':
+    #       continue
+    #     else:
+    #       [1, 2, 4, 6, 8, 10, 11].filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
+    #       break
           # Move to hallway
-
-  
-    
-
-
 # func moves(a: char, p: Point, state: State): seq[Point] =
 #   if p.y == 1: # Hallway
 #     if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a): return @[]
@@ -44,15 +56,16 @@ proc moves(state: State): seq[State] =
 #     return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
 #   # Room correct
 
-#   if (x: p.x, y: p.y - 1) in state.grid: # Top of room not empty
-#     @[]
-#   else:
-#     [1, 2, 4, 6, 8, 10, 11].filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
-
 # TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
 proc solve(state: State, goal: Grid): int =
+  echo state.grid
+
+  for roomIdx in 0..0:
+    for hallwayIdx in 0..6:
+      echo state.grid.isHallwayClear(roomIdx, hallwayIdx)
+
   var queue: HeapQueue[State]
   queue.push(state)
 
@@ -76,7 +89,9 @@ func initState(lines: seq[string], roomSize: int): State =
       result.grid.rooms.add lines[2 + y][3 + x * 2]
 
   result.grid.roomSize = roomSize
-  result.grid.hallway = "......."
+
+  for x in 0 ..< 7: # Hallway
+    result.grid.hallway.add lines[1][x + 1]
 
 func initGoalGrid(roomSize: int): Grid =
   for amphipod in amphipods:
@@ -97,7 +112,7 @@ proc part2*(lines: seq[string]): int =
 proc solveDay23*: IntSolution =
   var lines = readInputStrings(day = 23).toSeq
   result.part1 = part1(lines)
-  result.part2 = part2(lines)
+  # result.part2 = part2(lines)
 
 when isMainModule:
   echo solveDay23()
