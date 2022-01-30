@@ -7,7 +7,8 @@ type
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-func isHallwayClear(grid: Grid, a, b: int): bool = grid.hallway[min(a, b) .. max(a, b)].allIt(it == '0')
+func isHallwayClear(grid: Grid, a, b: int): bool =
+  grid.hallway[min(a, b) .. max(a, b)].allIt(it == '0')
 
 func room(grid: Grid, num: int): string = 
   let roomIdx = num * grid.roomSize
@@ -18,10 +19,20 @@ func room(grid: Grid, amphipod: char): string =
 
 proc moves(state: State): seq[State] =
   echo "moves"
-  # for amphipod in amphipods:
-  #   if state.grid.room(amphipod).allIt(it == amphipod):
-  #     continue
+  for roomNum, amphipod in amphipods:
+    let room = state.grid.room(roomNum)
+    if room.allIt(it == amphipod):
+      echo "room is organized"
+      continue
+    else:
+      for y in 0..<state.grid.roomSize:
+        if room[y] == '.':
+          continue
+        else:
+          # Move to hallway
+
   
+    
 
 
 # func moves(a: char, p: Point, state: State): seq[Point] =
@@ -32,8 +43,7 @@ proc moves(state: State): seq[State] =
 #       y = state.roomYs.toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
 #     return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
 #   # Room correct
-#   if p.x == rooms[a] and (p.y .. state.roomYs.max).toSeq.allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
-#     return @[]
+
 #   if (x: p.x, y: p.y - 1) in state.grid: # Top of room not empty
 #     @[]
 #   else:
