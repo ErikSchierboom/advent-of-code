@@ -21,7 +21,20 @@ func room(grid: Grid, amphipod: char): string =
   grid.room(amphipods.find(amphipod))
 
 proc moves(state: State): seq[State] =
-  echo "moves"
+  for hallwayIdx, cell in state.grid.hallway:
+    if cell == '.':
+      continue
+
+    let room = state.grid.room(cell)
+    if room.anyIt(it != cell and it != '.'):
+      continue
+
+    # if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a): return @[]
+    # let
+    #   x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
+    #   y = state.roomYs.toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
+    # return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid
+
   for roomNum, amphipod in amphipods:
     let room = state.grid.room(roomNum)
     if room.allIt(it == amphipod):
@@ -35,15 +48,6 @@ proc moves(state: State): seq[State] =
           for hallwayIdx in (state.grid.hallway.low .. state.grid.hallway.high).toSeq.filterIt(state.grid.isHallwayClear(roomNum, it)):
             echo &"move from room {roomNum} and roomIdx {y} to hallwayIdx {hallwayIdx}" 
           break
-          
-# func moves(a: char, p: Point, state: State): seq[Point] =
-#   if p.y == 1: # Hallway
-#     if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a): return @[]
-#     let
-#       x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
-#       y = state.roomYs.toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
-#     return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
-#   # Room correct
 
 # TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
