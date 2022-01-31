@@ -1,4 +1,4 @@
-import helpers, std/[algorithm, heapqueue, sequtils, strutils, strformat, tables]
+import helpers, std/[heapqueue, sequtils, strutils, tables]
 
 type 
   Grid = tuple[hallway, rooms: string, roomSize: int]
@@ -6,31 +6,21 @@ type
 
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
+const hallwayX = [1, 2, 4, 6, 8, 10, 11]
+const roomX = [3, 5, 7, 9]
 
-proc isHallwayClear(grid: Grid, roomNum, hallwayIdx: int): bool =
-  case roomNum
-    of 0:
-      if hallwayIdx < 2:
-        (hallwayIdx + 1 .. 1).toSeq.allIt(grid.hallway[it] == '.')
-      else:
-        (2..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
-    of 1:
-      if hallwayIdx < 3:
-        (hallwayIdx + 1 .. 2).toSeq.allIt(grid.hallway[it] == '.')
-      else:
-        (3..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
-    of 2:
-      if hallwayIdx < 4:
-        (hallwayIdx + 1 .. 3).toSeq.allIt(grid.hallway[it] == '.')
-      else:
-        (4..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
-    of 3:
-      if hallwayIdx < 5:
-        (hallwayIdx + 1 .. 4).toSeq.allIt(grid.hallway[it] == '.')
-      else:
-        (5..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
-    else:
-      raiseAssert("Fail")
+func distance(grid: Grid, amphipod: char, hallwayIdx, roomNum, roomIdx: int): int =
+  abs(roomX[roomNum] - hallwayX[hallwayIdx]) + abs(1 - (roomIdx + 2))
+
+func cost(grid: Grid, amphipod: char, hallwayIdx, roomNum, roomIdx: int): int =
+  grid.distance(amphipod, hallwayIdx, roomNum, roomIdx) * costs[amphipod]
+
+func isHallwayClear(grid: Grid, roomNum, hallwayIdx: int): bool =
+  for x in min(hallwayIdx + 1, roomNum + 2) .. max(roomNum + 1, hallwayIdx - 1):
+    if grid.hallway[x] != '.':
+      return false
+
+  true
 
 func room(grid: Grid, num: int): string = 
   let roomIdx = num * grid.roomSize
@@ -51,14 +41,15 @@ proc moves(state: State): seq[State] =
     let roomNum = amphipods.find(cell)
     let roomIdx = room.rfind('.')
     if state.grid.isHallwayClear(roomNum, hallwayIdx):
-      echo &"move from hallwayIdx {hallwayIdx} to room {roomNum} and roomIdx {roomIdx}" 
-    else:
-      echo &"can't move from hallwayIdx {hallwayIdx} to room {roomNum} and roomIdx {roomIdx}" 
+      var newState = state
+      inc newState.energy, state.grid.cost(cell, hallwayIdx, roomNum, roomIdx)
+      newState.grid.hallway[hallwayIdx] = '.'
+      newState.grid.rooms[roomNum * state.grid.roomSize + roomIdx] = cell
+      result.add newState
 
   for roomNum, amphipod in amphipods:
     let room = state.grid.room(roomNum)
     if room.allIt(it == amphipod):
-      echo "room is organized"
       continue
     else:
       for y in 0..<state.grid.roomSize:
@@ -66,15 +57,17 @@ proc moves(state: State): seq[State] =
           continue
         else:
           for hallwayIdx in (state.grid.hallway.low .. state.grid.hallway.high).toSeq.filterIt(state.grid.isHallwayClear(roomNum, it)):
-            echo &"move from room {roomNum} and roomIdx {y} to hallwayIdx {hallwayIdx}" 
+            var newState = state
+            inc newState.energy, state.grid.cost(state.grid.rooms[roomNum * state.grid.roomSize + y], hallwayIdx, roomNum, y)
+            newState.grid.hallway[hallwayIdx] = state.grid.rooms[roomNum * state.grid.roomSize + y]
+            newState.grid.rooms[roomNum * state.grid.roomSize + y] = '.'
+            result.add newState
           break
 
 # TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
 proc solve(state: State, goal: Grid): int =
-  echo state.grid
-
   var queue: HeapQueue[State]
   queue.push(state)
 
