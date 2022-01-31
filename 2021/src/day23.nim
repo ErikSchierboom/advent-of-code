@@ -1,115 +1,97 @@
-import helpers, std/[heapqueue, sequtils, strutils, tables]
+import helpers, std/[heapqueue, sequtils, tables]
 
 type 
-  Grid = tuple[hallway, rooms: string, roomSize: int]
-  State = tuple[grid: Grid, energy: int]
+  Grid = Table[Point, char]
+  State = tuple[grid: Grid, energy: int, roomYs: seq[int]]
 
-const amphipods = "ABCD"
+const rooms = { 'A': 3, 'B': 5, 'C': 7, 'D': 9 }.toTable
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
-const hallwayX = [1, 2, 4, 6, 8, 10, 11]
-const roomX = [3, 5, 7, 9]
+const hallwayXs = [1, 2, 4, 6, 8, 10, 11]
+const hallwayY = 1
 
-func distance(grid: Grid, amphipod: char, hallwayIdx, roomNum, roomIdx: int): int =
-  abs(roomX[roomNum] - hallwayX[hallwayIdx]) + abs(1 - (roomIdx + 2))
+func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
 
-func cost(grid: Grid, amphipod: char, hallwayIdx, roomNum, roomIdx: int): int =
-  grid.distance(amphipod, hallwayIdx, roomNum, roomIdx) * costs[amphipod]
+func isOrganized(grid: Grid): bool =
+  for kind, x in rooms:
+    if grid.getOrDefault((x: x, y: 2)) != kind or 
+       grid.getOrDefault((x: x, y: 3)) != kind:
+      return false
+  
+  true
 
-func isHallwayClear(grid: Grid, roomNum, hallwayIdx: int): bool =
-  (min(hallwayIdx + 1, roomNum + 2) .. max(roomNum + 1, hallwayIdx - 1)).toSeq.allIt(grid.hallway[it] == '.')
+func isHallwayClear(a, b: int, grid: Grid): bool =
+  for x in min(a, b) .. max(a, b):
+    if (x: x, y: 1) in grid:
+      return false
 
-func room(grid: Grid, num: int): string = 
-  let roomIdx = num * grid.roomSize
-  grid.rooms[roomIdx ..< roomIdx + grid.roomSize]
+  true
 
-func room(grid: Grid, amphipod: char): string =
-  grid.room(amphipods.find(amphipod))
-
-proc moves(state: State): seq[State] =
-  for hallwayIdx, cell in state.grid.hallway:
-    if cell == '.':
-      continue
-
-    let room = state.grid.room(cell)
-    if room.anyIt(it != cell and it != '.'):
-      continue
-
-    let roomNum = amphipods.find(cell)
-    let roomIdx = room.rfind('.')
-    if state.grid.isHallwayClear(roomNum, hallwayIdx):
-      var newState = state
-      inc newState.energy, state.grid.cost(cell, hallwayIdx, roomNum, roomIdx)
-      newState.grid.hallway[hallwayIdx] = '.'
-      newState.grid.rooms[roomNum * state.grid.roomSize + roomIdx] = cell
-      result.add newState
-
-  for roomNum, amphipod in amphipods:
-    let room = state.grid.room(roomNum)
-    if room.allIt(it == amphipod):
-      continue
+func moves(a: char, p: Point, state: State): seq[Point] =
+   # Hallway
+  if p.y == hallwayY:
+    if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
+      return
     else:
-      for y in 0..<state.grid.roomSize:
-        if room[y] == '.':
-          continue
-        else:
-          for hallwayIdx in (state.grid.hallway.low .. state.grid.hallway.high).toSeq.filterIt(state.grid.isHallwayClear(roomNum, it)):
-            var newState = state
-            inc newState.energy, state.grid.cost(state.grid.rooms[roomNum * state.grid.roomSize + y], hallwayIdx, roomNum, y)
-            newState.grid.hallway[hallwayIdx] = state.grid.rooms[roomNum * state.grid.roomSize + y]
-            newState.grid.rooms[roomNum * state.grid.roomSize + y] = '.'
-            result.add newState
-          break
+      let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
+      let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.grid).max
+      return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
+  # Room correct
+  elif p.x == rooms[a] and (p.y .. state.roomYs.max).allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
+    return
+   # Top of room not empty
+  elif (x: p.x, y: p.y - 1) in state.grid:
+    return
+  else:
+    return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
+
+func moves(state: State): seq[State] =
+  for p, a in state.grid:
+    for next in moves(a, p, state):
+      var updated = state
+      updated.grid.del((x: p.x, y: p.y))
+      updated.grid[next] = a
+      inc updated.energy, costs[a] * manhattanDistance(p, next)
+      result.add updated
 
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
-proc solve(state: State, goal: Grid): int =
+func solve(state: State): int =
   var queue: HeapQueue[State]
   queue.push(state)
 
-  var costs: CountTable[Grid]
-  costs[state.grid] = state.energy
+  var energyCounts: CountTable[Grid]
+  energyCounts[state.grid] = state.energy
 
   while queue.len > 0:
     let current = queue.pop()
 
-    if current.grid == goal:
+    if current.grid.isOrganized:
       return current.energy
 
     for move in current.moves:
-      if move.energy < costs.getOrDefault(move.grid, high(int)):
+      if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
         queue.push move
-        costs[move.grid] = move.energy
+        energyCounts[move.grid] = move.energy
 
-func initState(lines: seq[string], roomSize: int): State =
-  for x in 0 ..< 4: # Rooms
-    for y in 0 ..< lines.len - 3:
-      result.grid.rooms.add lines[2 + y][3 + x * 2]
+proc readInputState(lines: seq[string]): State =
+  for y in 2 ..< lines.high:
+    for _, x in rooms:
+      result.grid[(x: x, y: y)] = lines[y][x]
+  
+  result.roomYs = (2 ..< lines.high).toSeq
 
-  result.grid.roomSize = roomSize
+proc part1*: int = 
+  let lines = readInputStrings(day = 23).toSeq
+  solve(readInputState(lines))
 
-  for x in [1, 2, 4, 6, 8, 10, 11]: # Hallway
-    result.grid.hallway.add lines[1][x]
-
-func initGoalGrid(roomSize: int): Grid =
-  for amphipod in amphipods:
-    for y in 0 ..< roomSize:
-      result.rooms.add amphipod
-
-  result.roomSize = roomSize
-  result.hallway = "......."
-
-proc part1*(lines: seq[string]): int = 
-  solve(initState(lines, roomSize = 2), initGoalGrid(roomSize = 2))
-
-proc part2*(lines: seq[string]): int = 
-  var lines = lines
+proc part2*: int = 
+  var lines = readInputStrings(day = 23).toSeq
   lines.insert(@["  #D#C#B#A#  ", "  #D#B#A#C#  "], pos = 3)
-  solve(initState(lines, roomSize = 4), initGoalGrid(roomSize = 4))
+  solve(readInputState(lines))
 
 proc solveDay23*: IntSolution =
-  var lines = readInputStrings(day = 23).toSeq
-  result.part1 = part1(lines)
-  result.part2 = part2(lines)
+  result.part1 = part1()
+  result.part2 = part2()
 
 when isMainModule:
   echo solveDay23()
