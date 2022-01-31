@@ -2,7 +2,7 @@ import helpers, std/[heapqueue, sequtils, tables]
 
 type 
   Grid = Table[Point, char]
-  State = tuple[grid: Grid, energy: int, roomYs: seq[int]]
+  State = tuple[grid: Grid, energy, roomSize: int, roomYs: seq[int]]
 
 const rooms = { 'A': 3, 'B': 5, 'C': 7, 'D': 9 }.toTable
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
@@ -11,11 +11,11 @@ const hallwayY = 1
 
 func manhattanDistance(a, b: Point): int = abs(a.x - b.x) + abs(a.y - b.y)
 
-func isOrganized(grid: Grid): bool =
+func isOrganized(state: State): bool =
   for kind, x in rooms:
-    if grid.getOrDefault((x: x, y: 2)) != kind or 
-       grid.getOrDefault((x: x, y: 3)) != kind:
-      return false
+    for y in 0..<state.roomSize:
+      if state.grid.getOrDefault((x: x, y: 2 + y)) != kind:
+        return false
   
   true
 
@@ -26,17 +26,22 @@ func isHallwayClear(a, b: int, grid: Grid): bool =
 
   true
 
+func canMoveToRoom(a: char, p: Point, state: State): bool =
+  for y in 0..<state.roomSize:
+    if state.grid.getOrDefault((x: rooms[a], y: y + 2), a) != a:
+      return false
+  
+  true
+
 func moves(a: char, p: Point, state: State): seq[Point] =
    # Hallway
   if p.y == hallwayY:
-    if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a):
-      return
-    else:
+    if canMoveToRoom(a, p, state):
       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
-      let y = state.roomYs.filterIt((x: rooms[a], y: it) notin state.grid).max
+      let y = (2..<state.roomSize + 2).toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
       return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
   # Room correct
-  elif p.x == rooms[a] and (p.y .. state.roomYs.max).allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
+  elif p.x == rooms[a] and (p.y ..< state.roomSize + 2).toSeq.allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
     return
    # Top of room not empty
   elif (x: p.x, y: p.y - 1) in state.grid:
@@ -65,7 +70,7 @@ func solve(state: State): int =
   while queue.len > 0:
     let current = queue.pop()
 
-    if current.grid.isOrganized:
+    if current.isOrganized:
       return current.energy
 
     for move in current.moves:
@@ -79,6 +84,7 @@ proc readInputState(lines: seq[string]): State =
       result.grid[(x: x, y: y)] = lines[y][x]
   
   result.roomYs = (2 ..< lines.high).toSeq
+  result.roomSize = lines.len - 3
 
 proc part1*: int = 
   let lines = readInputStrings(day = 23).toSeq
