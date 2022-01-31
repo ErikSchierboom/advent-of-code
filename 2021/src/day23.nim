@@ -8,10 +8,29 @@ const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
 proc isHallwayClear(grid: Grid, roomNum, hallwayIdx: int): bool =
-  if hallwayIdx < 2 + roomNum:
-    (0..roomNum + 1).toSeq.filterIt(it >= hallwayIdx).allIt(grid.hallway[it] == '.')
-  else:
-    (roomNum + 2 .. 6).toSeq.filterIt(it <= hallwayIdx).allIt(grid.hallway[it] == '.')
+  case roomNum
+    of 0:
+      if hallwayIdx < 2:
+        (hallwayIdx + 1 .. 1).toSeq.allIt(grid.hallway[it] == '.')
+      else:
+        (2..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
+    of 1:
+      if hallwayIdx < 3:
+        (hallwayIdx + 1 .. 2).toSeq.allIt(grid.hallway[it] == '.')
+      else:
+        (3..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
+    of 2:
+      if hallwayIdx < 4:
+        (hallwayIdx + 1 .. 3).toSeq.allIt(grid.hallway[it] == '.')
+      else:
+        (4..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
+    of 3:
+      if hallwayIdx < 5:
+        (hallwayIdx + 1 .. 4).toSeq.allIt(grid.hallway[it] == '.')
+      else:
+        (5..hallwayIdx - 1).toSeq.allIt(grid.hallway[it] == '.')
+    else:
+      raiseAssert("Fail")
 
 func room(grid: Grid, num: int): string = 
   let roomIdx = num * grid.roomSize
@@ -28,8 +47,6 @@ proc moves(state: State): seq[State] =
     let room = state.grid.room(cell)
     if room.anyIt(it != cell and it != '.'):
       continue
-
-    echo "move to room"
 
     let roomNum = amphipods.find(cell)
     let roomIdx = room.rfind('.')
