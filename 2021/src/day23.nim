@@ -2,7 +2,7 @@ import helpers, std/[heapqueue, sequtils, tables]
 
 type 
   Grid = Table[Point, char]
-  State = tuple[grid: Grid, energy, roomSize: int, roomYs: seq[int]]
+  State = tuple[grid: Grid, energy, roomSize: int]
 
 const rooms = { 'A': 3, 'B': 5, 'C': 7, 'D': 9 }.toTable
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
@@ -33,21 +33,26 @@ func canMoveToRoom(a: char, p: Point, state: State): bool =
   
   true
 
+func canMoveToHallway(a: char, p: Point, state: State): bool =
+  for y in 0..<p.y:
+    if (x: p.x, y: y) in state.grid:
+      return false
+
+  true
+
+func inHallway(a: char, p: Point, state: State): bool = p.y == hallwayY
+
+func inOrganizedRoom(a: char, p: Point, state: State): bool =
+  p.x == rooms[a] and (p.y ..< state.roomSize + 2).toSeq.allIt(state.grid.getOrDefault((x: p.x, y: it)) == a)
+
 func moves(a: char, p: Point, state: State): seq[Point] =
-   # Hallway
-  if p.y == hallwayY:
+  if inHallway(a, p, state):
     if canMoveToRoom(a, p, state):
       let x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
       let y = (2..<state.roomSize + 2).toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
-      return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
-  # Room correct
-  elif p.x == rooms[a] and (p.y ..< state.roomSize + 2).toSeq.allIt(state.grid.getOrDefault((x: p.x, y: it)) == a):
-    return
-   # Top of room not empty
-  elif (x: p.x, y: p.y - 1) in state.grid:
-    return
-  else:
-    return hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
+      result.add @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid))
+  elif not inOrganizedRoom(a, p, state) and canMoveToHallway(a, p, state):
+    result.add hallwayXs.filterIt(p.x.isHallwayClear(it, state.grid)).mapIt((it, 1))
 
 func moves(state: State): seq[State] =
   for p, a in state.grid:
@@ -83,7 +88,6 @@ proc readInputState(lines: seq[string]): State =
     for _, x in rooms:
       result.grid[(x: x, y: y)] = lines[y][x]
   
-  result.roomYs = (2 ..< lines.high).toSeq
   result.roomSize = lines.len - 3
 
 proc part1*: int = 
