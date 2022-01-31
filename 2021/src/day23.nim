@@ -7,11 +7,11 @@ type
 const amphipods = "ABCD"
 const costs = { 'A': 1, 'B': 10, 'C': 100, 'D': 1000 }.toTable
 
-proc isHallwayClear(grid: Grid, roomIdx, hallwayIdx: int): bool =
-  if hallwayIdx < 2 + roomIdx:
-    (0..roomIdx + 1).toSeq.filterIt(it >= hallwayIdx).allIt(grid.hallway[it] == '.')
+proc isHallwayClear(grid: Grid, roomNum, hallwayIdx: int): bool =
+  if hallwayIdx < 2 + roomNum:
+    (0..roomNum + 1).toSeq.filterIt(it >= hallwayIdx).allIt(grid.hallway[it] == '.')
   else:
-    (roomIdx + 2 .. 6).toSeq.filterIt(it <= hallwayIdx).allIt(grid.hallway[it] == '.')
+    (roomNum + 2 .. 6).toSeq.filterIt(it <= hallwayIdx).allIt(grid.hallway[it] == '.')
 
 func room(grid: Grid, num: int): string = 
   let roomIdx = num * grid.roomSize
@@ -29,11 +29,14 @@ proc moves(state: State): seq[State] =
     if room.anyIt(it != cell and it != '.'):
       continue
 
-    # if state.roomYs.anyIt(state.grid.getOrDefault((x: rooms[a], y: it), a) != a): return @[]
-    # let
-    #   x = if p.x < rooms[a]: p.x + 1 else: p.x - 1
-    #   y = state.roomYs.toSeq.filterIt((x: rooms[a], y: it) notin state.grid).max
-    # return @[(rooms[a], y)].filterIt(x.isHallwayClear(rooms[a], state.grid
+    echo "move to room"
+
+    let roomNum = amphipods.find(cell)
+    let roomIdx = room.rfind('.')
+    if state.grid.isHallwayClear(roomNum, hallwayIdx):
+      echo &"move from hallwayIdx {hallwayIdx} to room {roomNum} and roomIdx {roomIdx}" 
+    else:
+      echo &"can't move from hallwayIdx {hallwayIdx} to room {roomNum} and roomIdx {roomIdx}" 
 
   for roomNum, amphipod in amphipods:
     let room = state.grid.room(roomNum)
