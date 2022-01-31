@@ -16,11 +16,7 @@ func cost(grid: Grid, amphipod: char, hallwayIdx, roomNum, roomIdx: int): int =
   grid.distance(amphipod, hallwayIdx, roomNum, roomIdx) * costs[amphipod]
 
 func isHallwayClear(grid: Grid, roomNum, hallwayIdx: int): bool =
-  for x in min(hallwayIdx + 1, roomNum + 2) .. max(roomNum + 1, hallwayIdx - 1):
-    if grid.hallway[x] != '.':
-      return false
-
-  true
+  (min(hallwayIdx + 1, roomNum + 2) .. max(roomNum + 1, hallwayIdx - 1)).toSeq.allIt(grid.hallway[it] == '.')
 
 func room(grid: Grid, num: int): string = 
   let roomIdx = num * grid.roomSize
@@ -64,7 +60,6 @@ proc moves(state: State): seq[State] =
             result.add newState
           break
 
-# TODO: compare using total costs using manhattan distance
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
 proc solve(state: State, goal: Grid): int =
@@ -114,7 +109,7 @@ proc part2*(lines: seq[string]): int =
 proc solveDay23*: IntSolution =
   var lines = readInputStrings(day = 23).toSeq
   result.part1 = part1(lines)
-  # result.part2 = part2(lines)
+  result.part2 = part2(lines)
 
 when isMainModule:
   echo solveDay23()
