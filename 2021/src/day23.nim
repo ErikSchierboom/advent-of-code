@@ -1,4 +1,4 @@
-import helpers, std/[algorithm, heapqueue, math, sequtils, strformat, tables]
+import helpers, std/[algorithm, heapqueue, math, sequtils, strformat, strutils, tables]
 
 type 
   Grid = tuple[hallway: seq[int], rooms: array[4, seq[int]]]
@@ -10,6 +10,15 @@ const rooms = [2, 4, 6, 8]
 func cost(amphipod: int): int = 10 ^ amphipod
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
 func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
+
+func `$`(grid: Grid): string =
+  func `$`(i: int): string =
+    if i == -1: "." else: $(amphipods[i])
+  let hallway = grid.hallway.mapIt($it).join()
+  &"#############\n#{hallway}#\n###{$grid.rooms[0][0]}#{$grid.rooms[1][0]}#{$grid.rooms[2][0]}#{$grid.rooms[3][0]}###\n  #{$grid.rooms[0][1]}#{$grid.rooms[1][1]}#{$grid.rooms[2][1]}#{$grid.rooms[3][1]}#\n  #########\n"
+
+func `$`(state: State): string =
+  &"Energy: {state.energy}\n{state.grid}"
 
 proc moves(state: State): seq[State] =
   for x, a in state.grid.hallway:
@@ -31,6 +40,7 @@ proc moves(state: State): seq[State] =
     updated.grid.hallway[x] = -1
     updated.grid.rooms[a][y] = a
     inc updated.energy, a.cost * (abs(x - rooms[a]) + 1 + y)
+    result.add updated
 
   for i, room in state.grid.rooms:
     if state.grid.isOrganized(i):
@@ -58,7 +68,6 @@ proc moves(state: State): seq[State] =
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
 proc solve(state: State): int =
-  echo state
   var queue: HeapQueue[State]
   queue.push(state)
 
@@ -75,6 +84,7 @@ proc solve(state: State): int =
     for move in current.moves:
       if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
         queue.push move
+        # echo move
         energyCounts[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
