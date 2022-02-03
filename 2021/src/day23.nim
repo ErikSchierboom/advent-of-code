@@ -22,11 +22,17 @@ proc moves(state: State): seq[State] =
     if room.anyIt(it != -1 and it != a):
       continue
 
-    let x = if x < rooms[a]: x + 1 else: x - 1
-    if toSeq(min(x, rooms[a])..max(x, rooms[a])).anyIt(state.grid.hallway[it] != -1):
+    let xx = if x < rooms[a]: x + 1 else: x - 1
+    if toSeq(min(xx, rooms[a])..max(xx, rooms[a])).anyIt(state.grid.hallway[it] != -1):
       continue
 
+    let y = toSeq(room.low..room.high).filterIt(room[it] == -1).max
+
     echo &"move {a} from hallway idx {x} to room {room}"
+    var updated = state
+    updated.grid.hallway[x] = -1
+    updated.grid.rooms[a][y] = a
+    inc updated.energy, a.cost * (abs(x - rooms[a]) + y + 1)
 
   for i, room in state.grid.rooms:
     if state.grid.isOrganized(i):
@@ -43,6 +49,12 @@ proc moves(state: State): seq[State] =
           continue
 
         echo &"move {a} from level {y} in room {i} to hallway {x}"
+
+        var updated = state
+        updated.grid.hallway[x] = -1
+        updated.grid.rooms[i][y] = a
+        inc updated.energy, a.cost * (abs(x - rooms[a]) + y + 1)
+        result.add updated
       break
 
   # for next in moves(a, state.toPoint(p), state):
