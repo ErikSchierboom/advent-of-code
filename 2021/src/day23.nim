@@ -8,9 +8,7 @@ const amphipods = "ABCD"
 const rooms = [2, 4, 6, 8]
 
 func cost(amphipod: int): int = 10 ^ amphipod
-
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
-
 func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
 
 proc moves(state: State): seq[State] =
@@ -28,11 +26,11 @@ proc moves(state: State): seq[State] =
 
     let y = toSeq(room.low..room.high).filterIt(room[it] == -1).max
 
-    echo &"move {a} from hallway idx {x} to room {room}"
+    echo &"move {a} from hallway idx {x} to room {a} and level {y}"
     var updated = state
     updated.grid.hallway[x] = -1
     updated.grid.rooms[a][y] = a
-    inc updated.energy, a.cost * (abs(x - rooms[a]) + y + 1)
+    inc updated.energy, a.cost * (abs(x - rooms[a]) + 1 + y)
 
   for i, room in state.grid.rooms:
     if state.grid.isOrganized(i):
@@ -45,24 +43,17 @@ proc moves(state: State): seq[State] =
       for x, _ in state.grid.hallway:
         if x in rooms:
           continue
-        elif toSeq(min(x, rooms[a])..max(x, rooms[a])).anyIt(state.grid.hallway[it] != -1):
+        elif toSeq(min(x, rooms[i])..max(x, rooms[i])).anyIt(state.grid.hallway[it] != -1):
           continue
 
         echo &"move {a} from level {y} in room {i} to hallway {x}"
 
         var updated = state
-        updated.grid.hallway[x] = -1
-        updated.grid.rooms[i][y] = a
-        inc updated.energy, a.cost * (abs(x - rooms[a]) + y + 1)
+        updated.grid.hallway[x] = a
+        updated.grid.rooms[i][y] = -1
+        inc updated.energy, a.cost * (abs(x - rooms[i]) + 1 + y)
         result.add updated
       break
-
-  # for next in moves(a, state.toPoint(p), state):
-  #   var updated = state
-  #   updated.grid[p] = '.'
-  #   updated.grid[state.toIdx(next)] = a
-  #   inc updated.energy, costs[a] * manhattanDistance(state.toPoint(p), next)
-  #   result.add updated
 
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
@@ -78,6 +69,7 @@ proc solve(state: State): int =
     let current = queue.pop()
 
     if current.grid.isOrganized:
+      echo "organized"
       return current.energy
 
     for move in current.moves:
