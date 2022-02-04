@@ -11,15 +11,6 @@ func cost(amphipod: int): int = 10 ^ amphipod
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
 func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
 
-func `$`(grid: Grid): string =
-  func `$`(i: int): string =
-    if i == -1: "." else: $(amphipods[i])
-  let hallway = grid.hallway.mapIt($it).join()
-  &"#############\n#{hallway}#\n###{$grid.rooms[0][0]}#{$grid.rooms[1][0]}#{$grid.rooms[2][0]}#{$grid.rooms[3][0]}###\n  #{$grid.rooms[0][1]}#{$grid.rooms[1][1]}#{$grid.rooms[2][1]}#{$grid.rooms[3][1]}#\n  #########\n"
-
-func `$`(state: State): string =
-  &"Energy: {state.energy}\n{state.grid}"
-
 proc moves(state: State): seq[State] =
   for x, a in state.grid.hallway:
     if a == -1:
