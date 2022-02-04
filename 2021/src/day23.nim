@@ -49,6 +49,8 @@ proc moves(state: State): seq[State] =
     for y, a in room:
       if a == -1:
         continue
+      elif y == room.high and a == i:
+        break
 
       for x, _ in state.grid.hallway:
         if x in rooms:
@@ -57,8 +59,6 @@ proc moves(state: State): seq[State] =
           continue
 
         echo &"move {a} from level {y} in room {i} to hallway {x}"
-
-        # TODO: don't move out of room if at the bottom and organized
 
         var updated = state
         updated.grid.hallway[x] = a
@@ -85,8 +85,8 @@ proc solve(state: State): int =
 
     for move in current.moves:
       if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
-        # queue.push move
-        echo move
+        queue.push move
+        # echo move
         energyCounts[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
