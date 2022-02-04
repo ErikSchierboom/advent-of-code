@@ -35,7 +35,6 @@ proc moves(state: State): seq[State] =
 
     let y = toSeq(room.low..room.high).filterIt(room[it] == -1).max
 
-    echo &"move {a} from hallway idx {x} to room {a} and level {y}"
     var updated = state
     updated.grid.hallway[x] = -1
     updated.grid.rooms[a][y] = a
@@ -58,8 +57,6 @@ proc moves(state: State): seq[State] =
         elif toSeq(min(x, rooms[i])..max(x, rooms[i])).anyIt(state.grid.hallway[it] != -1):
           continue
 
-        echo &"move {a} from level {y} in room {i} to hallway {x}"
-
         var updated = state
         updated.grid.hallway[x] = a
         updated.grid.rooms[i][y] = -1
@@ -80,13 +77,11 @@ proc solve(state: State): int =
     let current = queue.pop()
 
     if current.grid.isOrganized:
-      echo "organized"
       return current.energy
 
     for move in current.moves:
       if move.energy < energyCounts.getOrDefault(move.grid, high(int)):
         queue.push move
-        # echo move
         energyCounts[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
@@ -108,7 +103,7 @@ proc part2*: int =
 
 proc solveDay23*: IntSolution =
   result.part1 = part1()
-  # result.part2 = part2()
+  result.part2 = part2()
 
 when isMainModule:
   echo solveDay23()
