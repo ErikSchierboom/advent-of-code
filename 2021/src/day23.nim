@@ -48,7 +48,7 @@ iterator movesFromRooms(state: State): State =
         break
 
       for x in hallway:
-        if x in rooms or not state.grid.hallwayClear(x, rooms[i]):
+        if not state.grid.hallwayClear(x, rooms[i]):
           continue
 
         yield move(state, a, x, i, y)
