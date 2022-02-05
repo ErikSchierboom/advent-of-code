@@ -10,6 +10,7 @@ const rooms = [2, 4, 6, 8]
 func cost(amphipod: int): int = 10 ^ amphipod
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
 func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
+func hallwayClear(grid: Grid, a, b: int): bool = toSeq(min(a, b)..max(a, b)).allIt(grid.hallway[it] == -1)
 
 func move(state: State, amphipod, hallway, room, level: int): State = 
   result = state
@@ -26,7 +27,7 @@ iterator moves(state: State): State =
       continue
 
     let xx = if x < rooms[a]: x + 1 else: x - 1
-    if toSeq(min(xx, rooms[a])..max(xx, rooms[a])).anyIt(state.grid.hallway[it] != -1):
+    if not state.grid.hallwayClear(xx, rooms[a]):
       continue
 
     let y = toSeq(room.low..room.high).filterIt(room[it] == -1).max
@@ -43,9 +44,7 @@ iterator moves(state: State): State =
         break
 
       for x, _ in state.grid.hallway:
-        if x in rooms:
-          continue
-        elif toSeq(min(x, rooms[i])..max(x, rooms[i])).anyIt(state.grid.hallway[it] != -1):
+        if x in rooms or not state.grid.hallwayClear(x, rooms[i]):
           continue
 
         yield move(state, a, x, i, y)
