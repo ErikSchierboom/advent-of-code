@@ -11,7 +11,12 @@ func cost(amphipod: int): int = 10 ^ amphipod
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
 func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
 
-proc moves(state: State): seq[State] =
+func move(state: State, amphipod, hallway, room, level: int): State = 
+  result = state
+  swap(result.grid.hallway[hallway], result.grid.rooms[room][level])
+  inc result.energy, amphipod.cost * (abs(hallway - rooms[room]) + 1 + level)
+
+iterator moves(state: State): State =
   for x, a in state.grid.hallway:
     if a == -1:
       continue
@@ -25,12 +30,7 @@ proc moves(state: State): seq[State] =
       continue
 
     let y = toSeq(room.low..room.high).filterIt(room[it] == -1).max
-
-    var updated = state
-    updated.grid.hallway[x] = -1
-    updated.grid.rooms[a][y] = a
-    inc updated.energy, a.cost * (abs(x - rooms[a]) + 1 + y)
-    result.add updated
+    yield move(state, a, x, a, y)
 
   for i, room in state.grid.rooms:
     if state.grid.isOrganized(i):
@@ -48,11 +48,7 @@ proc moves(state: State): seq[State] =
         elif toSeq(min(x, rooms[i])..max(x, rooms[i])).anyIt(state.grid.hallway[it] != -1):
           continue
 
-        var updated = state
-        updated.grid.hallway[x] = a
-        updated.grid.rooms[i][y] = -1
-        inc updated.energy, a.cost * (abs(x - rooms[i]) + 1 + y)
-        result.add updated
+        yield move(state, a, x, i, y)
       break
 
 func `<`(a: State, b: State): bool = a.energy < b.energy
