@@ -55,11 +55,8 @@ iterator movesFromRooms(state: State): State =
       break
 
 iterator moves(state: State): State =
-  for move in state.movesFromHallway:
-    yield move
-
-  for move in state.movesFromRooms:
-    yield move
+  for move in state.movesFromHallway: yield move
+  for move in state.movesFromRooms: yield move
 
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
