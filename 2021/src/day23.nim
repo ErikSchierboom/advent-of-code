@@ -1,4 +1,4 @@
-import helpers, std/[algorithm, heapqueue, math, sequtils, strformat, strutils, tables]
+import helpers, std/[heapqueue, math, sequtils, strutils, tables]
 
 type 
   Grid = tuple[hallway: seq[int], rooms: array[4, seq[int]]]
@@ -6,6 +6,7 @@ type
 
 const amphipods = "ABCD"
 const rooms = [2, 4, 6, 8]
+const hallway = [0, 1, 3, 5, 7, 9, 10]
 
 func cost(amphipod: int): int = 10 ^ amphipod
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
@@ -18,7 +19,8 @@ func move(state: State, amphipod, hallway, room, level: int): State =
   inc result.energy, amphipod.cost * (abs(hallway - rooms[room]) + 1 + level)
 
 iterator moves(state: State): State =
-  for x, a in state.grid.hallway:
+  for x in hallway:
+    let a = state.grid.hallway[x]
     if a == -1:
       continue
 
@@ -43,7 +45,7 @@ iterator moves(state: State): State =
       elif y == room.high and a == i:
         break
 
-      for x, _ in state.grid.hallway:
+      for x in hallway:
         if x in rooms or not state.grid.hallwayClear(x, rooms[i]):
           continue
 
