@@ -19,8 +19,8 @@ func move(state: State, amphipod, hallway, room, level: int): State =
   swap(result.grid.hallway[hallway], result.grid.rooms[room][level])
   inc result.energy, amphipod.cost * (abs(hallway - rooms[room]) + 1 + level)
 
-iterator moves(state: State): State =
-  for x in hallway:
+iterator movesFromHallway(state: State): State =
+   for x in hallway:
     let a = state.grid.hallway[x]
     if a == empty:
       continue
@@ -36,6 +36,7 @@ iterator moves(state: State): State =
     let y = toSeq(room.low..room.high).filterIt(room[it] == empty).max
     yield move(state, a, x, a, y)
 
+iterator movesFromRooms(state: State): State =
   for i, room in state.grid.rooms:
     if state.grid.isOrganized(i):
       continue
@@ -52,6 +53,13 @@ iterator moves(state: State): State =
 
         yield move(state, a, x, i, y)
       break
+
+iterator moves(state: State): State =
+  for move in state.movesFromHallway:
+    yield move
+
+  for move in state.movesFromRooms:
+    yield move
 
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
