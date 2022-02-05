@@ -1,17 +1,18 @@
 import helpers, std/[heapqueue, math, sequtils, strutils, tables]
 
 type 
-  Grid = tuple[hallway: seq[int], rooms: array[4, seq[int]]]
+  Grid = tuple[hallway: array[11, int], rooms: array[4, seq[int]]]
   State = tuple[grid: Grid, energy: int]
 
 const amphipods = "ABCD"
 const rooms = [2, 4, 6, 8]
 const hallway = [0, 1, 3, 5, 7, 9, 10]
+const empty = -1
 
 func cost(amphipod: int): int = 10 ^ amphipod
 func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
 func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
-func hallwayClear(grid: Grid, a, b: int): bool = toSeq(min(a, b)..max(a, b)).allIt(grid.hallway[it] == -1)
+func hallwayClear(grid: Grid, a, b: int): bool = toSeq(min(a, b)..max(a, b)).allIt(grid.hallway[it] == empty)
 
 func move(state: State, amphipod, hallway, room, level: int): State = 
   result = state
@@ -21,18 +22,18 @@ func move(state: State, amphipod, hallway, room, level: int): State =
 iterator moves(state: State): State =
   for x in hallway:
     let a = state.grid.hallway[x]
-    if a == -1:
+    if a == empty:
       continue
 
     let room = state.grid.rooms[a]
-    if room.anyIt(it != -1 and it != a):
+    if room.anyIt(it != empty and it != a):
       continue
 
     let xx = if x < rooms[a]: x + 1 else: x - 1
     if not state.grid.hallwayClear(xx, rooms[a]):
       continue
 
-    let y = toSeq(room.low..room.high).filterIt(room[it] == -1).max
+    let y = toSeq(room.low..room.high).filterIt(room[it] == empty).max
     yield move(state, a, x, a, y)
 
   for i, room in state.grid.rooms:
@@ -40,7 +41,7 @@ iterator moves(state: State): State =
       continue
 
     for y, a in room:
-      if a == -1:
+      if a == empty:
         continue
       elif y == room.high and a == i:
         break
@@ -73,8 +74,8 @@ proc solve(state: State): int =
         energyCounts[move.grid] = move.energy
 
 proc readInputState(lines: seq[string]): State =
-  for x in 1..11:
-    result.grid.hallway.add amphipods.find(lines[1][x])
+  for cell in result.grid.hallway.mitems:
+    cell = -1
 
   for i, x in rooms:
     for y in 2 ..< lines.high:
