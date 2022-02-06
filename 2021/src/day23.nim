@@ -1,7 +1,7 @@
 import helpers, std/[heapqueue, math, sequtils, strutils, tables]
 
 type 
-  Grid = tuple[hallway: array[11, int], rooms: array[4, seq[int]]]
+  Grid = tuple[hallway: array[7, int], rooms: array[4, seq[int]]]
   State = tuple[grid: Grid, energy: int]
 
 const amphipods = "ABCD"
@@ -10,18 +10,16 @@ const hallway = [0, 1, 3, 5, 7, 9, 10]
 const empty = -1
 
 func cost(amphipod: int): int = 10 ^ amphipod
-func isOrganized(grid: Grid, i: int): bool = grid.rooms[i].allIt(it == i)
-func isOrganized(grid: Grid): bool = toSeq(0..grid.rooms.high).allIt(grid.isOrganized(it))
-func hallwayClear(grid: Grid, a, b: int): bool = toSeq(min(a, b)..max(a, b)).allIt(grid.hallway[it] == empty)
+func hallwayClear(grid: Grid, a, b: int): bool = hallway.filterIt(it >= min(a, b) and it <= max(a, b)).allIt(grid.hallway[hallway.find(it)] == empty)
 
-func move(state: State, amphipod, hallway, room, level: int): State = 
+func move(state: State, amphipod, hallwayIdx, roomIdx, levelIdx: int): State = 
   result = state
-  swap(result.grid.hallway[hallway], result.grid.rooms[room][level])
-  inc result.energy, amphipod.cost * (abs(hallway - rooms[room]) + 1 + level)
+  swap(result.grid.hallway[hallwayIdx], result.grid.rooms[roomIdx][levelIdx])
+  inc result.energy, amphipod.cost * (abs(hallway[hallwayIdx] - rooms[roomIdx]) + 1 + levelIdx)
 
 iterator movesFromHallway(state: State): State =
-   for x in hallway:
-    let a = state.grid.hallway[x]
+   for i, x in hallway:
+    let a = state.grid.hallway[i]
     if a == empty:
       continue
 
@@ -34,11 +32,11 @@ iterator movesFromHallway(state: State): State =
       continue
 
     let y = toSeq(room.low..room.high).filterIt(room[it] == empty).max
-    yield move(state, a, x, a, y)
+    yield move(state, a, i, a, y)
 
 iterator movesFromRooms(state: State): State =
   for i, room in state.grid.rooms:
-    if state.grid.isOrganized(i):
+    if room.allIt(it == i):
       continue
 
     for y, a in room:
@@ -47,20 +45,30 @@ iterator movesFromRooms(state: State): State =
       elif y == room.high and a == i:
         break
 
-      for x in hallway:
+      for j, x in hallway:
         if not state.grid.hallwayClear(x, rooms[i]):
           continue
 
-        yield move(state, a, x, i, y)
+        yield move(state, a, j, i, y)
       break
 
 iterator moves(state: State): State =
   for move in state.movesFromHallway: yield move
   for move in state.movesFromRooms: yield move
 
+func toOrganized(state: State): Grid =
+  for i, _ in state.grid.hallway:
+    result.hallway[i] = -1
+
+  for j, room in state.grid.rooms:
+    for _ in room:
+      result.rooms[j].add j
+
 func `<`(a: State, b: State): bool = a.energy < b.energy
 
 proc solve(state: State): int =
+  let organized = state.toOrganized
+
   var queue: HeapQueue[State]
   queue.push(state)
 
@@ -70,7 +78,7 @@ proc solve(state: State): int =
   while queue.len > 0:
     let current = queue.pop()
 
-    if current.grid.isOrganized:
+    if current.grid == organized:
       return current.energy
 
     for move in current.moves:
