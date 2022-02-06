@@ -4,13 +4,14 @@ type
   Grid = tuple[hallway: array[7, int], rooms: array[4, seq[int]]]
   State = tuple[grid: Grid, energy: int]
 
-const amphipods = "ABCD"
 const rooms = [2, 4, 6, 8]
 const hallway = [0, 1, 3, 5, 7, 9, 10]
 const empty = -1
 
 func cost(amphipod: int): int = 10 ^ amphipod
-func hallwayClear(grid: Grid, a, b: int): bool = hallway.filterIt(it >= min(a, b) and it <= max(a, b)).allIt(grid.hallway[hallway.find(it)] == empty)
+
+func hallwayClear(grid: Grid, a, b: int): bool =
+  hallway.filterIt(it in min(a, b)..max(a, b)).allIt(grid.hallway[hallway.find(it)] == empty)
 
 func move(state: State, amphipod, hallwayIdx, roomIdx, levelIdx: int): State = 
   result = state
@@ -92,7 +93,7 @@ proc readInputState(lines: seq[string]): State =
 
   for i, x in rooms:
     for y in 2 ..< lines.high:
-      result.grid.rooms[i].add amphipods.find(lines[y][x + 1])
+      result.grid.rooms[i].add "ABCD".find(lines[y][x + 1])
 
 proc part1*: int = 
   let lines = readInputStrings(day = 23).toSeq
