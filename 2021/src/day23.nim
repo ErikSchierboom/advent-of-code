@@ -13,45 +13,40 @@ func cost(amphipod: int): int = 10 ^ amphipod
 func hallwayClear(grid: Grid, a, b: int): bool =
   hallway.filterIt(it in min(a, b)..max(a, b)).allIt(grid.hallway[hallway.find(it)] == empty)
 
+func canMoveToRoom(state: State, hallwayIdx, amphipod: int): bool =
+  amphipod != empty and
+  state.grid.rooms[amphipod].allIt(it == empty or it == amphipod) and
+  state.grid.hallwayClear(if hallway[hallwayIdx] < rooms[amphipod]: hallway[hallwayIdx] + 1 else: hallway[hallwayIdx] - 1, rooms[amphipod])
+
+func roomLevel(state: State, amphipod: int): int =
+  state.grid.rooms[amphipod].pairs.toSeq.filterIt(it.val == empty).mapIt(it.key).max
+
 func move(state: State, amphipod, hallwayIdx, roomIdx, levelIdx: int): State = 
   result = state
   swap(result.grid.hallway[hallwayIdx], result.grid.rooms[roomIdx][levelIdx])
   inc result.energy, amphipod.cost * (abs(hallway[hallwayIdx] - rooms[roomIdx]) + 1 + levelIdx)
 
 iterator movesFromHallway(state: State): State =
-   for i, a in state.grid.hallway:
-    if a == empty:
-      continue
-
-    let x = hallway[i]
-
-    let room = state.grid.rooms[a]
-    if room.anyIt(it != empty and it != a):
-      continue
-
-    let xx = if x < rooms[a]: x + 1 else: x - 1
-    if not state.grid.hallwayClear(xx, rooms[a]):
-      continue
-
-    let y = toSeq(room.low..room.high).filterIt(room[it] == empty).max
-    yield move(state, a, i, a, y)
+   for hallwayIdx, amphipod in state.grid.hallway:
+    if state.canMoveToRoom(hallwayIdx, amphipod):
+      yield move(state, amphipod, hallwayIdx, amphipod, state.roomLevel(amphipod))
 
 iterator movesFromRooms(state: State): State =
-  for i, room in state.grid.rooms:
-    if room.allIt(it == i):
+  for roomIdx, room in state.grid.rooms:
+    if room.allIt(it == roomIdx):
       continue
 
-    for y, a in room:
-      if a == empty:
+    for roomLevel, amphipod in room:
+      if amphipod == empty:
         continue
-      elif y == room.high and a == i:
+      elif roomLevel == room.high and amphipod == roomIdx:
         break
 
-      for j, x in hallway:
-        if not state.grid.hallwayClear(x, rooms[i]):
+      for hallwayIdx, hallwayAmphipod in hallway:
+        if not state.grid.hallwayClear(hallwayAmphipod, rooms[roomIdx]):
           continue
 
-        yield move(state, a, j, i, y)
+        yield move(state, amphipod, hallwayIdx, roomIdx, roomLevel)
       break
 
 iterator moves(state: State): State =
