@@ -19,10 +19,11 @@ func move(state: State, amphipod, hallwayIdx, roomIdx, levelIdx: int): State =
   inc result.energy, amphipod.cost * (abs(hallway[hallwayIdx] - rooms[roomIdx]) + 1 + levelIdx)
 
 iterator movesFromHallway(state: State): State =
-   for i, x in hallway:
-    let a = state.grid.hallway[i]
+   for i, a in state.grid.hallway:
     if a == empty:
       continue
+
+    let x = hallway[i]
 
     let room = state.grid.rooms[a]
     if room.anyIt(it != empty and it != a):
