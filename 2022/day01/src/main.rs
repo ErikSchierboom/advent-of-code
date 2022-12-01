@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
-fn main() {
-    let top_elves = include_str!("../input.txt")
+fn solve() -> (i32, i32) {
+    let calories = include_str!("../input.txt")
         .split("\n\n")
         .map(|foods| {
             foods
@@ -14,6 +14,11 @@ fn main() {
         .take(3)
         .collect_vec();
 
-    println!("a: {:?}", top_elves.first().unwrap());
-    println!("b: {:?}", top_elves.into_iter().sum::<i32>())
+    (calories[0], calories[0..2].into_iter().sum::<i32>())
+}
+
+fn main() {
+    let (a, b) = solve();
+    println!("a: {}", a);
+    println!("b: {}", b)
 }
