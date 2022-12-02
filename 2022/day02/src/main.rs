@@ -1,38 +1,25 @@
-fn score_a(instruction: &str) -> usize {
-    match instruction {
-        "A X" => 1 + 3,
-        "B X" => 1 + 0,
-        "C X" => 1 + 6,
-        "A Y" => 2 + 6,
-        "B Y" => 2 + 3,
-        "C Y" => 2 + 0,
-        "A Z" => 3 + 0,
-        "B Z" => 3 + 6,
-        "C Z" => 3 + 3,
-        _ => 0,
-    }
+fn score_a(other_move: i32, my_move: i32) -> i32 {
+    my_move + 1 + 3 * (1 + my_move - other_move).rem_euclid(3)
 }
 
-fn score_b(instruction: &str) -> usize {
-    match instruction {
-        "A X" => 0 + 3,
-        "B X" => 0 + 1,
-        "C X" => 0 + 2,
-        "A Y" => 3 + 1,
-        "B Y" => 3 + 2,
-        "C Y" => 3 + 3,
-        "A Z" => 6 + 2,
-        "B Z" => 6 + 3,
-        "C Z" => 6 + 1,
-        _ => 0,
-    }
+fn score_b(other_move: i32, my_move: i32) -> i32 {
+    my_move * 3 + 1 + (my_move + other_move - 1).rem_euclid(3)
 }
 
-fn solve() -> (usize, usize) {
+fn solve() -> (i32, i32) {
+    const OTHER_MOVES: &'static str = "ABC";
+    const MY_MOVES: &'static str = "XYZ";
+
     include_str!("../input.txt")
         .lines()
-        .fold((0, 0), |(a, b), instruction| {
-            (a + score_a(instruction), b + score_b(instruction))
+        .fold((0, 0), |(a, b), code| {
+            let other_move = OTHER_MOVES.find(code.chars().nth(0).unwrap()).unwrap() as i32;
+            let my_move = MY_MOVES.find(code.chars().nth(2).unwrap()).unwrap() as i32;
+
+            (
+                a + score_a(other_move, my_move),
+                b + score_b(other_move, my_move),
+            )
         })
 }
 
