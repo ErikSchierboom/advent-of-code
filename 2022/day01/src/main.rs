@@ -6,7 +6,7 @@ fn solve() -> (i32, i32) {
 
     calories.sort_by(|a, b| b.cmp(a));
 
-    (calories[0], calories.into_iter().take(3).sum())
+    (calories[0], calories.iter().take(3).sum())
 }
 
 fn main() {
