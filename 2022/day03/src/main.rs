@@ -4,7 +4,7 @@ use std::ops::BitAnd;
 const PRIORITIES: &'static str = ".abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 fn priority(item_type: &char) -> usize {
-    PRIORITIES.find(item_type).unwrap()
+    PRIORITIES.find(*item_type).unwrap()
 }
 
 fn rucksack_priority(rucksack: &&str) -> usize {
@@ -17,7 +17,7 @@ fn rucksack_priority(rucksack: &&str) -> usize {
 
 fn group_priority(rucksacks: &[&str]) -> usize {
     let first_item_types = rucksacks.first().unwrap().chars().collect::<HashSet<char>>();
-    let second_item_types = rucksacks.into_iter().nth(1).unwrap().chars().collect::<HashSet<char>>();
+    let second_item_types = rucksacks.iter().nth(1).unwrap().chars().collect::<HashSet<char>>();
     let third_item_types = rucksacks.last().unwrap().chars().collect::<HashSet<char>>();
 
     priority(first_item_types.bitand(&second_item_types).bitand(&third_item_types).iter().next().unwrap())
