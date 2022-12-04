@@ -1,27 +1,27 @@
 use std::fmt::Error;
 use std::str::FromStr;
 
-struct Assignment {
-    low: i32,
-    high: i32
-}
+struct Assignment { low: i32, high: i32 }
+struct AssignmentPair { first: Assignment, second: Assignment }
 
-struct AssignmentPair {
-    first: Assignment,
-    second: Assignment
+impl Assignment {
+    fn contains(&self, other: &Assignment) -> bool {
+        self.low >= other.low && self.high <= other.high
+    }
+
+    fn overlaps(&self, other: &Assignment) -> bool {
+        self.low >= other.low && self.low <= other.high ||
+        self.high >= other.low && self.high <= other.high
+    }
 }
 
 impl AssignmentPair {
-    fn fully_contained(&self) -> bool {
-        self.first.low >= self.second.low && self.first.high <= self.second.high ||
-        self.first.low <= self.second.low && self.first.high >= self.second.high
+    fn contains(&self) -> bool {
+        self.first.contains(&self.second) || self.second.contains(&self.first)
     }
 
-    fn overlap(&self) -> bool {
-        self.first.low >= self.second.low && self.first.low <= self.second.high ||
-        self.first.high >= self.second.low && self.first.high <= self.second.high ||
-        self.second.low >= self.first.low && self.second.low <= self.first.high ||
-        self.second.high >= self.first.low && self.second.high <= self.first.high
+    fn overlaps(&self) -> bool {
+        self.first.overlaps(&self.second) || self.second.overlaps(&self.first)
     }
 }
 
@@ -50,7 +50,7 @@ fn solve() -> (usize, usize) {
         .lines()
         .map(|line| line.parse::<AssignmentPair>().unwrap())
          .fold((0, 0), |(a, b), assignment_pair|
-            (a + assignment_pair.fully_contained() as usize, b + assignment_pair.overlap() as usize)
+            (a + assignment_pair.contains() as usize, b + assignment_pair.overlaps() as usize)
         )
 }
 
