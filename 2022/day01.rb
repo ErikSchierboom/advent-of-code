@@ -1,4 +1,4 @@
-calories = File.read('input.txt')
+calories = File.read('inputs/01.txt')
                .split("\n\n")
                .map { |foods| foods.lines.map(&:to_i).sum }
                .sort

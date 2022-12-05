@@ -1,5 +1,5 @@
 def parse_stack_and_moves
-  File.read('input.txt').then do |str|
+  File.read('inputs/05.txt').then do |str|
     str.split("\n\n").then do |top, bottom|
       stacks = top.lines[0..-2]
                   .map { |line| line.scan(/\[(.)\](?: |$)| ( ) (?: |$)/).map(&:first) }
@@ -27,6 +27,6 @@ b = solve(method(:b_strategy))
 require 'minitest/autorun'
 
 describe 'day 05' do
-  it 'part a' do _(a).must_equal 'SVFDLGLWA' end
+  it 'part a' do _(a).must_equal 'SVFDLGLWV' end
   it 'part b' do _(b).must_equal 'DCVTCVPCL' end
 end

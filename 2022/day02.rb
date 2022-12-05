@@ -1,7 +1,7 @@
 score_a = %w[nil BX CY AZ AX BY CZ CX AY BZ]
 score_b = %w[nil BX CX AX AY BY CY CZ AZ BZ]
 
-instructions = File.readlines('input.txt', chomp: true).map { |instruction| instruction.delete(' ') }
+instructions = File.readlines('inputs/02.txt', chomp: true).map { |instruction| instruction.delete(' ') }
 
 a = instructions.sum { |instruction| score_a.index(instruction) }
 b = instructions.sum { |instruction| score_b.index(instruction) }
