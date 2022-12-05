@@ -24,5 +24,9 @@ end
 a = solve(method(:a_strategy))
 b = solve(method(:b_strategy))
 
-puts "a: #{a} (#{a == 'SVFDLGLWV'})"
-puts "b: #{b} (#{b == 'DCVTCVPCL'})"
+require 'minitest/autorun'
+
+describe 'day 05' do
+  it 'part a' do _(a).must_equal 'SVFDLGLWA' end
+  it 'part b' do _(b).must_equal 'DCVTCVPCL' end
+end

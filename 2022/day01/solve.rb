@@ -7,5 +7,9 @@ calories = File.read('input.txt')
 a = calories[0]
 b = calories[0..2].sum
 
-puts "a: #{a} (#{a == 71124})"
-puts "b: #{b} (#{b == 204639})"
+require 'minitest/autorun'
+
+describe 'day 01' do
+  it 'part a' do _(a).must_equal 71_124 end
+  it 'part b' do _(b).must_equal 204_639 end
+end

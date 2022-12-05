@@ -6,5 +6,9 @@ instructions = File.readlines('input.txt', chomp: true).map { |instruction| inst
 a = instructions.sum { |instruction| score_a.index(instruction) }
 b = instructions.sum { |instruction| score_b.index(instruction) }
 
-puts "a: #{a} (#{a == 11_873})"
-puts "b: #{b} (#{b == 12_014})"
+require 'minitest/autorun'
+
+describe 'day 02' do
+  it 'part a' do _(a).must_equal 11_873 end
+  it 'part b' do _(b).must_equal 12_014 end
+end

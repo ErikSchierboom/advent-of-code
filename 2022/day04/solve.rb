@@ -5,5 +5,9 @@ pairs = File.readlines('input.txt', chomp: true).map { |line| line.split(',').ma
 a = pairs.count { |fst, snd| contains(fst, snd) || contains(snd, fst) }
 b = pairs.count { |fst, snd| overlaps(fst, snd) || overlaps(snd, fst) }
 
-puts "a: #{a} (#{a == 518})"
-puts "b: #{b} (#{b == 909})"
+require 'minitest/autorun'
+
+describe 'day 04' do
+  it 'part a' do _(a).must_equal 518 end
+  it 'part b' do _(b).must_equal 909 end
+end
