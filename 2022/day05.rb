@@ -27,6 +27,6 @@ b = solve(method(:b_strategy))
 require 'minitest/autorun'
 
 describe 'day 05' do
-  it 'part a' do _(a).must_equal 'SVFDLGLWV' end
-  it 'part b' do _(b).must_equal 'DCVTCVPCL' end
+  it 'part a' do assert_equal 'SVFDLGLWV', a end
+  it 'part b' do assert_equal 'DCVTCVPCL', b end
 end

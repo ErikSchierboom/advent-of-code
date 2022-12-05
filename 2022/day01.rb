@@ -10,6 +10,6 @@ b = calories[0..2].sum
 require 'minitest/autorun'
 
 describe 'day 01' do
-  it 'part a' do _(a).must_equal 71_124 end
-  it 'part b' do _(b).must_equal 204_639 end
+  it 'part a' do assert_equal 71_124, a end
+  it 'part b' do assert_equal 204_639, b end
 end

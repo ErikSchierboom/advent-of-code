@@ -8,6 +8,6 @@ b = pairs.count { |fst, snd| overlaps(fst, snd) || overlaps(snd, fst) }
 require 'minitest/autorun'
 
 describe 'day 04' do
-  it 'part a' do _(a).must_equal 518 end
-  it 'part b' do _(b).must_equal 909 end
+  it 'part a' do assert_equal 518, a end
+  it 'part b' do assert_equal 909, b end
 end

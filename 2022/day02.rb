@@ -9,6 +9,6 @@ b = instructions.sum { |instruction| score_b.index(instruction) }
 require 'minitest/autorun'
 
 describe 'day 02' do
-  it 'part a' do _(a).must_equal 11_873 end
-  it 'part b' do _(b).must_equal 12_014 end
+  it 'part a' do assert_equal 11_873, a end
+  it 'part b' do assert_equal 12_014, b end
 end
