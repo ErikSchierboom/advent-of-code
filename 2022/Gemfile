@@ -2,6 +2,5 @@
 
 source "https://rubygems.org"
 
-# gem "rails"
-
-gem "minitest", "~> 5.16"
+gem "minitest", "~> 5.16", group: 'development'
+gem 'rubocop', group: 'development'
