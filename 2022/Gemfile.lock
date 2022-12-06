@@ -29,8 +29,8 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  minitest (~> 5.16)
-  rake (~> 13.0)
+  minitest
+  rake
   rubocop
 
 BUNDLED WITH

@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-gem "minitest", "~> 5.16", group: 'development'
+gem "minitest", group: 'development'
 gem 'rubocop', group: 'development'
+gem "rake", group: 'development'
 
-gem "rake", "~> 13.0"
