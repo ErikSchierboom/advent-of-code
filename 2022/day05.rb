@@ -6,7 +6,7 @@ def parse_stack_and_moves
                            .transpose
                            .map(&:compact)
                            .map(&:reverse)
-        moves = bottom.map { |line| line.scan(/^move (\d+) from (\d+) to (\d+)$/).flatten.map(&:to_i) }
+  moves = bottom.map { |line| line.scan(/^move (\d+) from (\d+) to (\d+)$/).flatten.map(&:to_i) }
         [stacks, moves]
       end
 end
