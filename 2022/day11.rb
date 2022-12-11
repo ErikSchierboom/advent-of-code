@@ -29,8 +29,8 @@ def monkey_business_level(rounds, adjust_worry_level)
   monkeys.map(&:inspected_items).sort.last(2).inject(&:*)
 end
 
-a = monkey_business_level(20, -> (worry_level) { worry_level / 3 })
-b = monkey_business_level(10_000, -> (worry_level) { worry_level % 9_699_690 })
+a = monkey_business_level(20, -> { _1 / 3 })
+b = monkey_business_level(10_000, -> { _1 % 9_699_690 })
 
 require 'minitest/autorun'
 
