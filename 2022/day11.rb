@@ -20,7 +20,7 @@ def monkey_business_level(rounds, adjust_worry_level)
       in ['+', value] then -> { adjust_worry_level.(_1 + value.to_i) }
       in ['*', value] then -> { adjust_worry_level.(_1 * value.to_i) }
     end
-    throw_to = -> (worry_level) { (worry_level % lines[3].last.to_i).zero? ? lines[4].last.to_i : lines[5].last.to_i }
+    throw_to = -> { (_1 % lines[3].last.to_i).zero? ? lines[4].last.to_i : lines[5].last.to_i }
 
     Monkey.new(items, worry_level, throw_to)
   end
