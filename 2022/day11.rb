@@ -1,36 +1,38 @@
-class Monkey < Struct.new(:items, :worry_level, :throw_to)
+class Monkey < Struct.new(:items, :worry_level_for_item, :divisor_for_primary, :primary_target, :secondary_target)
   attr_reader :inspected_items
 
-  def process(monkeys)
+  def process_items(monkeys, correct_worry_level)
     @inspected_items ||= 0
 
     while items.any?
-      adjusted_worry_level = worry_level.(items.shift)
-      monkeys[throw_to.(adjusted_worry_level)].items.push(adjusted_worry_level)
+      worry_level = correct_worry_level.call(worry_level_for_item.call(items.shift))
+      target = (worry_level % divisor_for_primary).zero? ? primary_target : secondary_target
+      monkeys[target].items.push(worry_level)
       @inspected_items += 1
     end
   end
 end
 
-def monkey_business_level(rounds, adjust_worry_level)
+def monkey_business_level(rounds, correct_worry_level)
   monkeys = File.read('inputs/11.txt',).split("\n\n").map(&:lines).map { |lines| lines.map { _1.scan(/[\w+*]+/) } }.map do |lines|
     items = lines[1][2..].map(&:to_i)
     worry_level = case lines[2][-2..]
-      in ['*', 'old'] then -> { adjust_worry_level.(_1 * _1) }
-      in ['+', value] then -> { adjust_worry_level.(_1 + value.to_i) }
-      in ['*', value] then -> { adjust_worry_level.(_1 * value.to_i) }
+      in ['*', 'old'] then -> { _1 * _1 }
+      in ['+', value] then -> { _1 + value.to_i }
+      in ['*', value] then -> { _1 * value.to_i }
     end
-    throw_to = -> { (_1 % lines[3].last.to_i).zero? ? lines[4].last.to_i : lines[5].last.to_i }
-
-    Monkey.new(items, worry_level, throw_to)
+    Monkey.new(items, worry_level, *lines[3..5].map(&:last).map(&:to_i))
   end
 
-  rounds.times { monkeys.each { _1.process(monkeys) } }
+  divisor_product = monkeys.map(&:divisor_for_primary).inject(&:*)
+  correct_worry_level = correct_worry_level.call(divisor_product)
+
+  rounds.times { monkeys.each { _1.process_items(monkeys, correct_worry_level) } }
   monkeys.map(&:inspected_items).sort.last(2).inject(&:*)
 end
 
-a = monkey_business_level(20, -> { _1 / 3 })
-b = monkey_business_level(10_000, -> { _1 % 9_699_690 })
+a = monkey_business_level(20, -> _ { -> { _1 / 3 } })
+b = monkey_business_level(10_000, -> (divisor_product) { -> { _1 % divisor_product } })
 
 require 'minitest/autorun'
 
