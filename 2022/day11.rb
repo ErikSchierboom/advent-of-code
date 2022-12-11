@@ -13,7 +13,7 @@ class Monkey < Struct.new(:items, :worry_level, :throw_to)
 end
 
 def monkey_business_level(rounds, adjust_worry_level)
-  monkeys = File.read('inputs/11.txt',).split("\n\n").map(&:lines).map { |lines| lines.map { _1.scan(/[\w+\*\+]+/) } }.map do |lines|
+  monkeys = File.read('inputs/11.txt',).split("\n\n").map(&:lines).map { |lines| lines.map { _1.scan(/[\w+*]+/) } }.map do |lines|
     items = lines[1][2..].map(&:to_i)
     worry_level = case lines[2][-2..]
       in ['*', 'old'] then -> { adjust_worry_level.(_1 * _1) }
