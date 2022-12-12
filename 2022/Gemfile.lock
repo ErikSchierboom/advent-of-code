@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
+    lazy_priority_queue (0.1.1)
     minitest (5.16.3)
     parallel (1.22.0)
     parser (3.1.2.0)
@@ -29,6 +30,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  lazy_priority_queue (~> 0.1.1)
   minitest
   rake
   rubocop

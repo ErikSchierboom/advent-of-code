@@ -6,3 +6,5 @@ gem "minitest", group: 'development'
 gem 'rubocop', group: 'development'
 gem "rake", group: 'development'
 
+
+gem "lazy_priority_queue", "~> 0.1.1"
