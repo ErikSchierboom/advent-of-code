@@ -11,7 +11,10 @@ grid[start_coord] = 'a'.ord
 grid[goal_coord] = 'z'.ord
 
 def neighbors(coord, steps, grid)
-  [[-1, 0], [1, 0], [0, -1], [0, 1]].map { [coord[0] + _1, coord[1] + _2] }.filter_map { [_1, steps + 1] if grid.key?(_1) }
+  [[-1, 0], [1, 0], [0, -1], [0, 1]].filter_map do |dy, dx|
+    neighbor = [coord[0] + dy, coord[1] + dx]
+    [neighbor, steps + 1] if grid.key?(neighbor) && grid[neighbor] - grid[coord] <= 1
+  end
 end
 
 def fewest_steps(grid, goal_coord, start_coords)
@@ -27,7 +30,7 @@ def fewest_steps(grid, goal_coord, start_coords)
     return min_steps[goal_coord] if coord == goal_coord
 
     neighbors(coord, steps, grid).each do |neighbor, neighbor_steps|
-      if neighbor_steps < min_steps[neighbor] && grid[neighbor] - grid[coord] <= 1
+      if neighbor_steps < min_steps[neighbor]
         min_steps[neighbor] = neighbor_steps
         queue.push [neighbor, neighbor_steps], neighbor_steps
       end
