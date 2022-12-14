@@ -30,7 +30,7 @@ def fewest_steps(grid, goal_coord, start_coords)
     return min_steps[goal_coord] if coord == goal_coord
 
     neighbors(coord, steps, grid).each do |neighbor, neighbor_steps|
-      if neighbor_steps < min_steps[neighbor]
+    if neighbor_steps < min_steps[neighbor]
         min_steps[neighbor] = neighbor_steps
         queue.push [neighbor, neighbor_steps], neighbor_steps
       end
