@@ -1,5 +1,3 @@
-require 'sorted_set'
-
 EMPTY  = 0b00000000
 BOTTOM = 0b01111111
 RIGHT  = 0b00000001
