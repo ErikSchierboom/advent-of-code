@@ -4,11 +4,15 @@ end
 
 class Integer
   def to_snafu
-    powers = []
-    powers << 5 ** powers.size while 5 ** powers.size + 2 + (5 ** powers.size) / 2 < self
+    power = 1
+    snafu = ''
 
-    diff = powers.sum { _1 * 2 } - self
-    powers.map { '210-='.chars[(diff / _1) % 5] }.reverse.drop_while{_1 == '0' }.join
+    loop do
+      snafu += '012=-'[((self + (power / 2)) / power) % 5]
+      break snafu.reverse.gsub(/^0*/,'') if power > self
+
+      power *= 5
+    end
   end
 end
 
