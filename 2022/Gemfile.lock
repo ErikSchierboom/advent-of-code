@@ -32,6 +32,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-21
+  arm64-darwin-22
   x86_64-linux
 
 DEPENDENCIES
@@ -42,4 +43,4 @@ DEPENDENCIES
   sorted_set (~> 1.0)
 
 BUNDLED WITH
-   2.3.7
+   2.4.1
