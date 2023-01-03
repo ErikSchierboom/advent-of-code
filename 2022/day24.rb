@@ -1,7 +1,7 @@
 require 'set'
 require 'lazy_priority_queue'
 
-Valley = Struct.new(:start, :goal, :blizzards, :width, :height)
+Valley = Struct.new(:start, :goal, :blizzards, :width, :height, :cycle)
 
 EXPEDITION_DIRECTIONS = [[0,0], [1,0], [-1,0], [0,1], [0,-1]].freeze
 
@@ -10,7 +10,7 @@ def distance(from, to) = (to[0] - from[0]).abs + (to[1] - from[1]).abs
 def priority(expedition, minute, goal) = minute + distance(expedition, goal)
 
 def calculate_blizzards_per_minute(valley)
-  Array.new(valley.width * valley.height) do |minute|
+  Array.new(valley.cycle) do |minute|
     valley.blizzards.each_with_object(Set.new) do |(direction, x, y), acc|
       case direction
       when '>' then acc << [(x + minute) % valley.width, y]
@@ -30,7 +30,7 @@ def actions(expedition, start, goal, blizzards_per_minute, minute, valley)
     next [new_expedition, new_minute] if new_expedition == goal || new_expedition == start
     next if new_expedition[0].negative? || new_expedition[0] >= valley.width
     next if new_expedition[1].negative? || new_expedition[1] >= valley.height
-    next if blizzards_per_minute[new_minute % (valley.width * valley.height)].include?(new_expedition)
+    next if blizzards_per_minute[new_minute % valley.cycle].include?(new_expedition)
 
     [new_expedition, new_minute]
   end
@@ -70,7 +70,7 @@ valley = File.readlines('inputs/24.txt', chomp: true).then do |lines|
     end
   end
 
-  Valley.new(start, goal, blizzards, width, height)
+  Valley.new(start, goal, blizzards, width, height, width.lcm(height))
 end
 
 blizzards_per_minute = calculate_blizzards_per_minute(valley)
