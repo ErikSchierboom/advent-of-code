@@ -4,14 +4,21 @@ end
 
 class Integer
   def to_snafu
-    power = 1
     snafu = ''
-
+    total = self    
+    
     loop do
-      snafu += '012=-'[((self + (power / 2)) / power) % 5]
-      break snafu.reverse.gsub(/^0*/,'') if power > self
+      remainder = total % 5
+      total /= 5
 
-      power *= 5
+      if remainder <= 2
+        snafu += remainder.to_s
+      else
+        snafu += '   -='[remainder]
+        total += 1
+      end
+
+      break snafu.reverse if total.zero?
     end
   end
 end
