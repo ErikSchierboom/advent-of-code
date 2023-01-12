@@ -9,3 +9,6 @@ Style/ParallelAssignment:
 
 Metrics:
   Enabled: false
+
+Layout/LineLength:
+  Enabled: false
