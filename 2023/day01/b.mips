@@ -1,0 +1,202 @@
+.globl main
+
+.data
+
+outcome:  .asciiz "part b: "
+filename: .asciiz "/home/erik/advent-of-code/2023/day01/input.txt"
+
+buffer:   .space  21785 # Hardcoded number of bytes in input file
+
+.text
+
+main:
+    la $s1, buffer
+    li $t9, 0  # sum
+    li $t5, 10 # newline
+
+    # open file
+    li $v0, 13
+    la $a0, filename
+    li $a1, 0
+    li $a2, 0
+    syscall
+
+    move $s0, $v0 # store the file descriptor
+
+    # read file into buffer
+    li   $v0, 14
+    move $a0, $s0
+    move $a1, $s1
+    li   $a2, 21785
+    syscall
+
+read_line:
+    li $t6, -1 # first digit
+    li $t7, -1 # last digit
+
+read_byte:
+    lb   $t0, ($s1)
+    addi $s1, $s1, 1
+
+    beqz $t0, done
+    beq  $t0, $t5, process_line
+    beq  $t0, 'e', eight
+    beq  $t0, 'f', five_or_four
+    beq  $t0, 'n', nine
+    beq  $t0, 'o', one
+    beq  $t0, 's', seven_or_six
+    beq  $t0, 't', three_or_two
+    blt  $t0, '0', read_byte
+    bgt  $t0, '9', read_byte
+
+    sub  $t0, $t0, '0' # convert ASCII digit to decimal
+    j    digit
+
+eight:
+    move $t4, $s1
+    li   $a3, 'i'
+    jal  require_char
+    li   $a3, 'g'
+    jal  require_char
+    li   $a3, 'h'
+    jal  require_char
+    li   $a3, 't'
+    jal  require_char
+    li   $t0, 8
+    j    digit
+
+five_or_four:
+    move $t4, $s1
+    lb   $t1, ($t4)
+    addi $t4, $t4, 1
+    beq  $t1, $t5, read_byte
+    beq  $t1, 'i', five
+    beq  $t1, 'o', four
+    j    read_byte
+
+four:
+    li   $a3, 'u'
+    jal  require_char
+    li   $a3, 'r'
+    jal  require_char
+    li   $t0, 4
+    j    digit
+
+five:
+    li   $a3, 'v'
+    jal  require_char
+    li   $a3, 'e'
+    jal  require_char
+    li   $t0, 5
+    j    digit
+
+nine:
+    move $t4, $s1
+    li   $a3, 'i'
+    jal  require_char
+    li   $a3, 'n'
+    jal  require_char
+    li   $a3, 'e'
+    jal  require_char
+    li   $t0, 9
+    j    digit
+
+one:
+    move $t4, $s1
+    li   $a3, 'n'
+    jal  require_char
+    li   $a3, 'e'
+    jal  require_char
+    li   $t0, 1
+    j    digit
+
+seven_or_six:
+    move $t4, $s1
+    lb   $t1, ($t4)
+    addi $t4, $t4, 1
+    beq  $t1, $t5, read_byte
+    beq  $t1, 'e', seven
+    beq  $t1, 'i', six
+    j    read_byte
+
+seven:
+    li   $a3, 'v'
+    jal  require_char
+    li   $a3, 'e'
+    jal  require_char
+    li   $a3, 'n'
+    jal  require_char
+    li   $t0, 7
+    j    digit
+
+six:
+    li   $a3, 'x'
+    jal  require_char
+    li   $t0, 6
+    j    digit
+
+three_or_two:
+    move $t4, $s1
+    lb   $t1, ($t4)
+    addi $t4, $t4, 1
+    beq  $t1, $t5, read_byte
+    beq  $t1, 'h', three
+    beq  $t1, 'w', two
+    j    read_byte
+
+three:
+    li   $a3, 'r'
+    jal  require_char
+    li   $a3, 'e'
+    jal  require_char
+    li   $a3, 'e'
+    jal  require_char
+    li   $t0, 3
+    j    digit
+
+two:
+    li   $a3, 'o'
+    jal  require_char
+    li   $t0, 2
+    j    digit
+
+digit:
+    move $t7, $t0
+    bltz $t6, first_digit
+    j    read_byte
+
+first_digit:
+    move $t6, $t0
+    j    read_byte
+
+process_line:
+    mul  $t6, $t6, 10
+    add  $t6, $t6, $t7
+    add  $t9, $t9, $t6
+    j    read_line
+
+done:
+    # close file
+    li   $v0, 16
+    move $a0, $s0
+    syscall
+
+    # print outcome message
+    li $v0, 4
+    la $a0, outcome
+    syscall
+
+    # print outcome
+    li   $v0, 1
+    move $a0, $t9
+    syscall
+
+    li $v0, 10
+    syscall
+
+require_char:
+    lb   $t1, ($t4)
+    addi $t4, $t4, 1
+    beq  $t1, $t5, read_byte
+    bne  $t1, $a3, read_byte
+    jr   $ra
