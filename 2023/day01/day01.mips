@@ -2,7 +2,8 @@
 
 .data
 
-outcome:  .asciiz "part b: "
+part_a:  .asciiz "part a: "
+part_b:  .asciiz "part b: "
 filename: .asciiz "/home/erik/advent-of-code/2023/day01/input.txt"
 
 buffer:   .space  21785 # Hardcoded number of bytes in input file
@@ -11,7 +12,6 @@ buffer:   .space  21785 # Hardcoded number of bytes in input file
 
 main:
     la $s1, buffer
-    li $t9, 0  # sum
     li $t5, 10 # newline
 
     # open file
@@ -30,9 +30,14 @@ main:
     li   $a2, 21785
     syscall
 
+    li $v0, 0  # part a
+    li $v1, 0  # part b
+
 read_line:
-    li $t6, -1 # first digit
-    li $t7, -1 # last digit
+    li $t6, -1 # part a - first digit
+    li $t7, -1 # part a - last digit
+    li $t8, -1 # part b - first digit
+    li $t9, -1 # part b - last digit
 
 read_byte:
     lb   $t0, ($s1)
@@ -50,7 +55,7 @@ read_byte:
     bgt  $t0, '9', read_byte
 
     sub  $t0, $t0, '0' # convert ASCII digit to decimal
-    j    digit
+    j    update_part_a_digits
 
 eight:
     move $t4, $s1
@@ -63,7 +68,7 @@ eight:
     li   $a3, 't'
     jal  require_char
     li   $t0, 8
-    j    digit
+    j    update_part_b_digits
 
 five_or_four:
     move $t4, $s1
@@ -80,7 +85,7 @@ four:
     li   $a3, 'r'
     jal  require_char
     li   $t0, 4
-    j    digit
+    j    update_part_b_digits
 
 five:
     li   $a3, 'v'
@@ -88,7 +93,7 @@ five:
     li   $a3, 'e'
     jal  require_char
     li   $t0, 5
-    j    digit
+    j    update_part_b_digits
 
 nine:
     move $t4, $s1
@@ -99,7 +104,7 @@ nine:
     li   $a3, 'e'
     jal  require_char
     li   $t0, 9
-    j    digit
+    j    update_part_b_digits
 
 one:
     move $t4, $s1
@@ -108,7 +113,7 @@ one:
     li   $a3, 'e'
     jal  require_char
     li   $t0, 1
-    j    digit
+    j    update_part_b_digits
 
 seven_or_six:
     move $t4, $s1
@@ -127,13 +132,13 @@ seven:
     li   $a3, 'n'
     jal  require_char
     li   $t0, 7
-    j    digit
+    j    update_part_b_digits
 
 six:
     li   $a3, 'x'
     jal  require_char
     li   $t0, 6
-    j    digit
+    j    update_part_b_digits
 
 three_or_two:
     move $t4, $s1
@@ -152,43 +157,72 @@ three:
     li   $a3, 'e'
     jal  require_char
     li   $t0, 3
-    j    digit
+    j    update_part_b_digits
 
 two:
     li   $a3, 'o'
     jal  require_char
     li   $t0, 2
-    j    digit
+    j    update_part_b_digits
 
-digit:
+update_part_a_digits:
     move $t7, $t0
-    bltz $t6, first_digit
+    bltz $t6, update_part_a_first_digit
+    j    update_part_b_digits 
+    
+update_part_a_first_digit:
+    move $t6, $t0
+    j    update_part_b_digits
+
+update_part_b_digits:
+    move $t9, $t0
+    bltz $t8, update_part_b_first_digit
     j    read_byte
 
-first_digit:
-    move $t6, $t0
+update_part_b_first_digit:
+    move $t8, $t0
     j    read_byte
 
 process_line:
     mul  $t6, $t6, 10
+    mul  $t8, $t8, 10
     add  $t6, $t6, $t7
-    add  $t9, $t9, $t6
+    add  $t8, $t8, $t9
+    add  $v0, $v0, $t6
+    add  $v1, $v1, $t8
     j    read_line
 
 done:
+    move $t0, $v0
+    move $t1, $v1
+
     # close file
     li   $v0, 16
     move $a0, $s0
     syscall
 
-    # print outcome message
+    # print part a message
     li $v0, 4
-    la $a0, outcome
+    la $a0, part_a
     syscall
 
-    # print outcome
+    # print part a outcome
     li   $v0, 1
-    move $a0, $t9
+    move $a0, $t0
+    syscall
+
+    move $a0, $t5
+    li   $v0, 11
+    syscall
+
+    # print part b message
+    li $v0, 4
+    la $a0, part_b
+    syscall
+
+    # print part b outcome
+    li   $v0, 1
+    move $a0, $t1
     syscall
 
     li $v0, 10
