@@ -3,5 +3,5 @@ project(day08)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(main.cpp)
+add_executable(day08 main.cpp)
 configure_file("input.txt" "input.txt" COPYONLY)
