@@ -1,8 +1,26 @@
 const std = @import("std");
 const allocator = std.heap.page_allocator;
 
-const Point = struct { x: u32, y: u32 };
-const Delta = struct { dx: i8, dy: i8 };
+const Direction = enum {
+    north,
+    east,
+    south,
+    west,
+};
+
+const Point = struct {
+    x: u32,
+    y: u32,
+
+    pub fn add(self: Point, direction: Direction) Point {
+        return switch (direction) {
+            .north => .{ .x = self.x, .y = self.y + 1 },
+            .south => .{ .x = self.x, .y = self.y - 1 },
+            .east => .{ .x = self.x + 1, .y = self.y },
+            .west => .{ .x = self.x - 1, .y = self.y },
+        };
+    }
+};
 
 fn area(polygon: []Point) u64 {
     // Use Shoalace Theorem
@@ -20,124 +38,79 @@ fn numInnerPoints(polygon: []Point, numPoints: usize) u64 {
     return area(polygon) - @divTrunc(numPoints, 2) + 1;
 }
 
-fn pipesMap() !std.AutoHashMap(u8, [2]Delta) {
-    var pipes = std.AutoHashMap(u8, [2]Delta).init(allocator);
-    try pipes.put('|', [_]Delta{ .{ .dx = 0, .dy = 1 }, .{ .dx = 0, .dy = -1 } });
-    try pipes.put('-', [_]Delta{ .{ .dx = -1, .dy = 0 }, .{ .dx = 1, .dy = 0 } });
-    try pipes.put('L', [_]Delta{ .{ .dx = 0, .dy = -1 }, .{ .dx = 1, .dy = 0 } });
-    try pipes.put('J', [_]Delta{ .{ .dx = 0, .dy = -1 }, .{ .dx = -1, .dy = 0 } });
-    try pipes.put('7', [_]Delta{ .{ .dx = -1, .dy = 0 }, .{ .dx = 0, .dy = 1 } });
-    try pipes.put('F', [_]Delta{ .{ .dx = 1, .dy = 0 }, .{ .dx = 0, .dy = 1 } });
+fn pipeDirectionsMap() !std.AutoHashMap(u8, [2]Direction) {
+    var pipes = std.AutoHashMap(u8, [2]Direction).init(allocator);
+    try pipes.put('|', [_]Direction{ .north, .south });
+    try pipes.put('-', [_]Direction{ .west, .east });
+    try pipes.put('L', [_]Direction{ .south, .east });
+    try pipes.put('J', [_]Direction{ .south, .west });
+    try pipes.put('7', [_]Direction{ .west, .north });
+    try pipes.put('F', [_]Direction{ .east, .north });
     return pipes;
 }
 
-fn parse() ![][]u8 {
+fn parse() !struct { start: Point, pipes: *std.AutoHashMap(Point, u8) } {
     var file = try std.fs.cwd().openFile("input.txt", .{});
     defer file.close();
 
-    var buf_reader = std.io.bufferedReader(file.reader());
-    var in_stream = buf_reader.reader();
+    var bufReader = std.io.bufferedReader(file.reader());
+    var inStream = bufReader.reader();
 
-    var lines = std.ArrayList([]u8).init(allocator);
+    var pipes = std.AutoHashMap(Point, u8).init(allocator);
+    var start: Point = undefined;
+    var col: u32 = 0;
+    var row: u32 = 0;
 
     while (true) {
-        var line = std.ArrayList(u8).init(allocator);
-        var writer = line.writer();
-
-        in_stream.streamUntilDelimiter(writer, '\n', null) catch |err| {
-            switch (err) {
-                error.EndOfStream => {
-                    try lines.append(line.items);
-                    break;
-                },
-                else => return err,
-            }
-        };
-
-        try lines.append(line.items);
+        const c = inStream.readByte() catch break;
+        switch (c) {
+            '|', '-', 'L', 'J', '7', 'F', 'S' => {
+                if (c == 'S') start = .{ .x = col, .y = row };
+                try pipes.put(.{ .x = col, .y = row }, c);
+                col += 1;
+            },
+            '\n' => {
+                row += 1;
+                col = 0;
+            },
+            else => col += 1,
+        }
     }
 
-    return lines.items;
+    return .{ .start = start, .pipes = &pipes };
 }
 
 pub fn main() !void {
-    const lines = try parse();
+    const input = try parse();
+    const pipeDirections = try pipeDirectionsMap();
 
-    const rows = lines.len;
-    const cols = lines[0].len;
+    var startPipe: u8 = if (input.pipes.get(input.start.add(.north)) != null) '|' else '-';
+    try input.pipes.put(input.start, startPipe);
 
-    var start: Point = undefined;
-
-    for (lines, 0..) |line, row| {
-        for (line, 0..) |char, col| if (char == 'S') {
-            start = .{ .x = @intCast(col), .y = @intCast(row) };
-        };
-    }
-
-    var neighbors = .{
-        .above = if (start.y == 0) null else lines[start.y - 1][start.x],
-        .below = if (start.y >= rows - 1) null else lines[start.y + 1][start.x],
-        .left = if (start.x == 0) null else lines[start.y][start.x - 1],
-        .right = if (start.x >= cols - 1) null else lines[start.y][start.x + 1],
-    };
-
-    if (neighbors.above == '|' and neighbors.below == '|') {
-        lines[start.y][start.x] = '|';
-    } else if (neighbors.above == '7' and neighbors.below == '|') {
-        lines[start.y][start.x] = '|';
-    } else if (neighbors.above == 'F' and neighbors.below == '|') {
-        lines[start.y][start.x] = '|';
-    } else if (neighbors.left == '-' and neighbors.right == '-') {
-        lines[start.y][start.x] = '-';
-    } else if (neighbors.left == '-' and neighbors.right == 'J') {
-        lines[start.y][start.x] = '-';
-    } else if (neighbors.left == 'F' and neighbors.right == '-') {
-        lines[start.y][start.x] = '-';
-    } else if (neighbors.above == '|' and neighbors.right == '-') {
-        lines[start.y][start.x] = 'L';
-    } else if (neighbors.above == '|' and neighbors.right == '7') {
-        lines[start.y][start.x] = 'L';
-    } else if (neighbors.above == '|' and neighbors.left == '-') {
-        lines[start.y][start.x] = 'J';
-    } else if (neighbors.above == '|' and neighbors.left == 'F') {
-        lines[start.y][start.x] = 'J';
-    } else if (neighbors.below == '|' and neighbors.left == '-') {
-        lines[start.y][start.x] = '7';
-    } else if (neighbors.below == '|' and neighbors.left == 'L') {
-        lines[start.y][start.x] = '7';
-    } else if (neighbors.below == '|' and neighbors.right == '-') {
-        lines[start.y][start.x] = 'F';
-    } else if (neighbors.below == '|' and neighbors.right == 'J') {
-        lines[start.y][start.x] = 'F';
-    }
-
-    var points = std.AutoHashMap(Point, void).init(allocator);
-    defer points.deinit();
+    var visited = std.AutoHashMap(Point, void).init(allocator);
+    defer visited.deinit();
 
     var polygon = std.ArrayList(Point).init(allocator);
     defer polygon.deinit();
 
-    const pipes = try pipesMap();
+    var current = input.start;
+    while (!visited.contains(current)) {
+        try visited.put(current, {});
 
-    var current = start;
-    while (!points.contains(current)) {
-        try points.put(current, {});
+        if (input.pipes.get(current)) |c| {
+            if (pipeDirections.get(c)) |pipe| {
+                if (c != '-' and c != '|') try polygon.append(current);
 
-        const c = lines[current.y][current.x];
-        if (pipes.get(c)) |pipe| {
-            if (c != '-' and c != '|') try polygon.append(current);
-
-            current = for (pipe) |delta| {
-                const nextX: u32 = @intCast(@as(i64, current.x) + delta.dx);
-                const nextY: u32 = @intCast(@as(i64, current.y) + delta.dy);
-                const next: Point = .{ .x = nextX, .y = nextY };
-                if (!points.contains(next)) break next;
-            };
+                current = for (pipe) |direction| {
+                    const next = current.add(direction);
+                    if (!visited.contains(next)) break next;
+                };
+            }
         }
     }
 
-    const partA = points.count() / 2;
-    const partB = numInnerPoints(polygon.items, points.count());
+    const partA = visited.count() / 2;
+    const partB = numInnerPoints(polygon.items, visited.count());
 
     std.debug.print("part a: {d}\npart b: {d}\n", .{ partA, partB });
 }
