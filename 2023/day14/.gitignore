@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/day14
+day14.so
+day14.dylib
+day14.dll
+day14.a
+day14.lib
+day14-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
