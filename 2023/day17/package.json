@@ -1,0 +1,14 @@
+{
+  "name": "day18",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@datastructures-js/priority-queue": "^6.3.0"
+  }
+}
