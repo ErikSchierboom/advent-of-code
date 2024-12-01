@@ -1,4 +1,4 @@
-Input ← &fras "../input/day01.txt"
+Input ← &fras "input/day01.txt"
 Parse ← ⍉⊜(⊜⋕⊸≠@\s)⊸≠@\n
 Part₁ ← /+⌵/-≡⍆
 Part₂ ← /+≡(×/+):⟜⊞=°⊟
