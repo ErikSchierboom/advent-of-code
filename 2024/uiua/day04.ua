@@ -1,11 +1,9 @@
 Input     ← &fras "input/day04.txt"
 Parse     ← ⊜∘≠@\n.
-Compare   ← ↥⊃(≍|≍⇌)
-Match₁    ← Compare "XMAS"
-Match₂    ← Compare "MAS"
-Straight  ← +∩(/+ ≡Match₁ ♭₂≡(⧈∘ 4))⊃(∘|⍉)
-Diagonals ← ⊟∩(⌝⤸ 0_0)⊃(∘|⇌⍉)
-Diagonal  ← /+ ≡Match₁ ♭₂≡Diagonals ♭₃⧈∘4_4
-Part₁     ← +⊃(Straight|Diagonal)
-Part₂     ← /+≡(/×≡Match₂ Diagonals) ♭₃⧈∘3_3
+Match     ← /+♭∈⊙⧈∘
+Straight₁ ← "SAMX"_"XMAS"
+Diag₁     ← [∩(≡⇌.)⇌."X\W\W\W"_"\WM\W\W"_"\W\WA\W"_"\W\W\WS"]
+Diag₂     ← [⍥⊸(⍉⇌)3["M\WM""\WA\W""S\WS"]]
+Part₁     ← +⊃(+∩(Match Straight₁ 1_4) ⍉.|Match Diag₁ 4_4)
+Part₂     ← Match Diag₂ 3_3
 ⊃(Part₁|Part₂) Parse Input
