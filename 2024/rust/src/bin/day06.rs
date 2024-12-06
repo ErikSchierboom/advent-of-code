@@ -1,25 +1,27 @@
 use std::collections::HashSet;
 use std::ops::Deref;
 use itertools::Itertools;
+use aoc::{Direction, Position};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Direction { North, East, South, West }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct Position {
-    x: usize,
-    y: usize,
-}
-
+#[derive(Clone, PartialEq, Eq)]
 struct Guard {
     pos: Position,
     dir: Direction,
+    visited: HashSet<(Position,Direction)>
 }
 
 struct Maze {
     width: usize,
     height: usize,
     obstacles: HashSet<Position>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum WalkResult {
+    Bump,
+    Exit,
+    Walk,
+    Loop
 }
 
 impl Guard {
@@ -33,76 +35,55 @@ impl Guard {
     }
 
     fn will_bump(&self, maze: &Maze) -> bool {
-        let next = self.advance();
-        maze.obstacles.contains(&next.pos)
+        let next = self.pos.advance(&self.dir);
+        maze.obstacles.contains(&next)
     }
 
-    fn advance(&self) -> Self {
-        match self.dir {
-            Direction::North => Self { pos: Position { y: self.pos.y - 1, ..self.pos }, ..*self },
-            Direction::East => Self { pos: Position { x: self.pos.x + 1, ..self.pos }, ..*self },
-            Direction::South => Self { pos: Position { y: self.pos.y + 1, ..self.pos }, ..*self },
-            Direction::West => Self { pos: Position { x: self.pos.x - 1, ..self.pos }, ..*self },
-        }
+    fn turn_right(&mut self) {
+        self.dir = self.dir.right()
     }
 
-    fn turn_right(&self) -> Self {
-        match self.dir {
-            Direction::North => Self { dir: Direction::East, ..*self },
-            Direction::East => Self { dir: Direction::South, ..*self },
-            Direction::South => Self { dir: Direction::West, ..*self },
-            Direction::West => Self { dir: Direction::North, ..*self },
-        }
+    fn walk(&mut self) {
+        self.pos = self.pos.advance(&self.dir);
+        self.visited.insert((self.pos, self.dir));
     }
-}
 
-fn part_1((guard, maze): &(Guard, Maze)) -> usize {
-    let mut guard = *guard;
-    let mut visited = HashSet::new();
-
-    loop {
-        visited.insert(guard.pos);
-        if guard.will_exit(&maze) {
-            break
-        }
-
-        if guard.advance().will_bump(&maze) {
-            guard = guard.turn_right();
+    fn peek_walk(&mut self, maze: &Maze) -> WalkResult {
+        if self.will_exit(maze) {
+            WalkResult::Exit
+        } else if self.will_bump(maze) {
+            WalkResult::Bump
         } else {
-            guard = guard.advance();
+            WalkResult::Walk
         }
     }
 
-    visited.len()
+    fn walk_until(&mut self, maze: &Maze, stop_when: WalkResult) {
+        loop {
+            let walk_result = self.peek_walk(&maze);
+            if walk_result == stop_when {
+                break
+            }
+
+            match walk_result {
+                WalkResult::Bump => self.turn_right(),
+                WalkResult::Walk => self.walk(),
+                _ => break
+            }
+        }
+    }
 }
 
-fn part_2(maze: &(Guard, Maze)) -> usize {
-    6
-    // let mut pos = maze.guard;
-    // let mut dir = Direction::North;
-    // let mut visited = HashSet::new();
-    // let mut obstructions = HashSet::new();
-    //
-    // loop {
-    //     visited.insert((pos, dir));
-    //     if maze.will_exit(pos, &dir) { break }
-    //
-    //     let next = advance(pos, &dir);
-    //     if maze.obstacles.contains(&next) {
-    //         dir = turn_right(&dir);
-    //     } else {
-    //
-    //         let alternative_dir = turn_right(&dir);
-    //         let alternate_pos = advance(pos, &alternative_dir);
-    //         if visited.contains(&(alternate_pos, alternative_dir)) {
-    //             obstructions.insert(alternate_pos);
-    //         }
-    //
-    //         pos = next;
-    //     }
-    // }
-    //
-    // obstructions.len()
+fn part_1(guard: &Guard, maze: &Maze) -> usize {
+    let mut guard = guard.clone();
+    guard.walk_until(&maze, WalkResult::Exit);
+    guard.visited.iter().map(|(pos, _)| *pos).unique().count()
+}
+
+fn part_2(guard: &Guard, maze: &Maze) -> usize {
+    let mut guard = guard.clone();
+    guard.walk_until(&maze, WalkResult::Exit);
+    guard.visited.iter().map(|(pos, _)| *pos).unique().count()
 }
 
 fn parse_guard(lines: &Vec<&str>) -> Guard {
@@ -112,7 +93,7 @@ fn parse_guard(lines: &Vec<&str>) -> Guard {
             cells.char_indices().find_map(
                 |(x, c)| {
                     match c {
-                        '^' => Some(Guard { pos: Position { x, y }, dir: Direction::North }),
+                        '^' => Some(Guard { pos: Position { x, y }, dir: Direction::North, visited: HashSet::from([(Position { x, y }, Direction::North)]) }),
                         _ => None
                     }
                 }
@@ -131,7 +112,7 @@ fn parse_maze(lines: &Vec<&str>) -> Maze {
                 cells.char_indices().filter_map(
                     move |(x, c)| {
                         match c {
-                            '#' => Some(Position {x, y}),
+                            '#' => Some(Position { x, y }),
                             _ => None
                         }
                     }
@@ -147,9 +128,9 @@ fn parse(input: &str) -> (Guard, Maze) {
 }
 
 fn main() {
-    let input = parse(&aoc::read_input(6));
-    println!("part A: {:0}", part_1(&input));
-    println!("part B: {:0}", part_2(&input));
+    let (guard, maze) = parse(&aoc::read_input(6));
+    println!("part A: {:0}", part_1(&guard, &maze));
+    println!("part B: {:0}", part_2(&guard, &maze));
 }
 
 #[cfg(test)]
@@ -170,11 +151,13 @@ mod tests {
 
     #[test]
     fn part_1_example() {
-        assert_eq!(part_1(&parse(INPUT)), 41);
+        let (guard, maze) = parse(INPUT);
+        assert_eq!(part_1(&guard, &maze), 41);
     }
 
     #[test]
     fn part_2_example() {
-        assert_eq!(part_2(&parse(INPUT)), 6);
+        let (guard, maze) = parse(INPUT);
+        assert_eq!(part_2(&guard, &maze), 6);
     }
 }
