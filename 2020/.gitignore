@@ -2,6 +2,6 @@
 .ionide/
 .vs/
 .vscode/
-
 bin/
 obj/
+Input/
