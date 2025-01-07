@@ -1,7 +1,7 @@
 (ns day01
   (:require convert))
 
-(def parse convert/->ints)
+(def parse convert/str->ints)
 
 (defn- fuel-requirement [mass]
   (- (quot mass 3) 2))
