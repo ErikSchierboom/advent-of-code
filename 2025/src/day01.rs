@@ -1,43 +1,34 @@
-use std::ops::{Add, Sub};
-
-pub struct Rotation {
-    before: i32,
-    after: i32,
-    by: i32,
-}
+use std::ops::Add;
 
 pub fn part_1(input: &str) -> usize {
-    rotations(input)
-        .filter(|rotation| rotation.after == 0)
-        .count()
+    rotations(input).stopped_at_zero
 }
 
-pub fn part_2(input: &str) -> i32 {
-    rotations(input)
-        .map(|rotation| {
-            let full_rotations = rotation.by.abs() / 100;
-
-            if rotation.after == 0 {
-                full_rotations + 1
-            } else if rotation.by.signum() == rotation.before.sub(rotation.after).signum() * rotation.before.signum() {
-                full_rotations + 1
-            } else {
-                full_rotations
-            }
-        })
-        .sum()
+pub fn part_2(input: &str) -> usize {
+    rotations(input).passed_zero
 }
 
-fn rotations(input: &str) -> impl Iterator<Item=Rotation> {
+fn rotations(input: &str) -> Rotations {
     input
         .lines()
-        .map(|rotation| if &rotation[0..1] == "L" { -1 } else { 1 } * rotation[1..].parse::<i32>().unwrap())
-        .scan(50, |current, rotated_by| {
-            let before = current.clone();
-            let after = current.add(rotated_by).rem_euclid(100);
-            *current = after;
-            Some(Rotation { before, after, by: rotated_by })
+        .fold(Rotations { stopped_at_zero: 0, passed_zero: 0, position: 50 }, |mut rotations, line| {
+            let direction = if line.as_bytes()[0] == b'L' { -1 } else { 1 };
+            let rotate_by = line[1..].parse::<i32>().unwrap();
+
+            for _ in 0..rotate_by {
+                rotations.position = rotations.position.add(direction).rem_euclid(100);
+                rotations.passed_zero += usize::from(rotations.position == 0);
+            }
+
+            rotations.stopped_at_zero += usize::from(rotations.position == 0);
+            rotations
         })
+}
+
+struct Rotations {
+    stopped_at_zero: usize,
+    passed_zero: usize,
+    position: i32
 }
 
 #[cfg(test)]
