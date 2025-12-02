@@ -1,10 +1,17 @@
 use std::ops::Add;
+use aoc_2025::utils::read_input;
 
-pub fn part_1(input: &str) -> usize {
+fn main() {
+    let input = read_input(1);
+    println!("Part 1: {}", part_1(&input));
+    println!("Part 2: {}", part_2(&input));
+}
+
+fn part_1(input: &str) -> usize {
     rotations(input).stopped_at_zero
 }
 
-pub fn part_2(input: &str) -> usize {
+fn part_2(input: &str) -> usize {
     rotations(input).passed_zero
 }
 
@@ -33,7 +40,6 @@ struct Rotations {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_input;
     use super::*;
 
     const SAMPLE: &str = "L68\n\

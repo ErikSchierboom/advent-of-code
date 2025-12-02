@@ -1,10 +1,17 @@
 use itertools::Itertools;
+use aoc_2025::utils::read_input;
 
-pub fn part_1(input: &str) -> i64 {
+fn main() {
+    let input = read_input(2);
+    println!("Part 1: {}", part_1(&input));
+    println!("Part 2: {}", part_2(&input));
+}
+
+fn part_1(input: &str) -> i64 {
     invalid_ids_sum(input, is_invalid_part_1)
 }
 
-pub fn part_2(input: &str) -> i64 {
+fn part_2(input: &str) -> i64 {
     invalid_ids_sum(input, is_invalid_part_2)
 }
 
@@ -42,7 +49,6 @@ fn is_invalid_part_2(number: &i64) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::read_input;
 
     const SAMPLE: &str = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
 
