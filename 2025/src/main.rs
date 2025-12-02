@@ -1,13 +1,15 @@
 use crate::utils::solve;
 
 mod day01;
+mod day02;
 mod utils;
 
-const LATEST_DAY: u8 = 1;
+const LATEST_DAY: u8 = 2;
 
 fn solve_day(day: u8) {
     match day {
         1 => solve(day, day01::part_1, day01::part_2),
+        2 => solve(day, day02::part_1, day02::part_2),
         _ => panic!("Unimplemented day")
     }
 }
