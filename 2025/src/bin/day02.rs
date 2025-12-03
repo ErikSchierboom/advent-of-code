@@ -28,13 +28,7 @@ fn invalid_ids_sum(input: &str, invalid_check: impl Fn(&i64) -> bool) -> i64 {
 
 fn is_invalid_part_1(number: &i64) -> bool {
     let str = number.to_string();
-    if str.len() % 2 == 1 {
-        return false
-    }
-
-    let bytes = str.as_bytes();
-    let (left, right) = bytes.split_at(str.len() / 2);
-    left == right
+    str.len() % 2 == 0 && str[0..str.len() / 2] == str[str.len() / 2..]
 }
 
 fn is_invalid_part_2(number: &i64) -> bool {
