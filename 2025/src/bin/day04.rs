@@ -1,10 +1,11 @@
 use aoc_2025::utils::read_input;
 use std::collections::HashSet;
 
+const DAY: u8 = 4;
 const NEIGHBORS: [(isize, isize); 8] = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)];
 
 fn main() {
-    let input = read_input(4);
+    let input = read_input(DAY);
     println!("Part 1: {}", part_1(&input));
     println!("Part 2: {}", part_2(&input));
 }
@@ -74,7 +75,7 @@ mod tests {
 
     #[test]
     pub fn solve_part_1_input() {
-        assert_eq!(part_1(&read_input(4)), 1460);
+        assert_eq!(part_1(&read_input(DAY)), 1460);
     }
 
     #[test]
@@ -84,6 +85,6 @@ mod tests {
 
     #[test]
     pub fn solve_part_2_input() {
-        assert_eq!(part_2(&read_input(4)), 9243);
+        assert_eq!(part_2(&read_input(DAY)), 9243);
     }
 }

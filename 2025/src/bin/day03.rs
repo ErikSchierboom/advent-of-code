@@ -1,8 +1,10 @@
 use itertools::Itertools;
 use aoc_2025::utils::read_input;
 
+const DAY: u8 = 3;
+
 fn main() {
-    let input = read_input(3);
+    let input = read_input(DAY);
     println!("Part 1: {}", part_1(&input));
     println!("Part 2: {}", part_2(&input));
 }
@@ -53,7 +55,7 @@ mod tests {
 
     #[test]
     pub fn solve_part_1_input() {
-        assert_eq!(part_1(&read_input(3)), 17316);
+        assert_eq!(part_1(&read_input(DAY)), 17316);
     }
 
     #[test]
@@ -63,6 +65,6 @@ mod tests {
 
     #[test]
     pub fn solve_part_2_input() {
-        assert_eq!(part_2(&read_input(3)), 171741365473332);
+        assert_eq!(part_2(&read_input(DAY)), 171741365473332);
     }
 }
