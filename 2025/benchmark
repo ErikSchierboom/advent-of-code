@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+    echo "usage: ./benchmark <day>"
+    exit 1
+fi
+
+printf -v day "day%02d" "$1"
+hyperfine -N --prepare "cargo build --bin $day --release" --warmup 100 "./target/release/$day"
