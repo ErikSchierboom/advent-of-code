@@ -7,8 +7,8 @@ function part_2(ids)
     sum(id * get(counts, id, 0) for id=ids[:, begin])
 end
 
-function solve(input="day1.txt")
-    ids = sort(readdlm(input, Int); dims=1)
+function solve(input=joinpath(@__DIR__, "day1.txt"))
+    ids = sort(readdlm(input, Int8); dims=1)
     return part_1(ids), part_2(ids)
 end
 
